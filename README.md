@@ -149,7 +149,7 @@ Install [uv](https://docs.astral.sh/uv/getting-started/installation/) once. In a
     "ruin-everything": {
       "command": "uvx",
       "args": [
-        "--isolated", "--upgrade",
+        "--isolated", "--refresh",
         "--from", "ruin-everything[mcp] @ git+https://github.com/yuki4266/ruin-everything.git@main",
         "ruin-mcp"
       ],
@@ -159,7 +159,7 @@ Install [uv](https://docs.astral.sh/uv/getting-started/installation/) once. In a
 }
 ```
 
-After the project's first PyPI release, replace the `--from` value with `ruin-everything[mcp]` to track published releases. Both configurations launch the actual `ruin-mcp` executable. An existing editable installation can still launch it directly.
+After the project's first PyPI release, replace the `--from` value with `ruin-everything[mcp]` to track published releases. Both configurations launch the actual `ruin-mcp` executable. A two-version smoke test verified refresh on both the Git and package paths. An existing editable installation can still launch it directly.
 
 Both tools take `site`. The watcher also takes `timeout_seconds` (default 15, range 1–300). A returned receipt contains `state`, `site`, `observed_at` and the site's confirmation `message`. The application driver owns form interaction. After a timeout, check the same URL again before considering another submission.
 
