@@ -1,3 +1,4 @@
+import asyncio
 import os
 import sys
 import tempfile
@@ -20,9 +21,13 @@ class ReceiptMCP(unittest.IsolatedAsyncioTestCase):
             profile = Path(temp) / "chrome"
             async with async_playwright() as pw:
                 context = await pw.chromium.launch_persistent_context(
-                    profile, channel=os.getenv("RUIN_TEST_CHANNEL"), args=["--remote-debugging-port=0"]
+                    profile, channel=os.getenv("RUIN_TEST_CHANNEL", "chromium"), args=["--remote-debugging-port=0"]
                 )
-                port = (profile / "DevToolsActivePort").read_text().splitlines()[0]
+                port_file = profile / "DevToolsActivePort"
+                async with asyncio.timeout(10):
+                    while not (port_file.exists() and port_file.read_text().splitlines()):
+                        await asyncio.sleep(0.05)
+                port = port_file.read_text().splitlines()[0]
                 await context.route("**/*", lambda route: route.fulfill(body="<main>Pending</main>", content_type="text/html"))
                 page = context.pages[0]
                 await page.goto(site)

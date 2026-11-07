@@ -181,7 +181,7 @@ In a local Chrome simulation, a fresh Codex CLI session given only the Greenhous
 
 The Ashby receipt watcher takes `timeout_seconds` (default 15, range 1–300). A returned receipt contains `state`, `site`, `observed_at` and the site's confirmation `message`. The application driver owns form interaction. After a timeout, check the same URL again before considering another submission.
 
-The server uses the official Python MCP SDK over stdio. A browser automation client such as Playwright MCP can run alongside it by attaching to the same local Chrome with `--cdp-endpoint http://127.0.0.1:9222`. The integration test exercises two successive SDK clients and a simulated employer page in Chrome. [Python MCP SDK](https://github.com/modelcontextprotocol/python-sdk) · [Playwright MCP connection options](https://github.com/microsoft/playwright-mcp#configuration)
+The server uses the official Python MCP SDK over stdio. A browser automation client such as Playwright MCP can run alongside it by attaching to the same local Chrome with `--cdp-endpoint http://127.0.0.1:9222`. The integration test waits for Chrome to advertise its local debugging port, then connects two successive SDK clients to the simulated employer page. [Python MCP SDK](https://github.com/modelcontextprotocol/python-sdk) · [Playwright MCP connection options](https://github.com/microsoft/playwright-mcp#configuration)
 
 ## How updates reach your machine
 
