@@ -32,7 +32,32 @@ class ReceiptMCP(unittest.IsolatedAsyncioTestCase):
                 async with stdio_client(params) as streams, ClientSession(*streams) as client:
                     await client.initialize()
                     tools = (await client.list_tools()).tools
-                    self.assertEqual({t.name for t in tools}, {"get_ashby_receipt", "watch_ashby_receipt"})
+                    self.assertEqual({t.name for t in tools}, {"inspect_application_challenge", "get_ashby_receipt", "watch_ashby_receipt"})
+                    inspect = "inspect_application_challenge"
+                    board = "https://job-boards.greenhouse.io/example/jobs/12345"
+                    args = {"site": board}
+                    missing = await client.call_tool(inspect, args)
+                    self.assertEqual(missing.structuredContent["state"], "tab_missing")
+                    greenhouse = await context.new_page()
+                    await greenhouse.goto(board)
+                    await greenhouse.set_content('<div hidden><p>Security code</p><input autocomplete="one-time-code"></div>')
+                    before = await client.call_tool(inspect, args)
+                    self.assertEqual(before.structuredContent["state"], "pending")
+                    await greenhouse.evaluate("setTimeout(() => document.querySelector('div').hidden = false, 250)")
+                    challenge = await client.call_tool(inspect, {**args, "wait_seconds": 5})
+                    self.assertEqual(challenge.structuredContent, {"state": "email_verification", "provider": "greenhouse"})
+                    duplicate = await context.new_page()
+                    await duplicate.goto(board)
+                    ambiguous = await client.call_tool(inspect, args)
+                    self.assertEqual(ambiguous.structuredContent["state"], "ambiguous_tabs")
+                    await duplicate.close()
+                    self.assertEqual(await greenhouse.locator("input").input_value(), "")
+                    await page.set_content('<iframe src="https://www.google.com/recaptcha/api2/bframe"></iframe>')
+                    challenge = await client.call_tool(inspect, {"site": site})
+                    self.assertEqual(challenge.structuredContent["state"], "challenge_visible")
+                    await page.set_content("<main>Pending</main>")
+                    unsupported = await client.call_tool(inspect, {"site": "https://www.paypal.com/signin"})
+                    self.assertTrue(unsupported.isError)
                     pending = await client.call_tool("get_ashby_receipt", {"site": site})
                     self.assertEqual(pending.structuredContent["state"], "unrecorded")
                     self.assertEqual(pending.structuredContent["site"], site)

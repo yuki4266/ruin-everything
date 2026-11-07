@@ -37,12 +37,14 @@ async def listening():
 
 
 @asynccontextmanager
-async def browser_context(profile: Path, cdp: str | None = None, channel=None):
+async def browser_context(profile: Path, cdp: str | None = None, channel=None, *, launch_if_missing=True):
     url = cdp or LOCAL_CDP
     endpoint = urlsplit(url)
     if endpoint.scheme != "http" or endpoint.hostname not in {"localhost", "127.0.0.1", "::1"}:
         raise ValueError("CDP requires a local Chrome HTTP debugging endpoint.")
     if url.rstrip("/") in {LOCAL_CDP, "http://localhost:9222"} and not await listening():
+        if not launch_if_missing:
+            raise RuntimeError("Shared Chrome is offline. Start the project browser and open the original job.")
         profile.mkdir(mode=0o700, parents=True, exist_ok=True)
         subprocess.Popen([
             chrome_executable(), f"--user-data-dir={profile.resolve()}",

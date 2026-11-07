@@ -109,6 +109,14 @@ async def receive(mail: Page, seen: set, company: str, started: float, rules, re
         await asyncio.sleep(1)
 
 
+async def verification_prompt_visible(app: Page, rules) -> bool:
+    group = app.get_by_role("group", name=re.compile("verification code was sent", re.I))
+    return await group.is_visible() or (
+        await app.get_by_text(PROMPT).first.is_visible()
+        and await app.locator(rules["greenhouse"]["code_field"]).count() > 0
+    )
+
+
 async def verify_application(context, url: str, company: str, timeout: int, directory: Path,
                              requested_at=None):
     key = job_key(url)
@@ -122,9 +130,7 @@ async def verify_application(context, url: str, company: str, timeout: int, dire
         app = tabs[0]
         group = app.get_by_role("group", name=re.compile("verification code was sent", re.I))
         prompt = app.get_by_text(PROMPT).first
-        prompted = await group.is_visible() or (
-            await prompt.is_visible() and await app.locator(rules["greenhouse"]["code_field"]).count() > 0
-        )
+        prompted = await verification_prompt_visible(app, rules)
         resend = app.get_by_role("button", name=RESEND).or_(app.get_by_role("link", name=RESEND))
         resume_existing = prompted and not await resend.count()
         if resume_existing and requested_at is None:

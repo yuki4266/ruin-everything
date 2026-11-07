@@ -12,6 +12,10 @@ from ruin.updater import start_update_check
 
 
 async def run(args):
+    if args.task == "watch":
+        from ruin.agent.challenge import inspect_challenge
+        print(json.dumps(await inspect_challenge(args.site, args.cdp, args.timeout)))
+        return
     async with browser_context(PROFILE, args.cdp, args.channel) as context:
         if args.task == "browser":
             print("Connected to local Chrome. The browser will stay open.")
@@ -48,7 +52,7 @@ async def run(args):
 
 def main():
     parser = argparse.ArgumentParser(description="Run browser tasks and resume verification in a shared local Chrome session.")
-    parser.add_argument("task", help="Use browser, verify-email, resume-ashby, courses, or a click task with --site.")
+    parser.add_argument("task", help="Use browser, watch, verify-email, resume-ashby, courses, or a click task with --site.")
     parser.add_argument("--site", help="HTTPS starting URL for a click task")
     parser.add_argument("--autofill", action="store_true", help="Fill credentials for this origin from the system keyring")
     parser.add_argument("--requested-at", type=float, metavar="UNIX_SECONDS",
@@ -57,11 +61,11 @@ def main():
     parser.add_argument("--model", default="gpt-4.1-mini")
     parser.add_argument("--cdp", metavar="URL", help="Connect to a local Chrome HTTP debugging endpoint")
     parser.add_argument("--channel", choices=["chrome"], help="Launch the dedicated profile in installed Chrome")
-    parser.add_argument("--timeout", type=int, default=180, help="Seconds to wait for school verification")
+    parser.add_argument("--timeout", type=int, default=180, help="Seconds to wait for the requested workflow")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
-    if args.task == "resume-ashby" and not args.site:
-        parser.error("resume-ashby requires --site")
+    if args.task in {"resume-ashby", "watch"} and not args.site:
+        parser.error(f"{args.task} requires --site")
     if args.task == "verify-email" and not (args.site and args.company):
         parser.error("verify-email requires --site and --company")
     if not args.site and args.task not in {"browser", "courses", "list my courses"}:

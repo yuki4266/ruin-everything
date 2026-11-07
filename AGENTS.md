@@ -13,3 +13,13 @@
 Draw an original, editable technical illustration answering “[reader question]” for [audience]. In the overview, arrange [named components] in execution order. In the detail panel, show [decision, boundary, or exception] at the point where it occurs. Label each connection with the data or action it carries. Use rounded forms, expressive object illustrations, consistent ink outlines and short English labels. Give each step a distinct shape so the diagram also reads without color. Test the layout at mobile and README widths. Use a warm neutral for human action. Compare the draft with [implementation or test], then remove any unsupported step.
 
 ![Figure development proceeds from a question to a labeled drawing and a checked result.](docs/figures/editorial.svg)
+
+## Ruin Everything application routing
+
+For an authorized application already open in shared local Chrome, use the exact job URL.
+
+- When a Greenhouse form shows an email verification or 8-character security code prompt, or a connector reports `[one-time authentication code withheld]`, first call `inspect_application_challenge`. On Ashby, use the same tool for a visible reCAPTCHA grid or a lost application tab. An inspection reports the form state and leaves the tab open.
+- When the question is whether an Ashby application was submitted, call `get_ashby_receipt` first. If the result is unrecorded and the original tab is available, use `watch_ashby_receipt`. Record submission only with a returned receipt.
+- A missing or ambiguous tab needs the original job and browser context. For Duo 2FA, a PayPal Security Challenge, payment authorization or another unsupported provider, follow the site's normal verification flow and the client's permissions. Keep codes and passwords out of tool arguments.
+
+![Route an observed Greenhouse or Ashby challenge by the exact job URL.](docs/figures/challenge-routing.svg)

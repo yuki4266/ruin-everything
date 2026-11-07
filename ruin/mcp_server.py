@@ -1,9 +1,10 @@
-"""Expose the local Ashby receipt journal and watcher to stdio MCP clients."""
+"""Inspect local application tabs and check Ashby receipts over stdio MCP."""
 
 import argparse
 from typing import Annotated, Literal
 
 from ruin.agent.ashby import application_url, lookup_receipt, resume_ashby
+from ruin.agent.challenge import Provider, State, inspect_challenge
 from ruin.browser.context import browser_context
 from ruin.config import PROFILE
 from ruin.updater import start_update_check
@@ -22,6 +23,10 @@ def main():
             parser.exit(1, "Install the MCP extra with python -m pip install -e '.[mcp]'.\n")
         raise
 
+    class Challenge(BaseModel):
+        provider: Provider
+        state: State
+
     class Receipt(BaseModel):
         state: Literal["submitted"]
         site: str
@@ -36,9 +41,24 @@ def main():
 
     server = FastMCP("Ruin Everything")
 
+    @server.tool(annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True))
+    async def inspect_application_challenge(
+        site: str, wait_seconds: Annotated[int, Field(ge=0, le=300)] = 0
+    ) -> Challenge:
+        """Inspect the original Greenhouse or Ashby application tab at its exact job URL.
+        Use when Greenhouse asks for an 8-character email security code, including reports of
+        '[one-time authentication code withheld]', or Ashby displays a reCAPTCHA image grid.
+        On a lost tab, report whether the shared local browser still has it. Return the visible
+        state only. Mailbox contents, CAPTCHA solving, Duo 2FA, PayPal Security Challenge and
+        payment actions are outside this tool's scope. A positive wait watches just this job.
+        """
+        return Challenge(**await inspect_challenge(site, args.cdp, wait_seconds))
+
     @server.tool(annotations=ToolAnnotations(readOnlyHint=True, openWorldHint=False))
     def get_ashby_receipt(site: str) -> Lookup:
-        """Look up one exact Ashby application URL locally. Unrecorded means the outcome is unknown."""
+        """Check the exact Ashby job first when asked whether it was submitted, including at handoff or after a lost tab.
+        A stored receipt confirms success even with Chrome closed. Unrecorded means the outcome is unknown.
+        """
         site = application_url(site)
         receipt = lookup_receipt(site, PROFILE.parent)
         return Lookup(**receipt) if receipt else Lookup(state="unrecorded", site=site)
@@ -47,7 +67,9 @@ def main():
     async def watch_ashby_receipt(
         site: str, timeout_seconds: Annotated[int, Field(ge=1, le=300)] = 15
     ) -> Receipt:
-        """Return saved evidence or watch the original tab for official success. This never submits the form."""
+        """Watch the original Ashby form when a challenge clears or a submitted application has no receipt yet.
+        Return saved evidence or record the official success message for this job. This never submits the form.
+        """
         site = application_url(site)
         receipt = lookup_receipt(site, PROFILE.parent)
         if receipt:

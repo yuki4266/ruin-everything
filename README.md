@@ -136,10 +136,13 @@ The illustrated receipt is an example. The receipt pattern comes from a complete
 
 <img src="docs/figures/mcp-receipts.svg" alt="An agent checks the local Ashby journal by job URL. It can return saved evidence offline or watch the original tab for a new receipt." width="100%">
 
-When one agent takes over an application from another, give it the exact Ashby application URL. The optional local MCP server exposes two tools that share the CLI's receipt journal.
+Give the client the exact job URL and describe what you see. If the question is whether an Ashby application went through, the client checks the receipt journal first. If the form is waiting for verification, the client inspects the open tab.
+
+<img src="docs/figures/challenge-routing.svg" alt="For one exact job URL, the inspector identifies a Greenhouse email code prompt or an Ashby reCAPTCHA frame and returns the observed state." width="100%">
 
 | Tool | When to call it | Result |
 | --- | --- | --- |
+| `inspect_application_challenge` | Greenhouse asks for an eight-character email code, a connector reports `[one-time authentication code withheld]`, or Ashby shows a reCAPTCHA grid. Also use it to locate a lost supported form. | The provider and visible state. A missing or duplicate tab gets its own result. The form stays open. |
 | `get_ashby_receipt` | At handoff, even with Chrome closed | A saved receipt or `unrecorded`. A missing record leaves the outcome unknown. |
 | `watch_ashby_receipt` | The original form is open and the outcome is uncertain | An existing receipt, or fresh evidence from the same job. A timeout is a tool error. The watcher leaves the form open. |
 
@@ -163,7 +166,20 @@ Install [uv](https://docs.astral.sh/uv/getting-started/installation/) once. In a
 
 To track the GitHub branch directly, set `--from` to `ruin-everything[mcp] @ git+https://github.com/yuki4266/ruin-everything.git@main`. Both configurations launch the actual `ruin-mcp` executable. A two-version smoke test verified refresh on both the Git and package paths. An existing editable installation can still launch it directly.
 
-Both tools take `site`. The watcher also takes `timeout_seconds` (default 15, range 1–300). A returned receipt contains `state`, `site`, `observed_at` and the site's confirmation `message`. The application driver owns form interaction. After a timeout, check the same URL again before considering another submission.
+To register the server for your user account, run the command for your client. Open a new session to pick up the tool list.
+
+```sh
+codex mcp add ruin-everything --env RUIN_AUTO_UPDATE=0 -- uvx --isolated --refresh --from 'ruin-everything[mcp]' ruin-mcp
+claude mcp add --scope user --transport stdio ruin-everything -e RUIN_AUTO_UPDATE=0 -- uvx --isolated --refresh --from 'ruin-everything[mcp]' ruin-mcp
+```
+
+The repository includes [routing instructions](AGENTS.md#ruin-everything-application-routing) for Codex and imports them from [CLAUDE.md](CLAUDE.md). To apply them in other workspaces, copy the application routing section into your user-level `~/.codex/AGENTS.md` or `~/.claude/CLAUDE.md`. Client permissions and site verification still apply to Duo, PayPal and other unsupported providers.
+
+All three tools take `site`. The inspector checks once by default. Set `wait_seconds` to 1–300 to watch that same tab for a change from `pending`. From the CLI, use `ruin watch --site "$JOB_URL" --timeout 30`. The watch ends after detecting a supported state, losing the original tab, or reaching the time limit.
+
+In a local Chrome simulation, a fresh Codex CLI session given only the Greenhouse URL and the eight-character-code symptom selected `inspect_application_challenge` as its first tool call and returned `email_verification`. The simulated form stayed empty.
+
+The Ashby receipt watcher takes `timeout_seconds` (default 15, range 1–300). A returned receipt contains `state`, `site`, `observed_at` and the site's confirmation `message`. The application driver owns form interaction. After a timeout, check the same URL again before considering another submission.
 
 The server uses the official Python MCP SDK over stdio. A browser automation client such as Playwright MCP can run alongside it by attaching to the same local Chrome with `--cdp-endpoint http://127.0.0.1:9222`. The integration test exercises two successive SDK clients and a simulated employer page in Chrome. [Python MCP SDK](https://github.com/modelcontextprotocol/python-sdk) · [Playwright MCP connection options](https://github.com/microsoft/playwright-mcp#configuration)
 
