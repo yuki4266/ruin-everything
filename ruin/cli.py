@@ -46,8 +46,8 @@ async def run(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="List current Duke Canvas courses using a local browser.")
-    parser.add_argument("task", help="Use browser, courses, or describe a browser task and supply --site.")
+    parser = argparse.ArgumentParser(description="Run browser tasks and resume verification in a shared local Chrome session.")
+    parser.add_argument("task", help="Use browser, verify-email, resume-ashby, courses, or a click task with --site.")
     parser.add_argument("--site", help="HTTPS starting URL for a click task")
     parser.add_argument("--autofill", action="store_true", help="Fill credentials for this origin from the system keyring")
     parser.add_argument("--requested-at", type=float, metavar="UNIX_SECONDS",

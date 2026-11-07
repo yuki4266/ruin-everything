@@ -1,10 +1,14 @@
 # Ruin Everything
 
-Run browser tasks in a shared local Chrome window. Read Duke Canvas courses, verify a Greenhouse email challenge, or watch an authorized Ashby application for its official receipt. The browser stays open between commands so a later run can reconnect to the job tab.
+**A local Chrome runtime for browser agents.**
+
+Your agent fills out a form. The site asks for a code. The run ends. Starting over means typing the same answers again and wondering whether the first submission went through.
+
+Ruin Everything keeps the original tab open in Chrome on your machine. A later run can reconnect, finish verification where the site allows it, and check the site's response. On Ashby, the runner can return the saved receipt for that job even after the tab closes.
 
 ![Cutaway of the local runtime. Application tabs sit above a shared Chrome process; its dedicated profile stores site data between runs.](docs/figures/architecture.svg)
 
-[Set up Chrome](#use-a-shared-local-chrome-window) · [Canvas](#run-a-course-lookup) · [Click tasks](#run-a-browser-click-task) · [Greenhouse](#verify-a-greenhouse-application-with-outlook-web) · [Ashby](#resume-an-authorized-ashby-application)
+[Set up Chrome](#use-a-shared-local-chrome-window) · [Click tasks](#run-a-browser-click-task) · [Greenhouse](#verify-a-greenhouse-application-with-outlook-web) · [Ashby](#resume-an-authorized-ashby-application) · [Canvas example](#example-read-courses-after-school-sign-in)
 
 ## Use a shared local Chrome window
 
@@ -22,28 +26,6 @@ ruin browser
 Run `ruin browser` to start or reconnect to the project browser. Every CLI task uses Python Playwright over CDP. The default endpoint is `http://127.0.0.1:9222`. The runner launches Chrome with a dedicated profile at `~/.ruin-everything/canvas-browser` when this port is free. The CDP connection preserves the existing browser context settings, including its download behavior. Chrome stays open after the command exits. Other local clients can attach to the same endpoint and locate the job tab by its full URL. Give one client ownership of submission for each application.
 
 Open Outlook Web in this profile and complete any required Microsoft sign-in before requesting a fresh email code. Closing the job tab, quitting Chrome or a site session expiring can still interrupt an application. A draft in a chat-specific browser must be recovered separately.
-
-## Run a course lookup
-
-![An active session returns the course list directly. If Canvas redirects, complete Duke sign-in to resume the same lookup.](docs/figures/session.svg)
-
-Run the lookup in the shared profile:
-
-```sh
-ruin courses
-```
-
-The result contains course names and links. Use `--json` for structured output:
-
-![Illustrative JSON output with an example course name and abbreviated link.](docs/figures/course-output.svg)
-
-To select an existing local debugging endpoint explicitly, run:
-
-```sh
-ruin courses --cdp http://127.0.0.1:9222 --json
-```
-
-The sign-in branch waits up to 180 seconds for the school to return the browser to Canvas. Set `--timeout 300` for a longer wait. Duo approval takes place on the school sign-in path. [Duke device recovery](https://oit.duke.edu/help/articles/kb0036398/)
 
 ## Run a browser click task
 
@@ -123,6 +105,28 @@ Import `resume_ashby` from `ruin.agent.ashby`. The handler receives the original
 The watcher records success only when the same job displays Ashby's visible **Success** status with **Your application was successfully submitted**. It returns the receipt as JSON on standard output and stores one row per job in `~/.ruin-everything/ashby-receipts.sqlite3`. A retry returns that stored receipt. A timeout, changed job or ambiguous tab produces an error without marking the job submitted. An external application tracker should import only a returned receipt.
 
 The receipt pattern comes from a completed Baseten application. The reusable command was tested with simulated Ashby pages in Chrome, including a hidden receipt, a changed job, duplicate tabs and a retry after the tab closed.
+
+## Example: read courses after school sign-in
+
+![An active session returns the course list directly. If Canvas redirects, complete Duke sign-in to resume the same lookup.](docs/figures/session.svg)
+
+The Duke Canvas adapter demonstrates how a task resumes after an interactive login. Run the lookup in the shared profile:
+
+```sh
+ruin courses
+```
+
+The result contains course names and links. Use `--json` for structured output:
+
+![Illustrative JSON output with an example course name and abbreviated link.](docs/figures/course-output.svg)
+
+To select an existing local debugging endpoint explicitly, run:
+
+```sh
+ruin courses --cdp http://127.0.0.1:9222 --json
+```
+
+The sign-in branch waits up to 180 seconds for the school to return the browser to Canvas. Set `--timeout 300` for a longer wait. Duo approval takes place on the school sign-in path. [Duke device recovery](https://oit.duke.edu/help/articles/kb0036398/)
 
 ## Verification
 
