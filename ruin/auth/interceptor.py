@@ -6,7 +6,7 @@ from playwright.async_api import Page
 
 async def authenticate(page: Page, origin: str, timeout: int):
     """Open one SSO attempt and wait for the school to return the browser."""
-    print("请在浏览器内完成学校要求的验证。返回 Canvas 后将继续读取课程。",
+    print("Complete sign-in in the browser. The course lookup will resume when Canvas opens.",
           file=sys.stderr)
     await page.goto(origin + "/login/saml", wait_until="domcontentloaded")
     def returned(url: str) -> bool:

@@ -6,7 +6,7 @@ import keyring
 def origin_of(url: str) -> str:
     address = urlsplit(url)
     if address.scheme != "https" or not address.hostname or address.username is not None:
-        raise ValueError("凭据只支持 HTTPS 来源。")
+        raise ValueError("Credentials require an HTTPS origin.")
     return f"https://{address.netloc}"
 
 

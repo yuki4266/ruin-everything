@@ -1,43 +1,22 @@
-# Ruin Everything 开发计划
+# Development plan
 
-状态：首个 CLI 原型已实现。本地已验证首次登录恢复和浏览器重启后的会话复用。下表保留后续验收目标。
+## Duke Canvas acceptance criteria
 
-## 首个场景 · Duke Canvas
+![Persistent browser data and the two possible paths to the course list.](docs/figures/session.svg)
 
-暂定指令为「打开 Duke Canvas，列出我的课程」。范围先选 Duke University 主校 Canvas。学生从同一个专用浏览器打开门户，完成学校要求的验证后，Agent 继续读取课程名称和链接。下次运行先访问 Canvas，只有站点要求重新登录时才进入认证流程。[Duke 学生指南](https://go.canvas.duke.edu/students/)
+The first task targets Duke University's main Canvas instance. A valid session should return accessible course links directly. If redirected, keep the query alive during sign-in and retry the course page once. If the retry redirects again, stop and report the loop. An empty course table should yield an empty result.
 
-### 首版验收
+Future recovery work includes distinguishing a denied challenge from a timeout, helping users reconnect a replacement phone, and explaining missing courses or a different school instance. Duke's remembered-device option applies to the same browser and computer for five days when offered. [Student guide](https://go.canvas.duke.edu/students/) · [MFA help](https://idms-mfa.oit.duke.edu/mfa/help) · [Canvas support](https://go.canvas.duke.edu/get-help/)
 
-| 模拟条件 | 用户应看到的结果 |
-| --- | --- |
-| 重启 Agent，Canvas 会话仍有效 | 直接得到课程列表，整次运行触发 Duo 推送零次。 |
-| Canvas 会话过期 | 保留查课程任务。若学校允许记住设备，则沿用同一浏览器配置；已注册 Duke Unlock 的用户可在学校页面选择该方式。 |
-| 学校要求本人验证 | 只提示一次，保留当前登录窗口。验证完成并回到 Canvas 后自动继续。拒绝或超时则结束本次尝试，避免反复发送推送。 |
-| 登录反复跳回起点 | 同一轮验证后再次回到登录起点时停止自动重试，提示检查浏览器是否保留站点数据。 |
-| 换手机后收不到推送 | 给出 Duke OIT 的重新连接指引，并保留查询，供恢复账号后重新运行。 |
-| 已登录但列表为空，或找不到某门课 | 显示实际查询结果，提示核对课程发布情况及所属学院。医学院和 Fuqua 使用独立实例。 |
+## Milestones
 
-Duke 的“记住设备”选项适用于同一台电脑上的同一浏览器，官方说明的期限是 5 天。实际流程以学校当次提供的选项为准。[Duke MFA 帮助](https://idms-mfa.oit.duke.edu/mfa/help) · [换机后重新连接 Duo](https://oit.duke.edu/help/articles/kb0036398/) · [Canvas 登录支持](https://go.canvas.duke.edu/get-help/)
+![Development progresses from session reuse through credential handling and verification to scoped write operations.](docs/figures/roadmap.svg)
 
-先用虚构课程和模拟登录页面验收以上分支，再在用户自己的浏览器内验证真实流程。公开测试记录仅保留分支、结果和推送次数。
-
-## 里程碑与验收
-
-| 阶段 | 实现范围 | 怎样算完成 |
+| Area | Implemented | Further acceptance work |
 | --- | --- | --- |
-| 1 · 会话复用 | 用本地模拟门户和独立持久化浏览器配置跑通查询 | 关闭进程再启动，第二次查询仍然成功，登录次数保持一次。撤销授权后再次查询不会打开门户。 |
-| 2 · 凭据盲填 | 用户将指定站点和本地密码库条目绑定，执行器在匹配的来源与表单中填入账号密码 | 强制登出后可恢复查询。跳转到另一个来源时停止填入。用测试密码检查模型输入、日志和截图，均无凭据。 |
-| 3 · 二次验证 | 先处理 Duke 的交互式验证与恢复，通用 TOTP 留作后续。区分会话过期、动态码失败与必须本人完成的验证 | 遇到必须本人操作的 Duo 挑战时保存进度，在同一浏览器内完成验证后继续查询。 |
-| 4 · 执行动作 | 将预授权从查询扩展到写入。为付款、删除、公开发送分别定义目标、范围及撤销方式 | 对已授权动作直接执行。用模拟发送测试提交后断网，恢复时先核对结果，避免重复发送。 |
+| Session reuse | Persistent local profile and optional CDP attachment | Verify that revoking task access prevents navigation. |
+| Credential filling | Same-origin keyring lookup and local fill | Exercise origin changes with test credentials and inspect model input and logs for leakage. |
+| Verification | Interactive Duke sign-in and optional standard TOTP for generic tasks | Distinguish expired codes, denied challenges and device recovery. Define mailbox scope and retention before adding email codes. |
+| Write operations | Single-tab click loop | Define permitted targets, duration and revocation for payments, deletions and public sends. Simulate a lost submission response and verify recovery without duplication. |
 
-## 最小实现草案
-
-暂定以本地 CLI 和 Playwright 实现首个演示。任务输入包含站点、动作和参数。本地执行器维护站点授权和任务进度，向调用方返回结果或等待原因。浏览器会话、密码和动态码留在本机。授权应覆盖具体动作，后台运行时可撤销。
-
-Duo 场景优先利用组织允许的已记住设备与有效会话。站点强制本人验证时，任务进入等待状态。短信和邮箱取码的权限范围、消息归属和保留时间留待接入前讨论。
-
-## 下一轮一起决定
-
-1. 课程列表暂作登录成功的验收结果。日常使用时，优先看哪些课程或待办？
-2. 用户最常从哪里发起任务：命令行、浏览器扩展，还是已有 Agent 的 MCP 工具？这会决定首个对外入口。
-3. 一次授权覆盖哪些站点、动作和期限？付款金额、删除对象和公开发送目标如何表达？
+Upcoming design decisions include which course details to retrieve next, whether to expose the CLI through a browser extension or an MCP tool, and how users should grant and revoke action-specific permissions.

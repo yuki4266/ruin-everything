@@ -17,8 +17,8 @@ async def run(args):
                 from ruin.agent.browser_task import browser_task
                 await browser_task(context, args.site, args.task, args.model, args.autofill)
             except ImportError as exc:
-                raise RuntimeError("通用任务需要安装可选依赖 pip install '.[agent]'") from exc
-            print("任务执行完成。")
+                raise RuntimeError("Install the optional agent dependencies with pip install '.[agent]'") from exc
+            print("Task complete.")
             return
         result = await courses(context, timeout=args.timeout)
     if args.json:
@@ -27,30 +27,30 @@ async def run(args):
         for course in result:
             print(course["name"], course["url"], sep="\t")
     else:
-        print("当前课程表中没有可打开的课程。")
+        print("No courses with accessible links were found.")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="使用本地浏览器读取 Duke Canvas 当前课程")
-    parser.add_argument("task", help="courses、列出我的课程，或配合 --site 使用的任务描述")
-    parser.add_argument("--site", help="通用点击任务的 HTTPS 入口")
-    parser.add_argument("--autofill", action="store_true", help="从系统密码库填充指定网站的凭据")
+    parser = argparse.ArgumentParser(description="List current Duke Canvas courses using a local browser.")
+    parser.add_argument("task", help="Use courses, or describe a browser task and supply --site.")
+    parser.add_argument("--site", help="HTTPS starting URL for a click task")
+    parser.add_argument("--autofill", action="store_true", help="Fill credentials for this origin from the system keyring")
     parser.add_argument("--model", default="gpt-4.1-mini")
-    parser.add_argument("--cdp", metavar="URL", help="连接已启用调试的本机 Chrome")
-    parser.add_argument("--channel", choices=["chrome"], help="用已安装的 Chrome 打开专用配置")
-    parser.add_argument("--timeout", type=int, default=180, help="等待学校验证的秒数")
+    parser.add_argument("--cdp", metavar="URL", help="Connect to a local Chrome HTTP debugging endpoint")
+    parser.add_argument("--channel", choices=["chrome"], help="Launch the dedicated profile in installed Chrome")
+    parser.add_argument("--timeout", type=int, default=180, help="Seconds to wait for school verification")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
-    if not args.site and args.task not in {"courses", "列出我的课程"}:
-        parser.error("通用任务需要 --site")
+    if not args.site and args.task not in {"courses", "list my courses"}:
+        parser.error("Browser tasks require --site.")
     if args.timeout <= 0:
-        parser.error("--timeout 必须大于零")
+        parser.error("--timeout must be greater than zero.")
     try:
         asyncio.run(run(args))
     except TimeoutError:
-        sys.exit("等待页面或认证结果超时。请检查登录状态和 Canvas 页面。")
+        sys.exit("Timed out waiting for Canvas or sign-in. Check the login page and try again.")
     except Error:
-        sys.exit("浏览器连接或导航失败。请检查浏览器安装、网络和调试地址。")
+        sys.exit("Browser connection or navigation failed. Check the browser installation, network and debugging endpoint.")
     except (RuntimeError, ValueError, OSError) as exc:
         sys.exit(str(exc))
 

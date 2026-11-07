@@ -21,7 +21,7 @@ async def browser_task(context: BrowserContext, url: str, task: str, model: str,
 
     location = urlsplit(url)
     if location.scheme != "https" or not location.hostname or location.username:
-        raise ValueError("任务入口需要 HTTPS 网站地址。")
+        raise ValueError("Use an HTTPS URL to start the task.")
     page = await context.new_page()
     try:
         await page.goto(url, wait_until="domcontentloaded")
@@ -29,12 +29,12 @@ async def browser_task(context: BrowserContext, url: str, task: str, model: str,
             for _ in range(20):
                 current = urlsplit(page.url)
                 if (current.scheme, current.netloc) != (location.scheme, location.netloc):
-                    raise RuntimeError("页面已离开指定网站，请先完成站点登录。")
+                    raise RuntimeError("The page left the selected site. Complete sign-in before running the task.")
                 if autofill and await page.locator(
                     'input[type=password]:visible, input[autocomplete=one-time-code]:visible'
                 ).count():
                     if await fill_login(page, url):
-                        print("凭据已在本地填写。请在浏览器中完成登录。", file=sys.stderr)
+                        print("Credentials filled locally. Complete sign-in in the browser.", file=sys.stderr)
                         await page.wait_for_function(
                             """() => !Array.from(document.querySelectorAll(
                                 'input[type=password], input[autocomplete=one-time-code]'
@@ -43,7 +43,7 @@ async def browser_task(context: BrowserContext, url: str, task: str, model: str,
                         continue
                 for frame in page.frames:
                     if await frame.locator('input[type=password]:visible, input[autocomplete=one-time-code]:visible').count():
-                        raise RuntimeError("请先在此浏览器中完成登录，再执行通用任务。")
+                        raise RuntimeError("Sign in using this browser before running the task.")
                 labels, targets = await snapshot(page)
                 payload = {"task": task, "title": await page.title(), "actions": labels}
                 reply = await client.chat.completions.parse(
@@ -54,14 +54,14 @@ async def browser_task(context: BrowserContext, url: str, task: str, model: str,
                 )
                 step = reply.choices[0].message.parsed
                 if step is None or step.action == "blocked":
-                    raise RuntimeError("当前页面的信息不足以继续。")
+                    raise RuntimeError("The page does not provide enough information to continue.")
                 if step.action == "done":
                     return
                 if step.element_id not in targets or urlsplit(page.url) != current:
-                    raise RuntimeError("页面或动作已变化，已停止执行。")
+                    raise RuntimeError("The page or action changed. Execution stopped.")
                 await targets[step.element_id].click(timeout=5000)
                 await page.wait_for_load_state("domcontentloaded")
-            raise RuntimeError("已达到 20 步上限。")
+            raise RuntimeError("Reached the 20-step limit.")
     finally:
         if not page.is_closed():
             await page.close()

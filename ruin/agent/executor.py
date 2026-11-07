@@ -12,7 +12,7 @@ async def courses(context: BrowserContext, origin=CANVAS, timeout=180):
         for attempt in range(2):
             response = await page.goto(target, wait_until="domcontentloaded")
             if response and response.status >= 400:
-                raise RuntimeError(f"课程页面返回 HTTP {response.status}。")
+                raise RuntimeError(f"Canvas returned HTTP {response.status} for the courses page.")
             if page.url.split("?")[0].rstrip("/") == target:
                 table = page.locator("#my_courses_table")
                 await table.wait_for(state="attached", timeout=10000)
@@ -28,7 +28,7 @@ async def courses(context: BrowserContext, origin=CANVAS, timeout=180):
                 return [{"name": name, "url": url} for url, name in result.items()]
             if attempt == 0:
                 await authenticate(page, origin, timeout)
-        raise RuntimeError("认证后仍被重定向。请检查浏览器的站点数据设置。")
+        raise RuntimeError("Canvas redirected again after sign-in. Check the browser's site data settings.")
     finally:
         if not page.is_closed():
             await page.close()
