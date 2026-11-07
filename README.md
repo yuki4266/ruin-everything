@@ -56,7 +56,9 @@ ruin verify-email --cdp http://127.0.0.1:9222 \
   --company "Example Employer" --timeout 180
 ```
 
-The watcher takes a snapshot of visible Outlook inbox rows and waits for a new or updated row whose timestamp follows the request window. It checks the employer, subject wording and Greenhouse sender, reads the code from the opened message, and submits it in the original job tab. If a challenge is already open at startup, it requests a fresh code there. It makes at most one resend per run. A local lock serializes watcher processes. Keep other applications for the same employer idle during verification.
+The watcher takes a snapshot of visible Outlook inbox rows and waits for a new or updated row whose timestamp follows the request window. It checks the employer, subject wording and Greenhouse sender, reads the code from the opened message, and submits it in the original job tab. If a challenge is already open at startup and offers a resend control, it requests a fresh code there. It makes at most one resend per run. A local lock serializes watcher processes. Keep other applications for the same employer idle during verification.
+
+For a direct Greenhouse embed, pass the full quoted URL (including both `for` and `token`). If an existing challenge has no resend control, supply `--requested-at UNIX_SECONDS` from that job’s original request. For this recovery path the message body must also identify the job ID. A subject shared by two roles at the same employer cannot establish which form owns the code. A tab in another chat’s isolated browser must be handled there.
 
 The prototype supports English, top-level Greenhouse forms and Outlook layouts exposing message identifiers, timestamps, sender addresses and a message body. Missing evidence or an ambiguous match stops verification. Only a visible receipt counts as success. A timeout can also happen *after* submission; check the original tab before retrying. Message contents and codes stay outside the model loop. The integration has been tested with browser fixtures; compatibility with a live employer form and Outlook tenant remains unverified.
 

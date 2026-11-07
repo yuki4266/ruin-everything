@@ -18,11 +18,11 @@ async def authenticate(page: Page, origin: str, timeout: int):
     await page.wait_for_url(returned, timeout=timeout * 1000)
 
 
-async def verify_greenhouse(context, url, company, timeout):
+async def verify_greenhouse(context, url, company, timeout, requested_at=None):
     from ruin.auth.email_otp_snatcher import verify_application
     from ruin.config import PROFILE
 
     try:
-        await verify_application(context, url, company, timeout, PROFILE.parent)
+        await verify_application(context, url, company, timeout, PROFILE.parent, requested_at)
     except (TimeoutError, PlaywrightTimeoutError):
         raise RuntimeError("Verification timed out. Check the original application before retrying.") from None

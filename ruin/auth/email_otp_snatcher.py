@@ -6,7 +6,7 @@ import sys
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from playwright.async_api import Page
 
@@ -43,6 +43,13 @@ def job_key(url: str):
     if parsed.scheme == "https" and parsed.netloc in {
         "job-boards.greenhouse.io", "boards.greenhouse.io"
     }:
+        if parsed.path.rstrip("/") == "/embed/job_app":
+            query = parse_qs(parsed.query, keep_blank_values=True)
+            employers, jobs = query.get("for", []), query.get("token", [])
+            if (len(employers) == len(jobs) == 1 and
+                    re.fullmatch(r"[A-Za-z0-9_-]+", employers[0]) and
+                    re.fullmatch(r"[0-9]+", jobs[0])):
+                return parsed.netloc, employers[0], jobs[0]
         match = re.fullmatch(r"/([\w-]+)/jobs/(\d+)/?", parsed.path)
         if match:
             return parsed.netloc, *match.groups()
@@ -71,7 +78,7 @@ async def rows(mail: Page):
     }))""")
 
 
-async def receive(mail: Page, seen: set, company: str, started: float):
+async def receive(mail: Page, seen: set, company: str, started: float, required_job=None):
     while True:
         current = await rows(mail)
         candidates = [r for r in current if (r["id"], r["received"]) not in seen and
@@ -93,14 +100,19 @@ async def receive(mail: Page, seen: set, company: str, started: float):
                                   '[aria-label*="<no-reply@us.greenhouse-mail.io>" i]')
             if not await sender.count() or not await sender.first.is_visible():
                 raise RuntimeError("Could not verify the opened Greenhouse message sender.")
-            code = parse_code(await body.inner_text())
+            body_text = await body.inner_text()
+            if required_job and not re.search(r"(?<!\w)" + re.escape(required_job) + r"(?!\w)", body_text):
+                raise RuntimeError("The existing message does not identify this job. "
+                                   "Keep the original tab open; no code was entered.")
+            code = parse_code(body_text)
             if not code:
                 raise RuntimeError("The message has no unambiguous verification code.")
             return code
         await asyncio.sleep(1)
 
 
-async def verify_application(context, url: str, company: str, timeout: int, directory: Path):
+async def verify_application(context, url: str, company: str, timeout: int, directory: Path,
+                             requested_at=None):
     key = job_key(url)
     if not key or not company.strip():
         raise ValueError("Supply an existing Greenhouse job URL and its employer name.")
@@ -109,6 +121,18 @@ async def verify_application(context, url: str, company: str, timeout: int, dire
         if len(tabs) != 1:
             raise RuntimeError("Open exactly one tab for this Greenhouse job before starting.")
         app = tabs[0]
+        group = app.get_by_role("group", name=re.compile("verification code was sent", re.I))
+        prompt = app.get_by_text(PROMPT).first
+        prompted = await group.is_visible() or (
+            await prompt.is_visible() and await app.locator(CODE_FIELD).count() > 0
+        )
+        resend = app.get_by_role("button", name=RESEND).or_(app.get_by_role("link", name=RESEND))
+        resume_existing = prompted and not await resend.count()
+        if resume_existing and requested_at is None:
+            raise RuntimeError("This form has no resend control. Supply --requested-at from the original "
+                               "job's submission event, or complete verification in its tab.")
+        if requested_at is not None and not 0 < requested_at <= time.time():
+            raise ValueError("Use a past request timestamp from this application.")
         mail = await context.new_page()
         try:
             async with asyncio.timeout(timeout):
@@ -119,32 +143,36 @@ async def verify_application(context, url: str, company: str, timeout: int, dire
                 await app.bring_to_front()
                 if job_key(app.url) != key:
                     raise RuntimeError("The original job tab changed.")
-                prompt = app.get_by_text(PROMPT).first
-                fields = app.locator(CODE_FIELD)
-                prompted = await prompt.is_visible() and await fields.count() > 0
+                if resume_existing:
+                    started = requested_at
+                    baseline.clear()
                 if not prompted:
                     print("Outlook is ready. Waiting for the application verification prompt.", file=sys.stderr)
                     await prompt.wait_for(timeout=timeout * 1000)
-                    await fields.first.wait_for(timeout=timeout * 1000)
+
                 for attempt in range(2):
                     if job_key(app.url) != key:
                         raise RuntimeError("The original job tab changed.")
-                    if prompted or attempt:
-                        resend = app.get_by_role("button", name=RESEND).or_(app.get_by_role("link", name=RESEND))
+                    if attempt or (prompted and not resume_existing):
+                        if not await resend.count():
+                            raise RuntimeError("The code expired. The original form has no resend control.")
                         await mail.goto(OUTLOOK, wait_until="domcontentloaded")
                         await mail.locator(MAIL_ROWS).first.wait_for(timeout=10000)
                         baseline.update((r["id"], r["received"]) for r in await rows(mail))
                         started = time.time()
                         await resend.click(timeout=5000)
-                    code = await receive(mail, baseline, company, started)
+                    code = await receive(mail, baseline, company, started,
+                                         required_job=key[2] if resume_existing and not attempt else None)
                     if job_key(app.url) != key:
                         raise RuntimeError("The original job tab changed.")
+                    scoped = await group.is_visible()
+                    fields = group.get_by_role("textbox") if scoped else app.locator(CODE_FIELD)
                     handles = await fields.element_handles()
                     if len(handles) == 1:
                         await handles[0].fill(code)
-                    elif len(handles) == len(code) and all(
+                    elif len(handles) == len(code) and (scoped or all(
                         [await h.get_attribute("maxlength") == "1" for h in handles]
-                    ):
+                    )):
                         for handle, char in zip(handles, code):
                             await handle.fill(char)
                     else:
@@ -159,7 +187,7 @@ async def verify_application(context, url: str, company: str, timeout: int, dire
                     await receipt.or_(expired).first.wait_for(timeout=15000)
                     if await receipt.is_visible():
                         return
-                    if prompted or attempt:
+                    if (prompted and not resume_existing) or attempt:
                         break
                 raise RuntimeError("Code expired after the resend. The application is still open.")
         finally:

@@ -21,7 +21,7 @@ async def run(args):
             return
         if args.task == "verify-email":
             from ruin.auth.interceptor import verify_greenhouse
-            await verify_greenhouse(context, args.site, args.company, args.timeout)
+            await verify_greenhouse(context, args.site, args.company, args.timeout, args.requested_at)
             print("Application confirmation appeared in the original tab.")
             return
         if args.site:
@@ -47,6 +47,8 @@ def main():
     parser.add_argument("task", help="Use courses, or describe a browser task and supply --site.")
     parser.add_argument("--site", help="HTTPS starting URL for a click task")
     parser.add_argument("--autofill", action="store_true", help="Fill credentials for this origin from the system keyring")
+    parser.add_argument("--requested-at", type=float, metavar="UNIX_SECONDS",
+                        help="Original job's code-request time for a form without a resend control")
     parser.add_argument("--company", help="Employer name for Greenhouse verification")
     parser.add_argument("--model", default="gpt-4.1-mini")
     parser.add_argument("--cdp", metavar="URL", help="Connect to a local Chrome HTTP debugging endpoint")
