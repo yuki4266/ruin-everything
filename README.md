@@ -2,7 +2,7 @@
 
 List the courses you can open on Duke Canvas from your terminal. The runner keeps a dedicated browser profile and returns to the course lookup after school sign-in. Course discovery runs locally without a model or API key.
 
-![A browser profile holds site data between runs. The runner first requests courses, then takes the Duke sign-in route only if redirected.](docs/figures/session.svg)
+![A purple browser opens Canvas. An active session leads straight to the course list. A redirect takes the yellow school sign-in branch and rejoins the same list.](docs/figures/session.svg)
 
 ## Run a course lookup
 
@@ -46,7 +46,7 @@ keyring set ruin:https://example.org totp
 
 ## Verify a Greenhouse application with Outlook Web
 
-![One existing job tab stays open while a local watcher matches a fresh Outlook message, fills the code, and checks the application receipt.](docs/figures/email-verification.svg)
+![From left to right: the original job tab, a pink Outlook envelope for fresh matching mail, and a receipt after the code is filled back in the job tab. An expired code allows one resend.](docs/figures/email-verification.svg)
 
 On macOS or Linux, attach to a local debugging-enabled Chrome session that already has Outlook Web signed in and the original Greenhouse job tab open. Replace the example URL and employer with the exact job and the name used in its email. Start the watcher before the application requests a code. The existing application workflow still owns the initial submit.
 

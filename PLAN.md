@@ -10,7 +10,7 @@ Future recovery work includes distinguishing a denied challenge from a timeout, 
 
 ## Milestones
 
-![Development progresses from session reuse through credential handling and verification to scoped write operations.](docs/figures/roadmap.svg)
+![Four illustrated milestones: session layers, a credential lock, a verification envelope and a flag for write outcomes.](docs/figures/roadmap.svg)
 
 | Area | Implemented | Further acceptance work |
 | --- | --- | --- |
