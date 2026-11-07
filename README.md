@@ -65,6 +65,22 @@ For a browser task with `--site`, create `~/.ruin/identity.json` with owner-only
 
 For a subsequent single one-time-code field, the runner checks macOS Messages for up to 30 seconds for an incoming text received since the submission and ending in `@hostname #code`. Read access to the Messages database is required. MCP challenge and receipt results include a `signup_policy` field reporting the local setting. Chrome and SQLite fixtures exercise form submission, ordinary phone inputs, cross-origin actions, message age, direction and domain matching.
 
+#### Workday accounts and signed-in sessions
+
+<img src="docs/figures/account-session.svg" alt="The Workday branch checks sign-in before account creation and Outlook activation. The session branch periodically checks a separate status tab." width="100%">
+
+On supported English Workday tenant forms, the CLI browser task tries the local email and password first. An explicit missing-account message opens registration. A generic sign-in failure leaves the original job open. After registration, Ruin checks the signed-in Outlook mailbox for a fresh activation message, follows a direct activation link on the exact tenant host, waits for visible confirmation and returns to the job URL. The adapter supports native POST forms and script-driven Workday dialogs with a recognized submit control. Local Chrome fixtures cover existing accounts, registration, activation and returning to the job. Production tenant layouts and wrapped email links can differ.
+
+For a code sent to an existing tab, use the request time recorded when the site sent the SMS. Optionally add `sms_senders` to the local identity file, mapping an exact hostname to its dedicated sender string. Plain six-digit codes must come from that sender. Domain-bound messages work without a sender entry. Both paths require read access to the Mac Messages database.
+
+```sh
+ruin verify-sms --site "$VERIFICATION_URL" --requested-at "$REQUEST_UNIX_SECONDS"
+ruin keep-alive --site "$STATUS_URL" --signed-in-text "Account overview" --interval 900 --timeout 86400
+```
+
+Keep-alive opens a separate tab for the selected HTTPS status page. Use a read-only page with text unique to the signed-in view. The process checks that text after each visit, stops on redirects or missing text, and closes its own tab when finished. Run the command for the desired duration. Sites control their own session lifetimes. Simulated Chrome checks cover repeated GET requests and preservation of the original tab.
+
+
 
 To provision credentials for local filling, use the entries below. The optional TOTP entry holds the site's Base32 seed.
 
@@ -151,6 +167,7 @@ Give the client the exact job URL and describe what you see. If the question is 
 
 | Tool | When to call it | Result |
 | --- | --- | --- |
+| `ruin_auto_register` | The selected registration or contact form is open at its exact HTTPS URL. | Local profile action and current signup policy. A submitted form can still require verification. |
 | `inspect_application_challenge` | Greenhouse asks for an eight-character email code, a connector reports `[one-time authentication code withheld]`, or Ashby shows a reCAPTCHA grid. Also use it to locate a lost supported form. | The provider and visible state. A missing or duplicate tab gets its own result. The form stays open. |
 | `get_ashby_receipt` | At handoff, even with Chrome closed | A saved receipt or `unrecorded`. A missing record leaves the outcome unknown. |
 | `watch_ashby_receipt` | The original form is open and the outcome is uncertain | An existing receipt, or fresh evidence from the same job. A timeout is a tool error. The watcher leaves the form open. |
@@ -184,7 +201,7 @@ claude mcp add --scope user --transport stdio ruin-everything -e RUIN_AUTO_UPDAT
 
 The repository includes [routing instructions](AGENTS.md#ruin-everything-application-routing) for Codex and imports them from [CLAUDE.md](CLAUDE.md). To apply them in other workspaces, copy the application routing section into your user-level `~/.codex/AGENTS.md` or `~/.claude/CLAUDE.md`. Client permissions and site verification still apply to Duo, PayPal and other unsupported providers.
 
-All three tools take `site`. The inspector checks once by default. Set `wait_seconds` to 1–300 to watch that same tab for a change from `pending`. From the CLI, use `ruin watch --site "$JOB_URL" --timeout 30`. The watch ends after detecting a supported state, losing the original tab, or reaching the time limit.
+All four tools take `site`. The inspector checks once by default. Set `wait_seconds` to 1–300 to watch that same tab for a change from `pending`. From the CLI, use `ruin watch --site "$JOB_URL" --timeout 30`. The watch ends after detecting a supported state, losing the original tab, or reaching the time limit.
 
 In a local Chrome simulation, a fresh Codex CLI session given only the Greenhouse URL and the eight-character-code symptom selected `inspect_application_challenge` as its first tool call and returned `email_verification`. The simulated form stayed empty.
 

@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from typing import Literal
 
 from ruin.auth.auto_registrar import fill_contact_phone, identity, signup, verify_sms
+from ruin.auth.workday import workday_account
 from ruin.auth.autofill import fill_login, offer_chrome_login
 from ruin.agent.prompts import SYSTEM
 from ruin.browser.dom_sanitizer import snapshot
@@ -28,11 +29,15 @@ async def browser_task(context: BrowserContext, url: str, task: str, model: str,
     profile = identity()
     registered_at = None
     sms_filled = False
+    workday_actions = 0
     async with AsyncOpenAI() as client:
         for _ in range(20):
             current = urlsplit(page.url)
             if (current.scheme, current.netloc) != (location.scheme, location.netloc):
                 raise RuntimeError("The page left the selected site. Complete sign-in before running the task.")
+            if workday_actions < 2 and await workday_account(page, url, profile, allow_create=workday_actions == 0):
+                workday_actions += 1
+                continue
             if registered_at is None:
                 registered_at = await signup(page, url, profile)
                 if registered_at is not None:

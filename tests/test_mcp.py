@@ -37,7 +37,9 @@ class ReceiptMCP(unittest.IsolatedAsyncioTestCase):
                 async with stdio_client(params) as streams, ClientSession(*streams) as client:
                     await client.initialize()
                     tools = (await client.list_tools()).tools
-                    self.assertEqual({t.name for t in tools}, {"inspect_application_challenge", "get_ashby_receipt", "watch_ashby_receipt"})
+                    self.assertEqual({t.name for t in tools}, {"ruin_auto_register", "inspect_application_challenge", "get_ashby_receipt", "watch_ashby_receipt"})
+                    registration = await client.call_tool("ruin_auto_register", {"site": site})
+                    self.assertEqual(registration.structuredContent["state"], "no_match")
                     inspect = "inspect_application_challenge"
                     board = "https://job-boards.greenhouse.io/example/jobs/12345"
                     args = {"site": board}

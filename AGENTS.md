@@ -20,6 +20,7 @@ For an authorized application already open in shared local Chrome, use the exact
 
 - When a Greenhouse form shows an email verification or 8-character security code prompt, or a connector reports `[one-time authentication code withheld]`, first call `inspect_application_challenge`. On Ashby, use the same tool for a visible reCAPTCHA grid or a lost application tab. An inspection reports the form state and leaves the tab open.
 - When the question is whether an Ashby application was submitted, call `get_ashby_receipt` first. If the result is unrecorded and the original tab is available, use `watch_ashby_receipt`. Record submission only with a returned receipt.
+- For an authorized registration form on an existing local tab, call `ruin_auto_register` with its exact HTTPS URL. The runtime reads the local identity profile. Keep the original control labels when reporting a signup or consent action.
 - A missing or ambiguous tab needs the original job and browser context. For Duo 2FA, a PayPal Security Challenge, payment authorization or another unsupported provider, follow the site's normal verification flow and the client's permissions. Keep codes and passwords out of tool arguments.
 
 ![Route an observed Greenhouse or Ashby challenge by the exact job URL.](docs/figures/challenge-routing.svg)

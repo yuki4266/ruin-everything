@@ -29,10 +29,14 @@ def main():
             enabled = identity().get("auto_signup") is True
         except (ValueError, OSError):
             return "identity profile unavailable"
-        return "auto-signup and phone filling enabled for browser tasks" if enabled else "disabled"
+        return "Auto-signup and phone filling are strictly pre-authorized for the selected site" if enabled else "disabled"
 
     class LocalSettings(BaseModel):
         signup_policy: str = Field(default_factory=signup_status)
+
+    class Registration(LocalSettings):
+        sms_filled: bool = False
+        state: Literal["submitted", "workday_account_step_completed", "phone_filled", "no_match"]
 
     class Challenge(LocalSettings):
         provider: Provider
@@ -51,6 +55,32 @@ def main():
         message: str | None = None
 
     server = FastMCP("Ruin Everything")
+
+    @server.tool(annotations=ToolAnnotations(destructiveHint=False, idempotentHint=False))
+    async def ruin_auto_register(site: str) -> Registration:
+        """Use the local profile on one open registration tab at the exact selected HTTPS URL."""
+        from playwright.async_api import TimeoutError as BrowserTimeout
+        from ruin.auth.auto_registrar import signup, fill_contact_phone, verify_sms
+        from ruin.auth.workday import workday_account
+        from ruin.auth.vault import origin_of
+
+        origin_of(site)
+        profile = identity()
+        async with browser_context(PROFILE, args.cdp, launch_if_missing=False) as context:
+            tabs = [p for p in context.pages if p.url == site]
+            if len(tabs) != 1:
+                raise RuntimeError("Open exactly one tab at the selected registration URL.")
+            if await workday_account(tabs[0], site, profile):
+                return Registration(state="workday_account_step_completed")
+            requested = await signup(tabs[0], site, profile)
+            if requested is not None:
+                try:
+                    await tabs[0].locator('input[autocomplete=one-time-code]:visible').first.wait_for(timeout=3000)
+                except BrowserTimeout:
+                    return Registration(state="submitted")
+                return Registration(state="submitted", sms_filled=await verify_sms(tabs[0], site, requested))
+            filled = await fill_contact_phone(tabs[0], site, profile)
+            return Registration(state="phone_filled" if filled else "no_match")
 
     @server.tool(annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True))
     async def inspect_application_challenge(

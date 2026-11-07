@@ -17,6 +17,20 @@ async def run(args):
         print(json.dumps(await inspect_challenge(args.site, args.cdp, args.timeout)))
         return
     async with browser_context(PROFILE, args.cdp, args.channel) as context:
+        if args.task == "keep-alive":
+            from ruin.browser.session import keep_alive
+            await keep_alive(context, args.site, args.signed_in_text, args.interval, args.timeout)
+            print("Session check interval completed.")
+            return
+        if args.task == "verify-sms":
+            from ruin.auth.auto_registrar import verify_sms
+            tabs = [page for page in context.pages if page.url == args.site]
+            if len(tabs) != 1:
+                raise RuntimeError("Open exactly one tab at the selected SMS verification URL.")
+            if not await verify_sms(tabs[0], args.site, args.requested_at):
+                raise RuntimeError("No single visible SMS code field was found.")
+            print("Filled the code field in the original tab.")
+            return
         if args.task == "browser":
             print("Connected to local Chrome. The browser will stay open.")
             return
@@ -52,18 +66,28 @@ async def run(args):
 
 def main():
     parser = argparse.ArgumentParser(description="Run browser tasks and resume verification in a shared local Chrome session.")
-    parser.add_argument("task", help="Use browser, watch, verify-email, resume-ashby, courses, or a click task with --site.")
+    parser.add_argument("task", help="Use browser, watch, verify-email, verify-sms, keep-alive, resume-ashby, courses, or a click task with --site.")
     parser.add_argument("--site", help="HTTPS starting URL for a click task")
     parser.add_argument("--autofill", action="store_true", help="Fill credentials for this origin from the system keyring")
     parser.add_argument("--requested-at", type=float, metavar="UNIX_SECONDS",
-                        help="Original job's code-request time for a form without a resend control")
+                        help="Original code-request time for SMS or a Greenhouse form without a resend control")
     parser.add_argument("--company", help="Employer name for Greenhouse verification")
     parser.add_argument("--model", default="gpt-4.1-mini")
     parser.add_argument("--cdp", metavar="URL", help="Connect to a local Chrome HTTP debugging endpoint")
     parser.add_argument("--channel", choices=["chrome"], help="Launch the dedicated profile in installed Chrome")
-    parser.add_argument("--timeout", type=int, default=180, help="Seconds to wait for the requested workflow")
+    parser.add_argument("--timeout", type=int, help="Seconds to wait for the requested workflow")
     parser.add_argument("--json", action="store_true")
+    parser.add_argument("--interval", type=int, default=900, help="Seconds between session checks")
+    parser.add_argument("--signed-in-text", help="Exact visible text unique to the signed-in status page")
     args = parser.parse_args()
+    if args.timeout is None:
+        args.timeout = 3600 if args.task == "keep-alive" else 180
+    if args.task == "keep-alive" and not (args.site and args.signed_in_text and args.interval > 0):
+        parser.error("keep-alive requires --site, --signed-in-text and a positive interval")
+    if args.task == "verify-sms":
+        import time
+        if not args.site or not args.requested_at or not 0 <= time.time() - args.requested_at <= 300:
+            parser.error("verify-sms requires --site and a request timestamp within the last five minutes")
     if args.task in {"resume-ashby", "watch"} and not args.site:
         parser.error(f"{args.task} requires --site")
     if args.task == "verify-email" and not (args.site and args.company):
