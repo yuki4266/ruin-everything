@@ -67,7 +67,7 @@ def parse_code(body: str) -> str | None:
 
 
 async def rows(mail: Page):
-    if urlsplit(mail.url).netloc not in {"outlook.office.com", "outlook.office365.com"}:
+    if urlsplit(mail.url).netloc not in {"outlook.office.com", "outlook.office365.com", "outlook.cloud.microsoft"}:
         raise RuntimeError("Sign in to Outlook in this Chrome profile before starting.")
     return await mail.locator(MAIL_ROWS).evaluate_all("""nodes => nodes.map(n => ({
         id: n.getAttribute('data-itemid') || n.getAttribute('data-convid'),

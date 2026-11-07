@@ -12,6 +12,9 @@ from ruin.config import PROFILE
 
 async def run(args):
     async with browser_context(PROFILE, args.cdp, args.channel) as context:
+        if args.task == "browser":
+            print("Connected to local Chrome. The browser will stay open.")
+            return
         if args.task == "resume-ashby":
             from ruin.agent.ashby import resume_ashby
             def report(event):
@@ -44,7 +47,7 @@ async def run(args):
 
 def main():
     parser = argparse.ArgumentParser(description="List current Duke Canvas courses using a local browser.")
-    parser.add_argument("task", help="Use courses, or describe a browser task and supply --site.")
+    parser.add_argument("task", help="Use browser, courses, or describe a browser task and supply --site.")
     parser.add_argument("--site", help="HTTPS starting URL for a click task")
     parser.add_argument("--autofill", action="store_true", help="Fill credentials for this origin from the system keyring")
     parser.add_argument("--requested-at", type=float, metavar="UNIX_SECONDS",
@@ -56,11 +59,11 @@ def main():
     parser.add_argument("--timeout", type=int, default=180, help="Seconds to wait for school verification")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
-    if args.task == "resume-ashby" and not (args.site and args.cdp):
-        parser.error("resume-ashby requires --cdp and --site")
-    if args.task == "verify-email" and not (args.cdp and args.site and args.company):
-        parser.error("verify-email requires --cdp, --site and --company")
-    if not args.site and args.task not in {"courses", "list my courses"}:
+    if args.task == "resume-ashby" and not args.site:
+        parser.error("resume-ashby requires --site")
+    if args.task == "verify-email" and not (args.site and args.company):
+        parser.error("verify-email requires --site and --company")
+    if not args.site and args.task not in {"browser", "courses", "list my courses"}:
         parser.error("Browser tasks require --site.")
     if args.timeout <= 0:
         parser.error("--timeout must be greater than zero.")

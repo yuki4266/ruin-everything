@@ -1,5 +1,6 @@
 # Working on Ruin Everything
 
+- Run every live application and mailbox operation through local Python Playwright attached to shared Chrome CDP on 127.0.0.1:9222. Use the exact job URL and keep pending job tabs open across CLI exits.
 - Use English throughout the project, including documentation, CLI messages, examples, code comments, figure labels, prompts, commit messages and repository metadata.
 - Update README.md with every project update. Describe the observable change and its verification status. Commit the README and its figures with the implementation, push them to GitHub, and check that the published branch contains the update.
 - Pair every explanation with an original, labeled figure. A multi-panel figure may cover several explanations if the text points to the relevant panel. Provide descriptive alt text. Preserve editable vector sources in docs/figures.

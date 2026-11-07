@@ -4,19 +4,27 @@ List the courses you can open on Duke Canvas from your terminal. The runner keep
 
 ![A purple browser opens Canvas. An active session leads straight to the course list. A redirect takes the yellow school sign-in branch and rejoins the same list.](docs/figures/session.svg)
 
+## Use a shared local Chrome window
+
+![Two independent runner connections attach to a local Chrome profile and keep the same application tab open.](docs/figures/local-chrome.svg)
+
+With Chrome installed, run `ruin browser` to start or reconnect to the project browser. Every CLI task uses Python Playwright over CDP. The default endpoint is `http://127.0.0.1:9222`. The runner launches Chrome with a dedicated profile at `~/.ruin-everything/canvas-browser` when this port is free. Chrome stays open after the command exits. Other local clients can attach to the same endpoint and locate the job tab by its full URL. Give one client ownership of submission for each application.
+
+Open Outlook Web in this profile and complete any required Microsoft sign-in before requesting a fresh email code. Closing the job tab, quitting Chrome or a site session expiring can still interrupt an application. A draft in a chat-specific browser must be recovered separately.
+
 ## Run a course lookup
 
-From the repository directory, use Python 3.11 or later:
+From the repository directory, use Python 3.11 or later and installed Chrome:
 
 ```sh
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e .
-python -m playwright install chromium
+ruin browser
 ruin courses
 ```
 
-The result contains course names and links. Use `--json` for structured output. To use installed Google Chrome, skip the Chromium download and run `ruin courses --channel chrome`. The profile lives in `~/.ruin-everything/canvas-browser`. To attach to a Chrome instance already exposing a local debugging endpoint, run:
+The result contains course names and links. Use `--json` for structured output. To select an existing local debugging endpoint explicitly, run:
 
 ```sh
 ruin courses --cdp http://127.0.0.1:9222 --json
@@ -91,7 +99,7 @@ The receipt pattern comes from a completed Baseten application. The reusable com
 
 ![Local tests exercise session reuse, control labels and model-directed clicks. Live checks cover course discovery and a repeat lookup.](docs/figures/checks.svg)
 
-Run `python -m unittest discover -s tests -v`. Install the agent extras to include the mocked model test. For installed Chrome, prefix the command with `RUIN_TEST_CHANNEL=chrome`.
+Runtime checks verified a shared Chrome tab across independent CDP connections. For browser tests, install the Playwright Chromium build or use installed Chrome. Run `python -m unittest discover -s tests -v`. Install the agent extras to include the mocked model test. For installed Chrome, prefix the command with `RUIN_TEST_CHANNEL=chrome`.
 
 A live Duke run returned course links after sign-in. A second run with the same profile also returned the list after visiting the school login route. The number of Duo prompts was not measured. The general click loop has been exercised with a simulated model response.
 
