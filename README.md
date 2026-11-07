@@ -1,20 +1,32 @@
-# Ruin Everything
+<p align="right"><strong>English</strong> &nbsp;·&nbsp; Read in translation: <a href="https://translate.google.com/translate?sl=en&amp;tl=zh-CN&amp;u=https%3A%2F%2Fgithub.com%2Fyuki4266%2Fruin-everything%2Fblob%2Fmain%2FREADME.md">Chinese</a> &nbsp;·&nbsp; <a href="https://translate.google.com/translate?sl=en&amp;tl=ja&amp;u=https%3A%2F%2Fgithub.com%2Fyuki4266%2Fruin-everything%2Fblob%2Fmain%2FREADME.md">Japanese</a> &nbsp;·&nbsp; <a href="https://translate.google.com/translate?sl=en&amp;tl=es&amp;u=https%3A%2F%2Fgithub.com%2Fyuki4266%2Fruin-everything%2Fblob%2Fmain%2FREADME.md">Spanish</a></p>
 
-**🔥 Stop babysitting cowardly AI agents. Unfiltered local Chrome execution that crushes 2FA, bypasses [withheld] OTPs, and finishes the job with 0 prompts.**
+# <img src="docs/figures/cover.svg" alt="Ruin Everything — a local Chrome runtime for browser agents" width="100%">
 
-Today the Greenhouse workflow can fill a matching email code in an open application. Duo approvals and interactive CAPTCHA challenges can still require you to act.
+<p align="center">
+  <a href="https://github.com/yuki4266/ruin-everything/stargazers"><img src="docs/figures/badges/stars.svg" alt="GitHub stars"></a>
+  <a href="#use-a-shared-local-chrome-window"><img src="docs/figures/badges/python.svg" alt="Requires Python 3.11 or later"></a>
+  <a href="#connect-an-agent-over-mcp"><img src="docs/figures/badges/mcp.svg" alt="MCP over stdio"></a>
+  <a href="LICENSE"><img src="docs/figures/badges/license.svg" alt="MIT license"></a>
+</p>
 
-Ruin Everything keeps the original tab open in Chrome on your machine. A later run can reconnect, finish verification where the site allows it, and check the site's response. On Ashby, the runner can return the saved receipt for that job even after the tab closes.
+**Pick up a browser task where the last agent left it.** Ruin connects to Chrome on your machine. A new CLI run or MCP client can find the same open application tab, finish a supported verification step, and check what the site actually confirmed.
 
-<img src="docs/figures/architecture.svg" alt="Ruin Everything connects a CLI to the local Chrome session. A later run can reattach and continue in an open application tab." width="100%">
+[Set up Chrome](#use-a-shared-local-chrome-window) · [Connect an MCP client](#connect-an-agent-over-mcp) · [See what has been tested](#verification)
 
-[Set up Chrome](#use-a-shared-local-chrome-window) · [Click tasks](#run-a-browser-click-task) · [Greenhouse](#verify-a-greenhouse-application-with-outlook-web) · [Ashby](#resume-an-authorized-ashby-application) · [MCP tools](#connect-an-agent-over-mcp) · [Canvas example](#example-read-courses-after-school-sign-in)
+| In your browser | What Ruin can do |
+| --- | --- |
+| A Greenhouse application asks for an email code | [Match a fresh Outlook message to the application and fill the code.](#verify-a-greenhouse-application-with-outlook-web) |
+| An Ashby tab closed after submission | [Look up a previously captured receipt by the exact job URL.](#receipt-storage-and-retries) |
+| A Workday tenant asks you to sign in | [Use the local profile and follow a supported account activation back to the job.](#workday-accounts-and-signed-in-sessions) |
+| You have phone numbers from several countries | [Choose a default in the offline identity editor.](#local-account-registration) |
 
 ## Choose a starting point
 
 <img src="docs/figures/command-guide.svg" alt="Five terminal commands and when to use each, from starting Chrome to watching an existing application for its receipt." width="100%">
 
 For a new task, start the shared browser and open the target site. For an interrupted application, choose the site-specific watcher and pass the original job URL. Generic click tasks open a new tab.
+
+<img src="docs/figures/architecture.svg" alt="Independent clients reconnect to the original tab in shared Chrome." width="100%">
 
 ## Use a shared local Chrome window
 

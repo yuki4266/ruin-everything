@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="452" viewBox="0 0 1200 452" role="img" aria-labelledby="title description">
+  <title id="title">Ruin Everything</title>
+  <desc id="description">A violet desktop terminal keeps a browser tab open. A mint-green confirmation receipt curls out of its front panel.</desc>
+  <defs>
+    <linearGradient id="back" x2="1" y2=".45" gradientUnits="objectBoundingBox"><stop stop-color="#211637"/><stop offset="1" stop-color="#4c3368"/></linearGradient>
+    <linearGradient id="shell" x2="0" y2="1"><stop stop-color="#e8dfff"/><stop offset="1" stop-color="#aa90d1"/></linearGradient>
+    <pattern id="dots" width="9" height="9" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#dbbdf7" opacity=".23"/></pattern>
+    <pattern id="lines" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 1h4" stroke="#c5fab6" opacity=".06"/></pattern>
+    <clipPath id="canvas"><rect width="1200" height="452" rx="18"/></clipPath>
+  </defs>
+  <g clip-path="url(#canvas)">
+    <rect width="1200" height="452" fill="url(#back)"/>
+    <path d="M595 452 857 0h343v452z" fill="url(#dots)"/>
+    <g fill="none" stroke="#aa87c4" opacity=".32">
+      <ellipse cx="962" cy="261" rx="312" ry="133" transform="rotate(-29 962 261)"/>
+      <ellipse cx="962" cy="261" rx="335" ry="149" transform="rotate(-29 962 261)"/>
+    </g>
+    <g fill="#ffbd76"><path d="m1126 54 4 13 13 4-13 4-4 13-4-13-13-4 13-4z"/><circle cx="691" cy="329" r="4"/></g>
+    <g font-family="Helvetica Neue, Arial, sans-serif">
+      <g transform="translate(49 49)" fill="none" stroke="#b8efaa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <rect width="32" height="24" rx="5"/><path d="m7 7 5 5-5 5m10 0h7"/>
+      </g>
+      <text x="96" y="67" font-size="16" letter-spacing="3" fill="#d8cde4" font-family="Menlo,monospace">LOCAL CHROME RUNTIME</text>
+      <g font-weight="900" letter-spacing="-6" fill="#fff5df">
+        <text x="43" y="200" font-size="146">Ruin</text>
+        <text x="44" y="306" font-size="106">Everything<tspan fill="#ffad72">.</tspan></text>
+      </g>
+      <path d="M49 348h79" stroke="#ffad72" stroke-width="5"/>
+      <text x="49" y="399" font-size="26" fill="#e4dae9">Keep the tab. Come back for the receipt.</text>
+    </g>
+    <!-- The display, its browser window and the receipt share one perspective. -->
+    <g transform="translate(723 66) rotate(-6 180 150)" stroke="#241a31" stroke-linejoin="round">
+      <ellipse cx="195" cy="304" rx="208" ry="25" fill="#191025" opacity=".54" stroke="none"/>
+      <path d="M29 25 61 4h290q20 0 20 19v200l-28 22-31-17z" fill="#9778b5" stroke-width="5"/>
+      <path d="m30 23 32-19h288q12 0 16 7l-31 21z" fill="#f1e7ff" stroke-width="4"/>
+      <rect x="10" y="22" width="332" height="224" rx="22" fill="url(#shell)" stroke-width="5"/>
+      <rect x="29" y="41" width="292" height="172" rx="17" fill="#5e4974" stroke-width="4"/>
+      <rect x="37" y="49" width="278" height="157" rx="12" fill="#1c282d" stroke-width="4"/>
+      <rect x="37" y="49" width="278" height="157" rx="12" fill="url(#lines)" stroke="none"/>
+      <g transform="translate(64 67)" stroke="#91b9a5" stroke-width="2.5">
+        <rect width="221" height="119" rx="6" fill="#203436"/>
+        <path d="M0 22h221"/>
+        <g fill="#f8bd9e" stroke="none"><circle cx="12" cy="11" r="3"/><circle cx="24" cy="11" r="3" fill="#c6dfaa"/><circle cx="36" cy="11" r="3" fill="#b3a4d3"/></g>
+        <path d="m17 45 7 6-7 6m13 0h10" fill="none" stroke="#b5edb0" stroke-width="3"/>
+        <text x="17" y="88" font-family="Menlo,monospace" font-size="21" stroke="none" fill="#c9f6bc">Tab connected</text>
+      </g>
+      <path d="M32 226h48m6 0h12" stroke="#75568a" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="313" cy="228" r="5" fill="#c5f5a9" stroke-width="2"/>
+      <path d="m8 248 34-14 305 9 20 17-27 31-343-6z" fill="#d5c2ea" stroke-width="5"/>
+      <rect x="-4" y="254" width="346" height="43" rx="8" fill="#b49acd" stroke-width="5"/>
+      <path d="m342 255 25-14v38l-25 17z" fill="#806394" stroke-width="4"/>
+      <rect x="104" y="265" width="160" height="11" rx="5" fill="#35283f" stroke-width="3"/>
+      <path d="M114 271h137c-1 20-12 45-2 70l-10-4-9 7-12-5-10 7-12-5-10 6-11-5-11 6-11-5-10 5-11-5-10 5c-13-30 6-57 2-77z" fill="#c8f2bc" stroke-width="3"/>
+      <g fill="none" stroke="#477353" stroke-width="3"><path d="m131 288 5 5 9-11"/><path d="M151 287h76m-99 17h81m-83 8h65"/></g>
+    </g>
+  </g>
+</svg>
