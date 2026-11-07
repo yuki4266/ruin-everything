@@ -8,7 +8,7 @@ Ruin Everything keeps the original tab open in Chrome on your machine. A later r
 
 <img src="docs/figures/architecture.svg" alt="Ruin Everything connects a CLI to the local Chrome session. A later run can reattach and continue in an open application tab." width="100%">
 
-[Set up Chrome](#use-a-shared-local-chrome-window) · [Click tasks](#run-a-browser-click-task) · [Greenhouse](#verify-a-greenhouse-application-with-outlook-web) · [Ashby](#resume-an-authorized-ashby-application) · [Canvas example](#example-read-courses-after-school-sign-in)
+[Set up Chrome](#use-a-shared-local-chrome-window) · [Click tasks](#run-a-browser-click-task) · [Greenhouse](#verify-a-greenhouse-application-with-outlook-web) · [Ashby](#resume-an-authorized-ashby-application) · [MCP tools](#connect-an-agent-over-mcp) · [Canvas example](#example-read-courses-after-school-sign-in)
 
 ## Choose a starting point
 
@@ -129,6 +129,33 @@ The watcher records success only when the same job displays Ashby's visible **Su
 For example, a challenge can disappear while the site is still processing the application. If the watcher times out then, check the original tab before taking another action. If that tab later displays the official receipt, rerun the watcher with the same URL to capture it.
 
 The illustrated receipt is an example. The receipt pattern comes from a completed Baseten application. The reusable command was tested with simulated Ashby pages in Chrome, including a hidden receipt, a changed job, duplicate tabs and a retry after the tab closed.
+
+## Connect an agent over MCP
+
+<img src="docs/figures/mcp-receipts.svg" alt="An agent checks the local Ashby journal by job URL. It can return saved evidence offline or watch the original tab for a new receipt." width="100%">
+
+When one agent takes over an application from another, give it the exact Ashby application URL. The optional local MCP server exposes two tools that share the CLI's receipt journal.
+
+| Tool | When to call it | Result |
+| --- | --- | --- |
+| `get_ashby_receipt` | At handoff, even with Chrome closed | A saved receipt or `unrecorded`. A missing record leaves the outcome unknown. |
+| `watch_ashby_receipt` | The original form is open and the outcome is uncertain | An existing receipt, or fresh evidence from the same job. A timeout is a tool error. The watcher leaves the form open. |
+
+Install once with `python -m pip install -e '.[mcp]'` in the virtual environment. In a client that accepts `mcpServers` JSON, set the command to the absolute path printed by `command -v ruin-mcp`. For example:
+
+```json
+{
+  "mcpServers": {
+    "ruin-everything": {
+      "command": "/absolute/path/to/.venv/bin/ruin-mcp"
+    }
+  }
+}
+```
+
+Both tools take `site`. The watcher also takes `timeout_seconds` (default 15, range 1–300). A returned receipt contains `state`, `site`, `observed_at` and the site's confirmation `message`. The application driver owns form interaction. After a timeout, check the same URL again before considering another submission.
+
+The server uses the official Python MCP SDK over stdio. A browser automation client such as Playwright MCP can run alongside it by attaching to the same local Chrome with `--cdp-endpoint http://127.0.0.1:9222`. The integration test exercises two successive SDK clients and a simulated employer page in Chrome. [Python MCP SDK](https://github.com/modelcontextprotocol/python-sdk) · [Playwright MCP connection options](https://github.com/microsoft/playwright-mcp#configuration)
 
 ## Example: read courses after school sign-in
 

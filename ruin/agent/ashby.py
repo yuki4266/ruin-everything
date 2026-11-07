@@ -4,6 +4,7 @@ import asyncio
 import json
 import re
 import sqlite3
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -11,6 +12,7 @@ from urllib.parse import urlsplit
 from playwright.async_api import BrowserContext, Error, Page
 
 ROOT = "https://jobs.ashbyhq.com"
+JOURNAL = "ashby-receipts.sqlite3"
 JOB_PATH = re.compile(
     r"/[\w.-]+/[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}/application/?",
     re.ASCII,
@@ -23,6 +25,23 @@ def application_url(url: str) -> str:
             or not JOB_PATH.fullmatch(location.path)):
         raise ValueError("Use the original jobs.ashbyhq.com job application URL.")
     return ROOT + location.path.rstrip("/")
+
+
+def recorded_receipt(db: sqlite3.Connection, site: str):
+    row = db.execute("SELECT evidence FROM receipts WHERE site = ?", (site,)).fetchone()
+    return json.loads(row[0]) if row else None
+
+
+def lookup_receipt(url: str, directory: Path):
+    site = application_url(url)
+    journal = directory / JOURNAL
+    if not journal.exists():
+        return None
+    with closing(sqlite3.connect(journal.resolve().as_uri() + "?mode=ro", uri=True)) as db:
+        # A concurrent writer may have created the file but not yet created the table.
+        if not db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='receipts'").fetchone():
+            return None
+        return recorded_receipt(db, site)
 
 
 async def observe(page: Page, site: str):
@@ -60,15 +79,11 @@ async def resume_ashby(context: BrowserContext, url: str, timeout: float, direct
     """
     site = application_url(url)
     directory.mkdir(parents=True, exist_ok=True, mode=0o700)
-    db = sqlite3.connect(directory / "ashby-receipts.sqlite3")
+    db = sqlite3.connect(directory / JOURNAL)
     lock = None
     try:
         db.execute("CREATE TABLE IF NOT EXISTS receipts (site TEXT PRIMARY KEY, evidence TEXT NOT NULL)")
-        def recorded():
-            row = db.execute("SELECT evidence FROM receipts WHERE site = ?", (site,)).fetchone()
-            return json.loads(row[0]) if row else None
-
-        previous = recorded()
+        previous = recorded_receipt(db, site)
         if previous:
             return previous
         if on_challenge:
@@ -102,7 +117,7 @@ async def resume_ashby(context: BrowserContext, url: str, timeout: float, direct
                     evidence = dict(result, site=site, observed_at=datetime.now(timezone.utc).isoformat())
                     with db:
                         db.execute("INSERT OR IGNORE INTO receipts VALUES (?, ?)", (site, json.dumps(evidence)))
-                    return recorded()
+                    return recorded_receipt(db, site)
                 if state == "changed_tab":
                     raise RuntimeError("The original tab left the authorized job. No submission recorded.")
                 if state != last:

@@ -13,7 +13,7 @@ Ruin Everything gives browser agents a local execution environment for tasks tha
 | Verification | Interactive sign-in, origin-bound TOTP and an Outlook Web watcher for Greenhouse | Distinguish expired codes, denied challenges and device recovery. Validate email matching across supported Outlook layouts. |
 | Write operations | Single-tab click loop and an Ashby receipt journal | Define permitted targets, duration and revocation for payments, deletions and public sends. Simulate a lost submission response and verify recovery without duplication. |
 
-Upcoming design decisions include whether to expose the CLI through a browser extension or an MCP tool, and how users should grant and revoke action-specific permissions.
+Ashby receipt lookup and observation are available through local MCP tools. Upcoming design decisions include which other adapters to expose and how users should grant and revoke action-specific permissions.
 
 ## Adapter example: Duke Canvas
 
