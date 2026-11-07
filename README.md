@@ -1,4 +1,4 @@
-<p align="right"><strong>English</strong> &nbsp;·&nbsp; Read in translation: <a href="https://translate.google.com/translate?sl=en&amp;tl=zh-CN&amp;u=https%3A%2F%2Fgithub.com%2Fyuki4266%2Fruin-everything%2Fblob%2Fmain%2FREADME.md">Chinese</a> &nbsp;·&nbsp; <a href="https://translate.google.com/translate?sl=en&amp;tl=ja&amp;u=https%3A%2F%2Fgithub.com%2Fyuki4266%2Fruin-everything%2Fblob%2Fmain%2FREADME.md">Japanese</a> &nbsp;·&nbsp; <a href="https://translate.google.com/translate?sl=en&amp;tl=es&amp;u=https%3A%2F%2Fgithub.com%2Fyuki4266%2Fruin-everything%2Fblob%2Fmain%2FREADME.md">Spanish</a></p>
+<p align="right"><strong>English</strong> &nbsp;·&nbsp; <a href="README.zh-CN.md">简体中文</a> &nbsp;·&nbsp; <a href="README.ja.md">日本語</a> &nbsp;·&nbsp; <a href="README.es.md">Español</a></p>
 
 # <img src="docs/figures/tab-wave.webp" alt="Ruin Everything: a receipt surfs a wave of blue and lavender browser tabs" width="100%">
 
