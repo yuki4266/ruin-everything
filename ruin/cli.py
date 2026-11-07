@@ -12,6 +12,10 @@ from ruin.updater import start_update_check
 
 
 async def run(args):
+    if args.task == "identity":
+        from ruin.auth.identity_setup import setup
+        await setup()
+        return
     if args.task == "watch":
         from ruin.agent.challenge import inspect_challenge
         print(json.dumps(await inspect_challenge(args.site, args.cdp, args.timeout)))
@@ -66,7 +70,7 @@ async def run(args):
 
 def main():
     parser = argparse.ArgumentParser(description="Run browser tasks and resume verification in a shared local Chrome session.")
-    parser.add_argument("task", help="Use browser, watch, verify-email, verify-sms, keep-alive, resume-ashby, courses, or a click task with --site.")
+    parser.add_argument("task", help="Use identity, browser, watch, verify-email, verify-sms, keep-alive, resume-ashby, courses, or a click task with --site.")
     parser.add_argument("--site", help="HTTPS starting URL for a click task")
     parser.add_argument("--autofill", action="store_true", help="Fill credentials for this origin from the system keyring")
     parser.add_argument("--requested-at", type=float, metavar="UNIX_SECONDS",
@@ -92,7 +96,7 @@ def main():
         parser.error(f"{args.task} requires --site")
     if args.task == "verify-email" and not (args.site and args.company):
         parser.error("verify-email requires --site and --company")
-    if not args.site and args.task not in {"browser", "courses", "list my courses"}:
+    if not args.site and args.task not in {"identity", "browser", "courses", "list my courses"}:
         parser.error("Browser tasks require --site.")
     if args.timeout <= 0:
         parser.error("--timeout must be greater than zero.")

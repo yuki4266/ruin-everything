@@ -1,0 +1,55 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; form-action 'none'">
+<title>Ruin · Local identity</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f4ef;color:#20231d;font:16px/1.5 Inter,system-ui,sans-serif}main{max-width:680px;background:#fff;margin:32px auto;padding:32px;border:1px solid #d4d6cc;border-radius:12px}h1{margin:0;font-size:30px}h2{font-size:20px;margin:26px 0 4px}p{margin:4px 0 18px;color:#50574c}label{display:block;font-weight:550;margin:12px 0 4px}input:not([type=checkbox],[type=radio]),select{padding:10px;width:100%;font:inherit;border:1px solid #90978e;border-radius:5px}input,select,button{accent-color:#21674b}button{cursor:pointer;font:inherit;background:#fff;border:1px solid #afb6ac;border-radius:5px;padding:7px 12px}#save{background:#20573e;color:white;border-color:#20573e}fieldset{border:1px solid #d5dacd;margin:10px 0;padding:6px 14px 12px;border-radius:7px}legend{font-weight:650}footer,.actions{display:flex;align-items:baseline;gap:12px;justify-content:space-between}footer{justify-content:flex-end;margin-top:20px}#status{color:#993725}
+</style>
+<main><h1>Local identity</h1><p>Your password and numbers are stored in a private file on this computer.</p>
+<form id="profile"><label for="email">Registration email</label><input id="email" type="email" autocomplete="off" required>
+<label for="password">Registration password</label><input id="password" type="password" autocomplete="off" required>
+<label><input type="checkbox" id="reveal"> Show password</label>
+<h2>Phone numbers</h2><p>Choose where each number was issued and enter it as you would locally. The default is used on forms.</p>
+<div id="numbers"></div><button type="button" id="add">Add another number</button>
+<label><input type="checkbox" id="enabled"> Enable automatic registration</label>
+<div id="status" role="alert"></div><footer><button type="button" id="cancel">Cancel</button><button id="save">Save identity</button></footer></form></main>
+<template id="row"><fieldset><legend>Phone number</legend><label>Country or region<select required><option value="">Select country or region</option></select></label>
+<label>Phone number<input type="tel" autocomplete="off" required></label>
+<div class="actions"><label><input type="radio" name="default" required> Use as default</label><button type="button">Remove</button></div></fieldset></template>
+<script>
+const get=id=>document.getElementById(id);
+function initialize(data){
+  const names=new Intl.DisplayNames(["en"],{type:"region"});
+  const regions=Object.entries(data.regions).sort(([a],[b])=>names.of(a).localeCompare(names.of(b),"en"));
+  function add(entry,selected){
+    const row=get("row").content.firstElementChild.cloneNode(true);
+    const select=row.querySelector("select");
+    for(const [region,code] of regions) select.add(new Option(names.of(region)+" (+"+code+")",region));
+    select.value=entry.region;
+    row.querySelector("input[type=tel]").value=entry.number;
+    row.querySelector("input[type=radio]").checked=selected;
+    row.querySelector("button").onclick=()=>{
+      if(get("numbers").children.length===1) return;
+      row.remove();
+      if(!document.querySelector("input[name=default]:checked")) document.querySelector("input[name=default]").checked=true;
+      refresh();
+    };
+    get("numbers").append(row);refresh();
+  }
+  function refresh(){const rows=[...get("numbers").children];rows.forEach((r,i)=>{
+    r.querySelector("legend").textContent="Phone number "+(i+1);
+    r.querySelector("button").hidden=rows.length===1;
+  });}
+  get("email").value=data.email; get("password").value=data.password;get("enabled").checked=data.enabled;
+  let selected=data.entries.findIndex(e=>e.number===data.phone);
+  data.entries.forEach((e,i)=>add(e,i===Math.max(0,selected)));
+  get("add").onclick=()=>{add({region:"",number:""},false);get("numbers").lastElementChild.querySelector("select").focus()};
+  get("reveal").onchange=e=>get("password").type=e.target.checked?"text":"password";
+  get("cancel").onclick=()=>window.submission="cancel";
+  get("profile").onsubmit=e=>{
+    e.preventDefault();const rows=[...get("numbers").children];get("save").disabled=true;
+    window.submission={email:get("email").value,password:get("password").value,enabled:get("enabled").checked,
+      defaultIndex:rows.findIndex(r=>r.querySelector("input[type=radio]").checked),
+      entries:rows.map(r=>({region:r.querySelector("select").value,number:r.querySelector("input[type=tel]").value}))};
+  };
+}
+</script></html>

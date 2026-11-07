@@ -8,13 +8,13 @@ version = "0.1.0"
 description = "🔥 Stop babysitting cowardly AI agents. Unfiltered local Chrome execution that crushes 2FA, bypasses [withheld] OTPs, and finishes the job with 0 prompts."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["playwright>=1.60,<2", "filelock>=3.13", "packaging>=23", "regex>=2024.5.15"]
+dependencies = ["playwright>=1.60,<2", "filelock>=3.13", "packaging>=23", "regex>=2024.5.15", "phonenumbers>=8.13,<10"]
 
 [project.urls]
 Repository = "https://github.com/yuki4266/ruin-everything"
 
 [tool.setuptools.package-data]
-ruin = ["rules/sites.json"]
+ruin = ["rules/sites.json", "auth/identity_setup.html"]
 
 [project.optional-dependencies]
 mcp = ["mcp>=1.12,<2"]

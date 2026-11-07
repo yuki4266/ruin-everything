@@ -1,7 +1,8 @@
 # Working on Ruin Everything
 
 - Run every live application and mailbox operation through local Python Playwright attached to shared Chrome CDP on 127.0.0.1:9222. Use the exact job URL and keep pending job tabs open across CLI exits.
-- Use English throughout the project, including documentation, CLI messages, examples, code comments, figure labels, prompts, commit messages and repository metadata.
+- Do not reinvent the wheel. Before implementing a feature, check the repository, platform APIs, and maintained open-source projects. Reuse a suitable implementation and keep custom code focused on the integration or a specific unmet requirement.
+- Use English throughout the project, including documentation, CLI messages, examples, code comments, figure labels, prompts, commit messages and repository metadata. In conversation, use the language requested by the user.
 - Present Ruin Everything as a local Chrome runtime for browser agents. Introduce individual site adapters as examples. Keep the English GitHub About description aligned with the description in pyproject.toml. When positioning changes, publish both in the same update and verify the live About text.
 - Update README.md with every project update. Describe the observable change and its verification status. Commit the README and its figures with the implementation, push them to GitHub, and check that the published branch contains the update.
 - Pair every explanation with an original, labeled figure. A multi-panel figure may cover several explanations if the text points to the relevant panel. Set README figure images to 100% of the text column width, preserving their aspect ratios. Provide descriptive alt text. Preserve editable vector sources in docs/figures.
