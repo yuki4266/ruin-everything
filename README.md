@@ -1,36 +1,49 @@
 # Ruin Everything
 
-List the courses you can open on Duke Canvas from your terminal. The runner keeps a dedicated browser profile and returns to the course lookup after school sign-in. Course discovery runs locally without a model or API key.
+Run browser tasks in a shared local Chrome window. Read Duke Canvas courses, verify a Greenhouse email challenge, or watch an authorized Ashby application for its official receipt. The browser stays open between commands so a later run can reconnect to the job tab.
 
-![A purple browser opens Canvas. An active session leads straight to the course list. A redirect takes the yellow school sign-in branch and rejoins the same list.](docs/figures/session.svg)
+![Cutaway of the local runtime. Application tabs sit above a shared Chrome process; its dedicated profile stores site data between runs.](docs/figures/architecture.svg)
+
+[Set up Chrome](#use-a-shared-local-chrome-window) · [Canvas](#run-a-course-lookup) · [Click tasks](#run-a-browser-click-task) · [Greenhouse](#verify-a-greenhouse-application-with-outlook-web) · [Ashby](#resume-an-authorized-ashby-application)
 
 ## Use a shared local Chrome window
 
 ![Two independent runner connections attach to a local Chrome profile and keep the same application tab open.](docs/figures/local-chrome.svg)
 
-With Chrome installed, run `ruin browser` to start or reconnect to the project browser. Every CLI task uses Python Playwright over CDP. The default endpoint is `http://127.0.0.1:9222`. The runner launches Chrome with a dedicated profile at `~/.ruin-everything/canvas-browser` when this port is free. The CDP connection preserves the existing browser context settings, including its download behavior. Chrome stays open after the command exits. Other local clients can attach to the same endpoint and locate the job tab by its full URL. Give one client ownership of submission for each application.
-
-Open Outlook Web in this profile and complete any required Microsoft sign-in before requesting a fresh email code. Closing the job tab, quitting Chrome or a site session expiring can still interrupt an application. A draft in a chat-specific browser must be recovered separately.
-
-## Run a course lookup
-
-From the repository directory, use Python 3.11 or later and installed Chrome:
+Install from the repository directory with Python 3.11+ and Google Chrome:
 
 ```sh
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e .
 ruin browser
+```
+
+Run `ruin browser` to start or reconnect to the project browser. Every CLI task uses Python Playwright over CDP. The default endpoint is `http://127.0.0.1:9222`. The runner launches Chrome with a dedicated profile at `~/.ruin-everything/canvas-browser` when this port is free. The CDP connection preserves the existing browser context settings, including its download behavior. Chrome stays open after the command exits. Other local clients can attach to the same endpoint and locate the job tab by its full URL. Give one client ownership of submission for each application.
+
+Open Outlook Web in this profile and complete any required Microsoft sign-in before requesting a fresh email code. Closing the job tab, quitting Chrome or a site session expiring can still interrupt an application. A draft in a chat-specific browser must be recovered separately.
+
+## Run a course lookup
+
+![An active session returns the course list directly. If Canvas redirects, complete Duke sign-in to resume the same lookup.](docs/figures/session.svg)
+
+Run the lookup in the shared profile:
+
+```sh
 ruin courses
 ```
 
-The result contains course names and links. Use `--json` for structured output. To select an existing local debugging endpoint explicitly, run:
+The result contains course names and links. Use `--json` for structured output:
+
+![Illustrative JSON output with an example course name and abbreviated link.](docs/figures/course-output.svg)
+
+To select an existing local debugging endpoint explicitly, run:
 
 ```sh
 ruin courses --cdp http://127.0.0.1:9222 --json
 ```
 
-The sign-in branch in the figure above waits up to 180 seconds for the school to return the browser to Canvas. Set `--timeout 300` for a longer wait. Duo approval takes place on the school sign-in path. [Duke device recovery](https://oit.duke.edu/help/articles/kb0036398/)
+The sign-in branch waits up to 180 seconds for the school to return the browser to Canvas. Set `--timeout 300` for a longer wait. Duo approval takes place on the school sign-in path. [Duke device recovery](https://oit.duke.edu/help/articles/kb0036398/)
 
 ## Run a browser click task
 
@@ -44,6 +57,10 @@ ruin "Open the help page" --site https://example.org --channel chrome
 
 The runner sends the task, page title and visible action labels to the selected model. It clicks the chosen control directly and observes the page again. A task can use one tab and up to 20 steps.
 
+### Local credential filling
+
+![The system keyring supplies a matching credential to a sign-in field at the selected HTTPS origin.](docs/figures/autofill.svg)
+
 For a supported sign-in form at the selected HTTPS origin, provision the relevant entries in the system keyring and add `--autofill` to the task command. The optional TOTP entry holds the site's Base32 seed. Complete any remaining sign-in steps in the browser.
 
 ```sh
@@ -54,7 +71,7 @@ keyring set ruin:https://example.org totp
 
 ## Verify a Greenhouse application with Outlook Web
 
-![From left to right: the original job tab, a pink Outlook envelope for fresh matching mail, and a receipt after the code is filled back in the job tab. An expired code allows one resend.](docs/figures/email-verification.svg)
+![Two lanes track one request. The inbox supplies a matched code to the original job tab, which submits and checks for a receipt.](docs/figures/email-verification.svg)
 
 On macOS or Linux, attach to a local debugging-enabled Chrome session that already has Outlook Web signed in and the original Greenhouse job tab open. Replace the example URL and employer with the exact job and the name used in its email. Start the watcher before the application requests a code. The existing application workflow still owns the initial submit.
 
@@ -64,7 +81,15 @@ ruin verify-email --cdp http://127.0.0.1:9222 \
   --company "Example Employer" --timeout 180
 ```
 
-The watcher takes a snapshot of visible Outlook inbox rows and waits for a new or updated row whose timestamp follows the request window. It checks the employer, subject wording and Greenhouse sender, reads the code from the opened message, and submits it in the original job tab. If a challenge is already open at startup and offers a resend control, it requests a fresh code there. It makes at most one resend per run. A local lock serializes watcher processes. Keep other applications for the same employer idle during verification.
+The watcher takes a snapshot of visible Outlook inbox rows and waits for a new or updated row whose timestamp follows the request window. It checks the employer, subject wording and Greenhouse sender, reads the code from the opened message, and submits it in the original job tab. A local lock serializes watcher processes. Keep other applications for the same employer idle during verification.
+
+### Recover an open challenge
+
+![Recovery options depend on the form: resend once, supply the original request time, or inspect the original tab if the result is uncertain.](docs/figures/email-recovery.svg)
+
+If a challenge is already open at startup and offers a resend control, it requests a fresh code there. It makes at most one resend per run.
+
+![Two jobs can share a mail subject. Recovery without a resend requires the job ID in the body. A missing or different ID leaves the tab open.](docs/figures/job-match.svg)
 
 For a direct Greenhouse embed, pass the full quoted URL (including both `for` and `token`). If an existing challenge has no resend control, supply `--requested-at UNIX_SECONDS` from that job’s original request. For this recovery path the message body must also identify the job ID. A subject shared by two roles at the same employer cannot establish which form owns the code. A tab in another chat’s isolated browser must be handled there.
 
@@ -72,7 +97,7 @@ The prototype supports English, top-level Greenhouse forms and Outlook layouts e
 
 ## Resume an authorized Ashby application
 
-![An existing job tab leads to verification by the authorized driver and then to an official receipt. An uncertain result leaves the job unrecorded.](docs/figures/ashby-receipt.svg)
+![Example of the Ashby status used as evidence: the visible Success heading and official submission text on the same job URL.](docs/figures/ashby-receipt.svg)
 
 Use this workflow when a reviewed application has already reached verification. The original application driver owns the authorization for that job and completes the live challenge in the same tab. Start the receipt watcher alongside that driver, using the exact application URL:
 
@@ -90,6 +115,10 @@ receipt = await resume_ashby(context, application_url, timeout=300,
 ```
 
 Import `resume_ashby` from `ruin.agent.ashby`. The handler receives the original Playwright page once per run. The standalone CLI observes the browser; it requires an application driver or person to interact with the widget. A completed challenge may automatically submit the form. Leave any existing submission in flight and watch for its result. An enabled Submit button by itself is insufficient evidence to send another request.
+
+### Receipt storage and retries
+
+![Retrying a recorded application returns its saved receipt. An unrecorded application stays pending until the watcher sees official success.](docs/figures/resume.svg)
 
 The watcher records success only when the same job displays Ashby's visible **Success** status with **Your application was successfully submitted**. It returns the receipt as JSON on standard output and stores one row per job in `~/.ruin-everything/ashby-receipts.sqlite3`. A retry returns that stored receipt. A timeout, changed job or ambiguous tab produces an error without marking the job submitted. An external application tracker should import only a returned receipt.
 

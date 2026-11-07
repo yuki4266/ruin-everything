@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 204" role="img" aria-labelledby="title desc">
+  <title id="title">Where credentials are filled</title>
+  <desc id="desc">The local keyring supplies a value only to a matching supported field on the selected origin.</desc>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0 0L9 5L0 10z" fill="#242438" />
+    </marker>
+    <pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse">
+      <path d="M25 0H0V25" fill="none" stroke="#47405B" stroke-width=".7" />
+    </pattern>
+  </defs>
+  <rect x="1" y="1" width="638" height="202" rx="13" fill="#FBFAF7" stroke="#DAD7DD" stroke-width="1.5" />
+  <g transform="translate(27 33) scale(1)">
+    <path d="M5 38a25 25 0 1 1 44 16l-6 6v32H29v-9h-8V58Q8 54 5 38Z" fill="#FFD387" stroke="#242438" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    <circle cx="29" cy="30" r="6" fill="#FFFFFF" />
+  </g>
+  <text x="99" y="67" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" text-anchor="start" fill="#242438">System keyring</text>
+  <text x="99" y="93" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="500" text-anchor="start" fill="#545368">Entries for the HTTPS origin</text>
+  <path d="M332 74H383" fill="none" stroke="#242438" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)" />
+  <rect x="395" y="35" width="219" height="82" rx="8" fill="#FFFFFF" stroke="#DAD7DD" stroke-width="1.5" />
+  <text x="411" y="64" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" text-anchor="start" fill="#242438">Sign-in form</text>
+  <text x="411" y="96" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start" fill="#6247BB">••••••••</text>
+  <path d="M25 144H614" fill="none" stroke="#DAD7DD" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="28" y="177" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" text-anchor="start" fill="#242438">In the browser</text>
+  <text x="186" y="177" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="500" text-anchor="start" fill="#242438">Complete any remaining sign-in steps.</text>
+</svg>

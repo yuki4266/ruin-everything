@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 240" role="img" aria-labelledby="title desc">
+  <title id="title">Choosing the next step</title>
+  <desc id="desc">At most one resend per run. Without a resend control, use the original timestamp and require the job ID. Check uncertain submissions in place.</desc>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0 0L9 5L0 10z" fill="#242438" />
+    </marker>
+    <pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse">
+      <path d="M25 0H0V25" fill="none" stroke="#47405B" stroke-width=".7" />
+    </pattern>
+  </defs>
+  <rect x="1" y="1" width="638" height="238" rx="13" fill="#FBFAF7" stroke="#DAD7DD" stroke-width="1.5" />
+  <text x="24" y="39" font-family="ui-monospace, Menlo, monospace" font-size="16" font-weight="700" text-anchor="start" fill="#6247BB">VERIFICATION ALREADY OPEN</text>
+  <path d="M24 54H616" fill="none" stroke="#DAD7DD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="25" y="94" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" text-anchor="start" fill="#242438">Resend available</text>
+  <path d="M230 86H283" fill="none" stroke="#242438" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)" />
+  <text x="300" y="94" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="500" text-anchor="start" fill="#242438">Start one fresh request window</text>
+  <path d="M24 114H615" fill="none" stroke="#DAD7DD" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="25" y="151" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" text-anchor="start" fill="#242438">No resend control</text>
+  <path d="M230 144H283" fill="none" stroke="#242438" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)" />
+  <text x="300" y="152" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="500" text-anchor="start" fill="#242438">Supply the original request time</text>
+  <path d="M24 172H615" fill="none" stroke="#DAD7DD" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="25" y="209" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" text-anchor="start" fill="#242438">Receipt uncertain</text>
+  <path d="M230 202H283" fill="none" stroke="#242438" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)" />
+  <text x="300" y="210" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="500" text-anchor="start" fill="#242438">Inspect the existing job tab</text>
+</svg>

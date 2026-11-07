@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 279" role="img" aria-labelledby="title desc">
+  <title id="title">Recovering a challenge without a resend control</title>
+  <desc id="desc">With the original request time supplied, a recovered challenge also requires the expected job ID in the message body.</desc>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0 0L9 5L0 10z" fill="#242438" />
+    </marker>
+    <pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse">
+      <path d="M25 0H0V25" fill="none" stroke="#47405B" stroke-width=".7" />
+    </pattern>
+  </defs>
+  <rect x="1" y="1" width="638" height="277" rx="13" fill="#FBFAF7" stroke="#DAD7DD" stroke-width="1.5" />
+  <rect x="25" y="25" width="591" height="71" rx="6" fill="#F6E8ED" stroke="none" stroke-width="1.5" />
+  <text x="42" y="51" font-family="ui-monospace, Menlo, monospace" font-size="16" font-weight="700" text-anchor="start" fill="#6247BB">SHARED SUBJECT</text>
+  <text x="42" y="79" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start" fill="#242438">Security code for your application</text>
+  <rect x="25" y="119" width="282" height="68" rx="8" fill="#FFFFFF" stroke="#DAD7DD" stroke-width="1.5" />
+  <rect x="25" y="129" width="4" height="48" rx="2" fill="#8EE2BE" stroke="none" stroke-width="1.5" />
+  <text x="39" y="149" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="start" fill="#242438">Original job ID</text>
+  <text x="39" y="174" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="500" text-anchor="start" fill="#545368">Matches the email body</text>
+  <rect x="331" y="119" width="285" height="68" rx="8" fill="#FFFFFF" stroke="#DAD7DD" stroke-width="1.5" />
+  <rect x="331" y="129" width="4" height="48" rx="2" fill="#FFD387" stroke="none" stroke-width="1.5" />
+  <text x="345" y="149" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="start" fill="#242438">Other or missing ID</text>
+  <text x="345" y="174" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="500" text-anchor="start" fill="#545368">Cannot establish ownership</text>
+  <path d="M167 190V214" fill="none" stroke="#242438" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)" />
+  <path d="M476 190V214" fill="none" stroke="#242438" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)" />
+  <rect x="76" y="219" width="181" height="38" rx="19" fill="#8EE2BE" stroke="none" stroke-width="1.5" />
+  <text x="166.5" y="245" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" text-anchor="middle" fill="#242438">Fill original tab</text>
+  <rect x="380" y="219" width="197" height="38" rx="19" fill="#FFD387" stroke="none" stroke-width="1.5" />
+  <text x="478.5" y="245" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" text-anchor="middle" fill="#242438">Leave tab open</text>
+</svg>

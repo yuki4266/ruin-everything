@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 252" role="img" aria-labelledby="title desc">
+  <title id="title">Retry behavior</title>
+  <desc id="desc">A saved receipt returns immediately. Otherwise watch one existing tab and keep an uncertain result unrecorded.</desc>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0 0L9 5L0 10z" fill="#242438" />
+    </marker>
+    <pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse">
+      <path d="M25 0H0V25" fill="none" stroke="#47405B" stroke-width=".7" />
+    </pattern>
+  </defs>
+  <rect x="1" y="1" width="638" height="250" rx="13" fill="#FBFAF7" stroke="#DAD7DD" stroke-width="1.5" />
+  <text x="26" y="41" font-family="ui-monospace, Menlo, monospace" font-size="16" font-weight="700" text-anchor="start" fill="#6247BB">WHEN THE WATCHER RESUMES</text>
+  <rect x="25" y="64" width="276" height="68" rx="8" fill="#FFFFFF" stroke="#DAD7DD" stroke-width="1.5" />
+  <rect x="25" y="74" width="4" height="48" rx="2" fill="#8EE2BE" stroke="none" stroke-width="1.5" />
+  <text x="39" y="94" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="start" fill="#242438">Receipt on disk</text>
+  <text x="39" y="119" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="500" text-anchor="start" fill="#545368">Same application URL</text>
+  <rect x="338" y="64" width="276" height="68" rx="8" fill="#FFFFFF" stroke="#DAD7DD" stroke-width="1.5" />
+  <rect x="338" y="74" width="4" height="48" rx="2" fill="#B7A2FF" stroke="none" stroke-width="1.5" />
+  <text x="352" y="94" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="start" fill="#242438">No receipt yet</text>
+  <text x="352" y="119" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="500" text-anchor="start" fill="#545368">Observe the original tab</text>
+  <path d="M159 135V170" fill="none" stroke="#242438" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)" />
+  <path d="M471 135V170" fill="none" stroke="#242438" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)" />
+  <text x="162" y="202" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="middle" fill="#242438">Return saved receipt</text>
+  <text x="475" y="201" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="middle" fill="#242438">Wait for success</text>
+  <text x="475" y="228" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="500" text-anchor="middle" fill="#545368">Timeout leaves it pending.</text>
+</svg>

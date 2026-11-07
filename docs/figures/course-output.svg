@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 214" role="img" aria-labelledby="title desc">
+  <title id="title">Illustrative course lookup output</title>
+  <desc id="desc">A sample JSON record contains a course name and link. The displayed URL is abbreviated.</desc>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0 0L9 5L0 10z" fill="#242438" />
+    </marker>
+    <pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse">
+      <path d="M25 0H0V25" fill="none" stroke="#47405B" stroke-width=".7" />
+    </pattern>
+  </defs>
+  <rect x="1" y="1" width="638" height="212" rx="13" fill="#FBFAF7" stroke="#DAD7DD" stroke-width="1.5" />
+  <rect x="25" y="25" width="589" height="163" rx="8" fill="#292838" stroke="none" stroke-width="1.5" />
+  <circle cx="44" cy="44" r="3.5" fill="#FFABBA" />
+  <circle cx="57" cy="44" r="3.5" fill="#FFD387" />
+  <circle cx="70" cy="44" r="3.5" fill="#8EE2BE" />
+  <text x="47" y="81" font-family="ui-monospace, Menlo, monospace" font-size="21" font-weight="600" text-anchor="start" fill="#8EE2BE">$ ruin courses --json</text>
+  <text x="47" y="115" font-family="ui-monospace, Menlo, monospace" font-size="18" font-weight="500" text-anchor="start" fill="#FFFFFF">[{</text>
+  <text x="67" y="144" font-family="ui-monospace, Menlo, monospace" font-size="19" font-weight="500" text-anchor="start" fill="#FFFFFF">"name": "Example course",</text>
+  <text x="67" y="170" font-family="ui-monospace, Menlo, monospace" font-size="18" font-weight="500" text-anchor="start" fill="#DED6FA">"url": "https://…/courses/42" }]</text>
+</svg>
