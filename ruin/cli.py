@@ -12,6 +12,13 @@ from ruin.config import PROFILE
 
 async def run(args):
     async with browser_context(PROFILE, args.cdp, args.channel) as context:
+        if args.task == "resume-ashby":
+            from ruin.agent.ashby import resume_ashby
+            def report(event):
+                print(json.dumps(event), file=sys.stderr, flush=True)
+            receipt = await resume_ashby(context, args.site, args.timeout, PROFILE.parent, report)
+            print(json.dumps(receipt))
+            return
         if args.task == "verify-email":
             from ruin.auth.interceptor import verify_greenhouse
             await verify_greenhouse(context, args.site, args.company, args.timeout)
@@ -47,6 +54,8 @@ def main():
     parser.add_argument("--timeout", type=int, default=180, help="Seconds to wait for school verification")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
+    if args.task == "resume-ashby" and not (args.site and args.cdp):
+        parser.error("resume-ashby requires --cdp and --site")
     if args.task == "verify-email" and not (args.cdp and args.site and args.company):
         parser.error("verify-email requires --cdp, --site and --company")
     if not args.site and args.task not in {"courses", "list my courses"}:

@@ -60,6 +60,31 @@ The watcher takes a snapshot of visible Outlook inbox rows and waits for a new o
 
 The prototype supports English, top-level Greenhouse forms and Outlook layouts exposing message identifiers, timestamps, sender addresses and a message body. Missing evidence or an ambiguous match stops verification. Only a visible receipt counts as success. A timeout can also happen *after* submission; check the original tab before retrying. Message contents and codes stay outside the model loop. The integration has been tested with browser fixtures; compatibility with a live employer form and Outlook tenant remains unverified.
 
+## Resume an authorized Ashby application
+
+![An existing job tab leads to verification by the authorized driver and then to an official receipt. An uncertain result leaves the job unrecorded.](docs/figures/ashby-receipt.svg)
+
+Use this workflow when a reviewed application has already reached verification. The original application driver owns the authorization for that job and completes the live challenge in the same tab. Start the receipt watcher alongside that driver, using the exact application URL:
+
+```sh
+ruin resume-ashby --cdp http://127.0.0.1:9222 \
+  --site 'https://jobs.ashbyhq.com/EMPLOYER/JOB-UUID/application' --timeout 300
+```
+
+The CLI attaches to one matching tab and emits JSON state changes on standard error. On `challenge_visible`, the authorized driver uses the current widget. A driver using the Python API can supply its own approved handler directly:
+
+```python
+receipt = await resume_ashby(context, application_url, timeout=300,
+                             directory=receipt_directory, on_event=report_status,
+                             on_challenge=complete_authorized_challenge)
+```
+
+Import `resume_ashby` from `ruin.agent.ashby`. The handler receives the original Playwright page once per run. The standalone CLI observes the browser; it requires an application driver or person to interact with the widget. A completed challenge may automatically submit the form. Leave any existing submission in flight and watch for its result. An enabled Submit button by itself is insufficient evidence to send another request.
+
+The watcher records success only when the same job displays Ashby's visible **Success** status with **Your application was successfully submitted**. It returns the receipt as JSON on standard output and stores one row per job in `~/.ruin-everything/ashby-receipts.sqlite3`. A retry returns that stored receipt. A timeout, changed job or ambiguous tab produces an error without marking the job submitted. An external application tracker should import only a returned receipt.
+
+The receipt pattern comes from a completed Baseten application. The reusable command was tested with simulated Ashby pages in Chrome, including a hidden receipt, a changed job, duplicate tabs and a retry after the tab closed.
+
 ## Verification
 
 ![Local tests exercise session reuse, control labels and model-directed clicks. Live checks cover course discovery and a repeat lookup.](docs/figures/checks.svg)
