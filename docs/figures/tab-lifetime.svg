@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 376" role="img" aria-labelledby="t d">
+  <title id="t">Runner and browser lifetimes</title>
+  <desc id="d">Leaving Chrome open preserves the live tab. A closed tab has no guaranteed form recovery.</desc>
+  <defs>
+    <pattern id="dots" width="7" height="7" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#474354" />
+    </pattern>
+  </defs>
+  <rect x="1" y="1" width="638" height="374" rx="11" fill="#FFF9EE" stroke="#C6BBC2" stroke-width="1.7" />
+  <text x="23" y="50" font-family="Georgia, Times New Roman, serif" font-size="33" font-weight="700" fill="#242238">What survives a restart?</text>
+  <rect x="28" y="82" width="277" height="129" rx="5" fill="#242238" stroke="none" stroke-width="1.7" />
+  <rect x="24" y="77" width="277" height="129" rx="5" fill="#FFF9EE" stroke="#242238" stroke-width="1.7" />
+  <rect x="25" y="78" width="275" height="20" rx="4" fill="#B6A2FF" stroke="none" stroke-width="1.7" />
+  <path d="M24 98h277" fill="none" stroke="#242238" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+  <circle cx="34" cy="88" r="2.3" fill="#242238" />
+  <circle cx="44" cy="88" r="2.3" fill="#242238" />
+  <circle cx="54" cy="88" r="2.3" fill="#242238" />
+  <text x="40" y="130" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#242238">Run A</text>
+  <text x="40" y="164" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="500" fill="#242238">Open job tab 42</text>
+  <text x="40" y="189" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="500" fill="#5B448B">CLI exits</text>
+  <rect x="343" y="82" width="276" height="129" rx="5" fill="#242238" stroke="none" stroke-width="1.7" />
+  <rect x="339" y="77" width="276" height="129" rx="5" fill="#FFF9EE" stroke="#242238" stroke-width="1.7" />
+  <rect x="340" y="78" width="274" height="20" rx="4" fill="#9CE1BB" stroke="none" stroke-width="1.7" />
+  <path d="M339 98h276" fill="none" stroke="#242238" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+  <circle cx="349" cy="88" r="2.3" fill="#242238" />
+  <circle cx="359" cy="88" r="2.3" fill="#242238" />
+  <circle cx="369" cy="88" r="2.3" fill="#242238" />
+  <text x="355" y="130" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#242238">Run B</text>
+  <text x="355" y="164" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="500" fill="#242238">Attach on port 9222</text>
+  <text x="355" y="189" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="500" fill="#5B448B">Find the same job URL</text>
+  <path d="M167 213v16h313v-16" fill="none" stroke="#242238" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+  <text x="76" y="263" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" fill="#242238">Chrome keeps running between the two commands.</text>
+  <rect x="24" y="285" width="592" height="70" rx="5" fill="#FFECBD" stroke="none" stroke-width="1.7" />
+  <text x="39" y="314" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" fill="#242238">If the tab closes</text>
+  <text x="39" y="340" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="500" fill="#242238">The profile can retain sign-in data; form recovery varies by site.</text>
+</svg>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 359" role="img" aria-labelledby="t d">
+  <title id="t">Recovery after a timeout</title>
+  <desc id="d">Inspect the original tab and existing saved evidence. A timeout alone cannot distinguish success from failure.</desc>
+  <defs>
+    <pattern id="dots" width="7" height="7" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#474354" />
+    </pattern>
+  </defs>
+  <rect x="1" y="1" width="638" height="357" rx="11" fill="#FFF9EE" stroke="#C6BBC2" stroke-width="1.7" />
+  <text x="23" y="50" font-family="Georgia, Times New Roman, serif" font-size="33" font-weight="700" fill="#242238">A timeout leaves the outcome open</text>
+  <rect x="25" y="78" width="588" height="61" rx="5" fill="#FFEBBF" stroke="none" stroke-width="1.7" />
+  <text x="40" y="117" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#242238">No visible official receipt before the deadline</text>
+  <path d="M318 144v29H168v20m150 -20h150v20" fill="none" stroke="#242238" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+  <rect x="24" y="194" width="283" height="100" rx="5" fill="#FFF9EE" stroke="#242238" stroke-width="1.7" />
+  <rect x="332" y="194" width="283" height="100" rx="5" fill="#FFF9EE" stroke="#242238" stroke-width="1.7" />
+  <text x="38" y="227" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#242238">Tab still open</text>
+  <text x="38" y="257" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="500" fill="#242238">Inspect its current status.</text>
+  <text x="38" y="281" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="500" fill="#242238">Keep any request in flight.</text>
+  <text x="346" y="227" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#242238">Tab closed</text>
+  <text x="346" y="257" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="500" fill="#242238">Check saved evidence.</text>
+  <text x="346" y="281" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="500" fill="#242238">A missing row is inconclusive.</text>
+  <text x="25" y="335" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="600" fill="#242238">Record a submission only after the receipt is observed.</text>
+</svg>

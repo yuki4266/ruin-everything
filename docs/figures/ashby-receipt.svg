@@ -1,21 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 270" role="img" aria-labelledby="title desc">
-  <title id="title">What counts as submitted</title>
-  <desc id="desc">On the original Ashby URL, the visible status must contain both the Success heading and the submission message.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 342" role="img" aria-labelledby="t d">
+  <title id="t">Ashby receipt recognition</title>
+  <desc id="d">The watcher checks the original URL, visible status, heading and official confirmation paragraph before recording the receipt.</desc>
   <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-      <path d="M0 0L9 5L0 10z" fill="#242438" />
-    </marker>
-    <pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse">
-      <path d="M25 0H0V25" fill="none" stroke="#47405B" stroke-width=".7" />
+    <pattern id="dots" width="7" height="7" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#474354" />
     </pattern>
   </defs>
-  <rect x="1" y="1" width="638" height="268" rx="13" fill="#FBFAF7" stroke="#DAD7DD" stroke-width="1.5" />
-  <rect x="25" y="25" width="590" height="150" rx="8" fill="#FFFFFF" stroke="#DAD7DD" stroke-width="1.5" />
-  <rect x="25" y="25" width="8" height="150" rx="4" fill="#8EE2BE" stroke="none" stroke-width="1.5" />
-  <text x="50" y="53" font-family="ui-monospace, Menlo, monospace" font-size="16" font-weight="700" text-anchor="start" fill="#6247BB">ASHBY  /  SAME JOB URL</text>
-  <text x="50" y="95" font-family="Arial, Helvetica, sans-serif" font-size="31" font-weight="700" text-anchor="start" fill="#242438">Success</text>
-  <text x="50" y="132" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="500" text-anchor="start" fill="#242438">Your application was successfully submitted.</text>
-  <path d="M316 179V206" fill="none" stroke="#242438" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)" />
-  <rect x="133" y="212" width="373" height="38" rx="19" fill="#8EE2BE" stroke="none" stroke-width="1.5" />
-  <text x="319.5" y="238" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" text-anchor="middle" fill="#242438">Store one receipt per job</text>
+  <rect x="1" y="1" width="638" height="340" rx="11" fill="#FFF9EE" stroke="#C6BBC2" stroke-width="1.7" />
+  <text x="23" y="50" font-family="Georgia, Times New Roman, serif" font-size="33" font-weight="700" fill="#242238">The receipt is the commit point</text>
+  <rect x="32" y="82" width="326" height="198" rx="5" fill="#242238" stroke="none" stroke-width="1.7" />
+  <path d="M24 74h326v197l-13 -7 -13 7 -13 -7 -13 7 -13 -7 -13 7 -13 -7 -13 7 -13 -7 -13 7 -13 -7 -13 7 -13 -7 -13 7 -13 -7 -13 7 -13 -7 -13 7 -13 -7 -13 7 -13 -7 -13 7 -13 -7 -13 7 -14 -7Z" fill="#FFF9EE" stroke="#242238" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+  <rect x="39" y="93" width="86" height="28" rx="5" fill="#9CE1BB" stroke="none" stroke-width="1.7" />
+  <text x="46" y="113" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#242238">STATUS</text>
+  <text x="40" y="157" font-family="Georgia, serif" font-size="34" font-weight="700" fill="#242238">Success</text>
+  <text x="40" y="194" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="500" fill="#242238">Your application was</text>
+  <text x="40" y="222" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="500" fill="#242238">successfully submitted.</text>
+  <text x="379" y="105" font-family="Menlo, Consolas, monospace" font-size="16" font-weight="700" fill="#5B448B">RECEIPT CHECK</text>
+  <text x="379" y="143" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#242238">Same job URL</text>
+  <text x="379" y="179" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#242238">Visible status</text>
+  <text x="379" y="215" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#242238">Matching text</text>
+  <path d="M379 231h212" fill="none" stroke="#C6BBC2" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+  <text x="379" y="257" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="500" fill="#5B448B">Then save a row.</text>
+  <text x="25" y="320" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="500" fill="#242238">A cleared challenge or enabled button can precede submission.</text>
 </svg>

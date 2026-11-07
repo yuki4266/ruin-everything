@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 353" role="img" aria-labelledby="t d">
+  <title id="t">Binding an embedded Greenhouse form</title>
+  <desc id="d">The embed URL contains employer and numeric job parameters. The watcher requires a single matching tab.</desc>
+  <defs>
+    <pattern id="dots" width="7" height="7" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#474354" />
+    </pattern>
+  </defs>
+  <rect x="1" y="1" width="638" height="351" rx="11" fill="#FFF9EE" stroke="#C6BBC2" stroke-width="1.7" />
+  <text x="23" y="50" font-family="Georgia, Times New Roman, serif" font-size="33" font-weight="700" fill="#242238">An embedded form has two keys</text>
+  <rect x="23" y="77" width="594" height="114" rx="5" fill="#242238" stroke="none" stroke-width="1.7" />
+  <text x="40" y="111" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#9CE1BB">Greenhouse direct embed</text>
+  <text x="40" y="147" font-family="Menlo, monospace" font-size="23" font-weight="500" fill="#FFF9EE">/embed/job_app?for=example&amp;token=42</text>
+  <text x="40" y="174" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="500" fill="#DDD7EF">Same host as the original form</text>
+  <rect x="24" y="215" width="285" height="81" rx="5" fill="#EBE4FA" stroke="none" stroke-width="1.7" />
+  <rect x="332" y="215" width="283" height="81" rx="5" fill="#FFE6BE" stroke="none" stroke-width="1.7" />
+  <text x="39" y="248" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" fill="#242238">for=example</text>
+  <text x="39" y="275" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="500" fill="#242238">Employer key</text>
+  <text x="348" y="248" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" fill="#242238">token=42</text>
+  <text x="348" y="275" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="500" fill="#242238">Job identifier</text>
+  <text x="25" y="332" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" fill="#242238">Exactly one matching tab is required before Outlook opens.</text>
+</svg>

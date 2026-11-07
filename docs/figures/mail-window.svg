@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 381" role="img" aria-labelledby="t d">
+  <title id="t">Worked example of the inbox baseline</title>
+  <desc id="d">An old candidate is excluded. A unique new matching row is checked; multiple candidates stop the watcher.</desc>
+  <defs>
+    <pattern id="dots" width="7" height="7" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#474354" />
+    </pattern>
+  </defs>
+  <rect x="1" y="1" width="638" height="379" rx="11" fill="#FFF9EE" stroke="#C6BBC2" stroke-width="1.7" />
+  <text x="23" y="50" font-family="Georgia, Times New Roman, serif" font-size="33" font-weight="700" fill="#242238">Start the watcher before sending</text>
+  <text x="25" y="86" font-family="Menlo, Consolas, monospace" font-size="16" font-weight="700" fill="#5B448B">EXAMPLE REQUEST WINDOW</text>
+  <path d="M51 111v168" fill="none" stroke="#242238" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
+  <circle cx="51" cy="122" r="8" fill="#C6BBC2" />
+  <text x="75" y="128" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#5B448B">09:59</text>
+  <text x="166" y="128" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#242238">Old inbox row</text>
+  <text x="166" y="153" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="500" fill="#242238">Already in the baseline</text>
+  <circle cx="51" cy="197" r="8" fill="#B6A2FF" />
+  <text x="75" y="203" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#5B448B">10:00</text>
+  <text x="166" y="203" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#242238">Watcher ready</text>
+  <text x="166" y="228" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="500" fill="#242238">Original form requests a code</text>
+  <circle cx="51" cy="272" r="8" fill="#F897A7" />
+  <text x="75" y="278" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#5B448B">10:01</text>
+  <text x="166" y="278" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#242238">One new matching row</text>
+  <text x="166" y="303" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="500" fill="#242238">Check sender and parse the body</text>
+  <rect x="24" y="313" width="592" height="50" rx="5" fill="#FBE1E6" stroke="none" stroke-width="1.7" />
+  <text x="38" y="345" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" fill="#242238">Two matching new rows? Stop with the original form open.</text>
+</svg>

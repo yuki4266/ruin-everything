@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 327" role="img" aria-labelledby="t d">
+  <title id="t">A control and its action ID</title>
+  <desc id="d">A visible Open guide button maps to ID 1 for a single model snapshot. A click causes a fresh observation.</desc>
+  <defs>
+    <pattern id="dots" width="7" height="7" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#474354" />
+    </pattern>
+  </defs>
+  <rect x="1" y="1" width="638" height="325" rx="11" fill="#FFF9EE" stroke="#C6BBC2" stroke-width="1.7" />
+  <text x="23" y="50" font-family="Georgia, Times New Roman, serif" font-size="33" font-weight="700" fill="#242238">One click, seen from both sides</text>
+  <rect x="28" y="84" width="230" height="158" rx="5" fill="#242238" stroke="none" stroke-width="1.7" />
+  <rect x="24" y="79" width="230" height="158" rx="5" fill="#FFF9EE" stroke="#242238" stroke-width="1.7" />
+  <rect x="25" y="80" width="228" height="20" rx="4" fill="#B6A2FF" stroke="none" stroke-width="1.7" />
+  <path d="M24 100h230" fill="none" stroke="#242238" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+  <circle cx="34" cy="90" r="2.3" fill="#242238" />
+  <circle cx="44" cy="90" r="2.3" fill="#242238" />
+  <circle cx="54" cy="90" r="2.3" fill="#242238" />
+  <text x="42" y="132" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" fill="#242238">Help center</text>
+  <rect x="41" y="151" width="153" height="35" rx="5" fill="#FFCF73" stroke="#242238" stroke-width="1.7" />
+  <text x="51" y="176" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#242238">Open guide</text>
+  <text x="41" y="216" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="500" fill="#5B448B">Visible control</text>
+  <path d="M264 150h57m-9 -7 9 7 -9 7" fill="none" stroke="#242238" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+  <rect x="334" y="79" width="282" height="158" rx="5" fill="#242238" stroke="none" stroke-width="1.7" />
+  <text x="350" y="111" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#9CE1BB">Model snapshot</text>
+  <text x="350" y="148" font-family="Menlo, monospace" font-size="19" font-weight="500" fill="#FFF9EE">id     1</text>
+  <text x="350" y="177" font-family="Menlo, monospace" font-size="18" font-weight="500" fill="#FFF9EE">label  Open guide</text>
+  <text x="350" y="212" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" fill="#B6A2FF">→ click ID 1</text>
+  <text x="25" y="276" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="600" fill="#242238">The ID points to a handle in this snapshot.</text>
+  <text x="25" y="305" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="500" fill="#242238">The next step observes the page again. The loop allows 20 steps.</text>
+</svg>

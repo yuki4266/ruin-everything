@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 335" role="img" aria-labelledby="t d">
+  <title id="t">Ashby driver and watcher responsibilities</title>
+  <desc id="d">The CLI observes the tab. The application driver owns verification. An optional Python handler receives the original Page once.</desc>
+  <defs>
+    <pattern id="dots" width="7" height="7" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#474354" />
+    </pattern>
+  </defs>
+  <rect x="1" y="1" width="638" height="333" rx="11" fill="#FFF9EE" stroke="#C6BBC2" stroke-width="1.7" />
+  <text x="23" y="50" font-family="Georgia, Times New Roman, serif" font-size="33" font-weight="700" fill="#242238">Who handles the Ashby challenge?</text>
+  <rect x="28" y="84" width="269" height="164" rx="5" fill="#242238" stroke="none" stroke-width="1.7" />
+  <rect x="24" y="79" width="269" height="164" rx="5" fill="#FFF9EE" stroke="#242238" stroke-width="1.7" />
+  <rect x="25" y="80" width="267" height="20" rx="4" fill="#B6A2FF" stroke="none" stroke-width="1.7" />
+  <path d="M24 100h269" fill="none" stroke="#242238" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+  <circle cx="34" cy="90" r="2.3" fill="#242238" />
+  <circle cx="44" cy="90" r="2.3" fill="#242238" />
+  <circle cx="54" cy="90" r="2.3" fill="#242238" />
+  <text x="40" y="132" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#242238">Original driver</text>
+  <text x="40" y="168" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="500" fill="#242238">Completes the live</text>
+  <text x="40" y="194" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="500" fill="#242238">challenge in this tab.</text>
+  <rect x="342" y="79" width="273" height="164" rx="5" fill="#DFEFEB" stroke="#242238" stroke-width="1.7" />
+  <text x="357" y="120" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#242238">Receipt watcher</text>
+  <text x="357" y="157" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="500" fill="#242238">Observes status</text>
+  <text x="357" y="184" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="500" fill="#242238">in the same tab.</text>
+  <text x="357" y="217" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="500" fill="#5B448B">Events → stderr</text>
+  <path d="M297 163h39m-8 -7 8 7 -8 7" fill="none" stroke="#242238" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+  <text x="25" y="281" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#242238">Python integration</text>
+  <text x="25" y="311" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="500" fill="#242238">The optional handler receives the page once per run.</text>
+</svg>
