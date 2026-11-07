@@ -2,7 +2,7 @@
 
 **A local Chrome runtime for browser agents.**
 
-Your agent fills out a form. The site asks for a code. The run ends. Starting over means typing the same answers again and wondering whether the first submission went through.
+What happens to a half-finished form when an agent stops? The answers live in a browser tab. Whether the application went through is a separate question that only the site can answer.
 
 Ruin Everything keeps the original tab open in Chrome on your machine. A later run can reconnect, finish verification where the site allows it, and check the site's response. On Ashby, the runner can return the saved receipt for that job even after the tab closes.
 
@@ -12,7 +12,7 @@ Ruin Everything keeps the original tab open in Chrome on your machine. A later r
 
 ## Choose a starting point
 
-![Command guide mapping five starting states to browser, generic click tasks, verify-email, resume-ashby and courses.](docs/figures/command-guide.svg)
+![Five terminal commands and when to use each, from starting Chrome to watching an existing application for its receipt.](docs/figures/command-guide.svg)
 
 For a new task, start the shared browser and open the target site. For an interrupted application, choose the site-specific watcher and pass the original job URL. Generic click tasks open a new tab.
 
@@ -79,7 +79,7 @@ The watcher takes a snapshot of visible Outlook inbox rows and waits for a new o
 
 ![Example inbox timeline: an old row precedes watcher startup; a unique matching new row can be inspected. Two new candidates stop the run.](docs/figures/mail-window.svg)
 
-In the example above, a 09:59 message already exists when the watcher starts at 10:00. The watcher checks the 10:01 candidate against the employer and verification wording in the row, then checks the sender in the opened message. If two new candidates match, it stops before selecting either one. These times illustrate ordering; the watcher uses the recorded timestamps from the live run.
+In the inbox diagram, a 09:59 message already exists when the watcher starts at 10:00. The watcher checks the 10:01 candidate against the employer and verification wording in the row, then checks the sender in the opened message. If two new candidates match, it stops before selecting either one. These times illustrate ordering; the watcher uses the recorded timestamps from the live run.
 
 ### Recover an open challenge
 
@@ -128,7 +128,7 @@ The watcher records success only when the same job displays Ashby's visible **Su
 
 For example, a challenge can disappear while the site is still processing the application. If the watcher times out then, check the original tab before taking another action. If that tab later displays the official receipt, rerun the watcher with the same URL to capture it.
 
-The receipt pattern comes from a completed Baseten application. The reusable command was tested with simulated Ashby pages in Chrome, including a hidden receipt, a changed job, duplicate tabs and a retry after the tab closed.
+The illustrated receipt is an example. The receipt pattern comes from a completed Baseten application. The reusable command was tested with simulated Ashby pages in Chrome, including a hidden receipt, a changed job, duplicate tabs and a retry after the tab closed.
 
 ## Example: read courses after school sign-in
 
@@ -159,5 +159,7 @@ The sign-in branch waits up to 180 seconds for the school to return the browser 
 Runtime checks verified a shared Chrome tab across independent CDP connections. For browser tests, install the Playwright Chromium build or use installed Chrome. Run `python -m unittest discover -s tests -v`. Install the agent extras to include the mocked model test. For installed Chrome, prefix the command with `RUIN_TEST_CHANNEL=chrome`.
 
 A live Duke run returned course links after sign-in. A second run with the same profile also returned the list after visiting the school login route. The number of Duo prompts was not measured. The general click loop has been exercised with a simulated model response.
+
+The hand-drawn diagrams are editable SVGs. They use Rough.js linework and Kalam lettering. [Figure sources](docs/figures) · [Rough.js](https://roughjs.com/) · [Kalam font license](docs/figures/Kalam-LICENSE.txt)
 
 [Development plan](PLAN.md) · [Contribution and figure guidelines](AGENTS.md) · [MIT license](LICENSE)
