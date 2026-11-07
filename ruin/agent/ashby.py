@@ -11,6 +11,8 @@ from urllib.parse import urlsplit
 
 from playwright.async_api import BrowserContext, Error, Page
 
+from ruin.rules_loader import load_rules
+
 ROOT = "https://jobs.ashbyhq.com"
 JOURNAL = "ashby-receipts.sqlite3"
 JOB_PATH = re.compile(
@@ -44,19 +46,19 @@ def lookup_receipt(url: str, directory: Path):
         return recorded_receipt(db, site)
 
 
-async def observe(page: Page, site: str):
+async def observe(page: Page, site: str, rules):
     # Read the URL and receipt from one document snapshot. A navigation cannot
     # pair a different job's receipt with the requested application.
-    return await page.evaluate("""site => {
+    return await page.evaluate("""([site, rules]) => {
         const visible = el => el && el.getClientRects().length > 0 &&
             getComputedStyle(el).visibility === 'visible';
         if (location.origin + location.pathname.replace(/\\/$/, '') !== site)
             return {state: 'changed_tab'};
-        for (const region of document.querySelectorAll('[role=status]')) {
+        for (const region of document.querySelectorAll(rules.status)) {
             if (!visible(region)) continue;
-            const heading = [...region.querySelectorAll('h1,h2,h3,[role=heading]')]
+            const heading = [...region.querySelectorAll(rules.heading)]
                 .find(h => visible(h) && h.innerText.trim() === 'Success');
-            const message = [...region.querySelectorAll('p')].find(p =>
+            const message = [...region.querySelectorAll(rules.message)].find(p =>
                 visible(p) && /^Your application was successfully submitted[.!](?:\\s|$)/.test(p.innerText.trim()));
             if (heading && message) return {state: 'submitted', message: message.innerText.trim()};
         }
@@ -67,7 +69,7 @@ async def observe(page: Page, site: str):
                 && /^\\/recaptcha\\/(?:api2|enterprise)\\/bframe$/.test(url.pathname);
         });
         return {state: challenge ? 'challenge_visible' : 'awaiting_receipt'};
-    }""", site)
+    }""", [site, rules])
 
 
 async def resume_ashby(context: BrowserContext, url: str, timeout: float, directory: Path,
@@ -98,13 +100,14 @@ async def resume_ashby(context: BrowserContext, url: str, timeout: float, direct
                  page.url.split("?")[0].split("#")[0].rstrip("/") == site]
         if len(pages) != 1:
             raise RuntimeError("Exactly one original application tab must be open. No submission recorded.")
+        rules = (await load_rules())["ashby"]
         page = pages[0]
         last = None
         handled = False
         async with asyncio.timeout(timeout):
             while not page.is_closed():
                 try:
-                    result = await observe(page, site)
+                    result = await observe(page, site, rules)
                 except Error as exc:
                     if page.is_closed():
                         break

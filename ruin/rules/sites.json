@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "ashby": {
+    "status": "[role=status]",
+    "heading": "h1,h2,h3,[role=heading]",
+    "message": "p"
+  },
+  "greenhouse": {
+    "code_field": "input[autocomplete=\"one-time-code\"]:visible, input[maxlength=\"1\"]:visible, input[aria-label*=\"security code\" i]:visible, input[name=\"security_code\"]:visible, input[maxlength=\"8\"]:visible, input[maxlength=\"6\"]:visible",
+    "code_pattern": "(?:code(?:\\s+(?:is|below))?|code field on your application)\\s*:\\s*([a-zA-Z0-9]{6,8})(?![a-zA-Z0-9])"
+  },
+  "outlook": {
+    "rows": "[role=\"option\"][data-convid], [role=\"option\"][data-itemid], [role=\"row\"][data-convid]",
+    "body": "[aria-label=\"Message body\"]:visible, [role=\"document\"][aria-label*=\"Message\"]:visible"
+  }
+}

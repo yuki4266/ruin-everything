@@ -28,7 +28,7 @@ class ReceiptMCP(unittest.IsolatedAsyncioTestCase):
                 await page.goto(site)
                 params = StdioServerParameters(command=sys.executable, args=[
                     "-m", "ruin.mcp_server", "--cdp", f"http://127.0.0.1:{port}"
-                ], env={"HOME": temp, "USERPROFILE": temp})
+                ], env={"HOME": temp, "USERPROFILE": temp, "RUIN_AUTO_UPDATE": "0", "RUIN_RULE_UPDATES": "0"})
                 async with stdio_client(params) as streams, ClientSession(*streams) as client:
                     await client.initialize()
                     tools = (await client.list_tools()).tools

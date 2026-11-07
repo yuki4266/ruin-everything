@@ -6,6 +6,7 @@ from typing import Annotated, Literal
 from ruin.agent.ashby import application_url, lookup_receipt, resume_ashby
 from ruin.browser.context import browser_context
 from ruin.config import PROFILE
+from ruin.updater import start_update_check
 
 
 def main():
@@ -55,6 +56,7 @@ def main():
             evidence = await resume_ashby(context, site, timeout_seconds, PROFILE.parent, lambda event: None)
         return Receipt(**evidence)
 
+    start_update_check()
     server.run(transport="stdio")
 
 

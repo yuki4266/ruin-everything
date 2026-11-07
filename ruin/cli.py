@@ -8,6 +8,7 @@ from playwright.async_api import Error, TimeoutError
 from ruin.agent.executor import courses
 from ruin.browser.context import browser_context
 from ruin.config import PROFILE
+from ruin.updater import start_update_check
 
 
 async def run(args):
@@ -67,6 +68,7 @@ def main():
         parser.error("Browser tasks require --site.")
     if args.timeout <= 0:
         parser.error("--timeout must be greater than zero.")
+    start_update_check()
     try:
         asyncio.run(run(args))
     except TimeoutError:

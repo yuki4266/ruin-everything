@@ -8,16 +8,12 @@ from contextlib import contextmanager
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
+import regex
 from playwright.async_api import Page
 
+from ruin.rules_loader import BUNDLED, load_rules, validate
+
 OUTLOOK = "https://outlook.office.com/mail/"
-MAIL_ROWS = '[role="option"][data-convid], [role="option"][data-itemid], [role="row"][data-convid]'
-MAIL_BODY = '[aria-label="Message body"]:visible, [role="document"][aria-label*="Message"]:visible'
-CODE_FIELD = (
-    'input[autocomplete="one-time-code"]:visible, input[maxlength="1"]:visible, '
-    'input[aria-label*="security code" i]:visible, input[name="security_code"]:visible, '
-    'input[maxlength="8"]:visible, input[maxlength="6"]:visible'
-)
 PROMPT = re.compile(r"(?:security|verification) code", re.I)
 EXPIRED = re.compile(r"(?:code.{0,30}expired|expired.{0,30}code)", re.I)
 RESEND = re.compile(r"^(?:resend(?: (?:security |verification )?code)?|send (?:a )?new code)$", re.I)
@@ -56,20 +52,22 @@ def job_key(url: str):
     return None
 
 
-def parse_code(body: str) -> str | None:
-    # Require an explicit instruction followed by a standalone token. Ordinary
-    # eight-letter words elsewhere in a message are not candidate codes.
-    matches = re.findall(
-        r"(?:code(?:\s+(?:is|below))?|code field on your application)"
-        r"\s*:\s*([a-zA-Z0-9]{6,8})(?![a-zA-Z0-9])", body, re.I
-    )
+def parse_code(body: str, pattern: str | None = None) -> str | None:
+    if pattern is None:
+        pattern = validate(BUNDLED.read_bytes())["greenhouse"]["code_pattern"]
+    try:
+        matches = regex.findall(pattern, body, regex.I, timeout=0.1)
+    except TimeoutError:
+        return None
+    if any(not re.fullmatch(r"[a-zA-Z0-9]{6,8}", match) for match in matches):
+        return None
     return matches[0] if len(set(matches)) == 1 else None
 
 
-async def rows(mail: Page):
+async def rows(mail: Page, rules):
     if urlsplit(mail.url).netloc not in {"outlook.office.com", "outlook.office365.com", "outlook.cloud.microsoft"}:
         raise RuntimeError("Sign in to Outlook in this Chrome profile before starting.")
-    return await mail.locator(MAIL_ROWS).evaluate_all("""nodes => nodes.map(n => ({
+    return await mail.locator(rules["outlook"]["rows"]).evaluate_all("""nodes => nodes.map(n => ({
         id: n.getAttribute('data-itemid') || n.getAttribute('data-convid'),
         label: n.getAttribute('aria-label') || n.innerText,
         received: Date.parse(n.querySelector('time[datetime]')?.dateTime ||
@@ -78,9 +76,9 @@ async def rows(mail: Page):
     }))""")
 
 
-async def receive(mail: Page, seen: set, company: str, started: float, required_job=None):
+async def receive(mail: Page, seen: set, company: str, started: float, rules, required_job=None):
     while True:
-        current = await rows(mail)
+        current = await rows(mail, rules)
         candidates = [r for r in current if (r["id"], r["received"]) not in seen and
                       r["received"] >= int(started * 1000) and
                       company.casefold() in r["label"].casefold() and PROMPT.search(r["label"])]
@@ -88,12 +86,12 @@ async def receive(mail: Page, seen: set, company: str, started: float, required_
             raise RuntimeError("Multiple matching messages appeared. The application is still open.")
         if candidates:
             item = candidates[0]
-            target = mail.locator(MAIL_ROWS).nth(current.index(item))
+            target = mail.locator(rules["outlook"]["rows"]).nth(current.index(item))
             if item["id"] not in (await target.get_attribute("data-itemid"),
                                   await target.get_attribute("data-convid")):
                 continue
             await target.click()
-            body = mail.locator(MAIL_BODY)
+            body = mail.locator(rules["outlook"]["body"])
             await body.wait_for(timeout=10000)
             # Outlook exposes the sender address in the opened message header.
             sender = mail.locator('[title="no-reply@us.greenhouse-mail.io" i], '
@@ -104,7 +102,7 @@ async def receive(mail: Page, seen: set, company: str, started: float, required_
             if required_job and not re.search(r"(?<!\w)" + re.escape(required_job) + r"(?!\w)", body_text):
                 raise RuntimeError("The existing message does not identify this job. "
                                    "Keep the original tab open; no code was entered.")
-            code = parse_code(body_text)
+            code = parse_code(body_text, rules["greenhouse"]["code_pattern"])
             if not code:
                 raise RuntimeError("The message has no unambiguous verification code.")
             return code
@@ -116,6 +114,7 @@ async def verify_application(context, url: str, company: str, timeout: int, dire
     key = job_key(url)
     if not key or not company.strip():
         raise ValueError("Supply an existing Greenhouse job URL and its employer name.")
+    rules = await load_rules()
     with mailbox_lock(directory):
         tabs = [page for page in context.pages if job_key(page.url) == key]
         if len(tabs) != 1:
@@ -124,7 +123,7 @@ async def verify_application(context, url: str, company: str, timeout: int, dire
         group = app.get_by_role("group", name=re.compile("verification code was sent", re.I))
         prompt = app.get_by_text(PROMPT).first
         prompted = await group.is_visible() or (
-            await prompt.is_visible() and await app.locator(CODE_FIELD).count() > 0
+            await prompt.is_visible() and await app.locator(rules["greenhouse"]["code_field"]).count() > 0
         )
         resend = app.get_by_role("button", name=RESEND).or_(app.get_by_role("link", name=RESEND))
         resume_existing = prompted and not await resend.count()
@@ -137,8 +136,8 @@ async def verify_application(context, url: str, company: str, timeout: int, dire
         try:
             async with asyncio.timeout(timeout):
                 await mail.goto(OUTLOOK, wait_until="domcontentloaded")
-                await mail.locator(MAIL_ROWS).first.wait_for(timeout=15000)
-                baseline = {(r["id"], r["received"]) for r in await rows(mail)}
+                await mail.locator(rules["outlook"]["rows"]).first.wait_for(timeout=15000)
+                baseline = {(r["id"], r["received"]) for r in await rows(mail, rules)}
                 started = time.time()
                 await app.bring_to_front()
                 if job_key(app.url) != key:
@@ -157,16 +156,16 @@ async def verify_application(context, url: str, company: str, timeout: int, dire
                         if not await resend.count():
                             raise RuntimeError("The code expired. The original form has no resend control.")
                         await mail.goto(OUTLOOK, wait_until="domcontentloaded")
-                        await mail.locator(MAIL_ROWS).first.wait_for(timeout=10000)
-                        baseline.update((r["id"], r["received"]) for r in await rows(mail))
+                        await mail.locator(rules["outlook"]["rows"]).first.wait_for(timeout=10000)
+                        baseline.update((r["id"], r["received"]) for r in await rows(mail, rules))
                         started = time.time()
                         await resend.click(timeout=5000)
-                    code = await receive(mail, baseline, company, started,
+                    code = await receive(mail, baseline, company, started, rules,
                                          required_job=key[2] if resume_existing and not attempt else None)
                     if job_key(app.url) != key:
                         raise RuntimeError("The original job tab changed.")
                     scoped = await group.is_visible()
-                    fields = group.get_by_role("textbox") if scoped else app.locator(CODE_FIELD)
+                    fields = group.get_by_role("textbox") if scoped else app.locator(rules["greenhouse"]["code_field"])
                     handles = await fields.element_handles()
                     if len(handles) == 1:
                         await handles[0].fill(code)

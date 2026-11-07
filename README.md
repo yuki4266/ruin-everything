@@ -141,21 +141,43 @@ When one agent takes over an application from another, give it the exact Ashby a
 | `get_ashby_receipt` | At handoff, even with Chrome closed | A saved receipt or `unrecorded`. A missing record leaves the outcome unknown. |
 | `watch_ashby_receipt` | The original form is open and the outcome is uncertain | An existing receipt, or fresh evidence from the same job. A timeout is a tool error. The watcher leaves the form open. |
 
-Install once with `python -m pip install -e '.[mcp]'` in the virtual environment. In a client that accepts `mcpServers` JSON, set the command to the absolute path printed by `command -v ruin-mcp`. For example:
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) once. In an MCP client with JSON configuration, this example tracks the public GitHub branch. The client must be able to find `uvx` on its PATH. An absolute path to `uvx` also works.
 
 ```json
 {
   "mcpServers": {
     "ruin-everything": {
-      "command": "/absolute/path/to/.venv/bin/ruin-mcp"
+      "command": "uvx",
+      "args": [
+        "--isolated", "--upgrade",
+        "--from", "ruin-everything[mcp] @ git+https://github.com/yuki4266/ruin-everything.git@main",
+        "ruin-mcp"
+      ],
+      "env": { "RUIN_AUTO_UPDATE": "0" }
     }
   }
 }
 ```
 
+After the project's first PyPI release, replace the `--from` value with `ruin-everything[mcp]` to track published releases. Both configurations launch the actual `ruin-mcp` executable. An existing editable installation can still launch it directly.
+
 Both tools take `site`. The watcher also takes `timeout_seconds` (default 15, range 1–300). A returned receipt contains `state`, `site`, `observed_at` and the site's confirmation `message`. The application driver owns form interaction. After a timeout, check the same URL again before considering another submission.
 
 The server uses the official Python MCP SDK over stdio. A browser automation client such as Playwright MCP can run alongside it by attaching to the same local Chrome with `--cdp-endpoint http://127.0.0.1:9222`. The integration test exercises two successive SDK clients and a simulated employer page in Chrome. [Python MCP SDK](https://github.com/modelcontextprotocol/python-sdk) · [Playwright MCP connection options](https://github.com/microsoft/playwright-mcp#configuration)
+
+## How updates reach your machine
+
+<img src="docs/figures/updates.svg" alt="Three update schedules: uvx resolves the package on MCP launch, direct installs check every six hours on startup, and site rules refresh at the start of each workflow." width="100%">
+
+| What changes | When you get it |
+| --- | --- |
+| MCP package via uvx | On the next server launch, uv resolves the latest version available from the configured source. A long-running server keeps its loaded code until restart. Initial installation and online refresh require network access. |
+| Direct installation | CLI and MCP startup schedule a quiet background check at most once every six hours per installation. A clean `main` checkout tracking `origin/main` fast-forwards. A regular pip installation checks PyPI for a newer version. Installed uv tools use their own upgrade command. Set `RUIN_AUTO_UPDATE=0` to manage versions yourself. |
+| Site rules | Each new Greenhouse verification or live Ashby observation requests the project's [selector file](ruin/rules/sites.json) with a two-second network timeout. A workflow keeps its initial snapshot through completion. Offline or invalid updates fall back to the last valid cache at `~/.ruin/sites.json`, then to packaged defaults. Set `RUIN_RULE_UPDATES=0` to use the bundled copy. |
+
+The rule file describes Ashby receipt elements, Greenhouse verification inputs and the email-code pattern, and Outlook rows and message bodies. The installed adapters enforce trusted origins, sender identity, job matching and receipt wording. A change to those checks requires a code release.
+
+For maintainers, configure one [PyPI Trusted Publisher](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/) for project `ruin-everything`, owner `yuki4266`, repository `ruin-everything`, workflow `publish.yml` and environment `pypi`. A push to main builds the version in `pyproject.toml` with the workflow run number as a fourth release component. For a tagged release, set the project version and push the matching tag (for example, `0.2.0` and `v0.2.0`). Both routes run the browser tests, build and check the wheel and source distribution, then publish using GitHub's OIDC identity. [Release workflow](.github/workflows/publish.yml) · [uv tool updates](https://docs.astral.sh/uv/concepts/tools/)
 
 ## Example: read courses after school sign-in
 
@@ -183,7 +205,7 @@ The sign-in branch waits up to 180 seconds for the school to return the browser 
 
 <img src="docs/figures/checks.svg" alt="Local tests exercise session reuse, control labels and model-directed clicks. Live checks cover course discovery and a repeat lookup." width="100%">
 
-Runtime checks verified a shared Chrome tab across independent CDP connections. For browser tests, install the Playwright Chromium build or use installed Chrome. Run `python -m unittest discover -s tests -v`. Install the agent extras to include the mocked model test. For installed Chrome, prefix the command with `RUIN_TEST_CHANNEL=chrome`.
+Update tests cover overlapping startup checks, changes between rule snapshots, invalid downloads and offline fallback. Runtime checks verified a shared Chrome tab across independent CDP connections. For browser tests, install the Playwright Chromium build or use installed Chrome. Run `python -m unittest discover -s tests -v`. Install the agent extras to include the mocked model test. For installed Chrome, prefix the command with `RUIN_TEST_CHANNEL=chrome`.
 
 A live Duke run returned course links after sign-in. A second run with the same profile also returned the list after visiting the school login route. The number of Duo prompts was not measured. The general click loop has been exercised with a simulated model response.
 
