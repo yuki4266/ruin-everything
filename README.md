@@ -143,7 +143,7 @@ When one agent takes over an application from another, give it the exact Ashby a
 | `get_ashby_receipt` | At handoff, even with Chrome closed | A saved receipt or `unrecorded`. A missing record leaves the outcome unknown. |
 | `watch_ashby_receipt` | The original form is open and the outcome is uncertain | An existing receipt, or fresh evidence from the same job. A timeout is a tool error. The watcher leaves the form open. |
 
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/) once. In an MCP client with JSON configuration, this example tracks the public GitHub branch. The client must be able to find `uvx` on its PATH. An absolute path to `uvx` also works.
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) once. In an MCP client with JSON configuration, this example runs the latest [PyPI release](https://pypi.org/project/ruin-everything/). The client must be able to find `uvx` on its PATH. An absolute path to `uvx` also works.
 
 ```json
 {
@@ -152,7 +152,7 @@ Install [uv](https://docs.astral.sh/uv/getting-started/installation/) once. In a
       "command": "uvx",
       "args": [
         "--isolated", "--refresh",
-        "--from", "ruin-everything[mcp] @ git+https://github.com/yuki4266/ruin-everything.git@main",
+        "--from", "ruin-everything[mcp]",
         "ruin-mcp"
       ],
       "env": { "RUIN_AUTO_UPDATE": "0" }
@@ -161,7 +161,7 @@ Install [uv](https://docs.astral.sh/uv/getting-started/installation/) once. In a
 }
 ```
 
-After the project's first PyPI release, replace the `--from` value with `ruin-everything[mcp]` to track published releases. Both configurations launch the actual `ruin-mcp` executable. A two-version smoke test verified refresh on both the Git and package paths. An existing editable installation can still launch it directly.
+To track the GitHub branch directly, set `--from` to `ruin-everything[mcp] @ git+https://github.com/yuki4266/ruin-everything.git@main`. Both configurations launch the actual `ruin-mcp` executable. A two-version smoke test verified refresh on both the Git and package paths. An existing editable installation can still launch it directly.
 
 Both tools take `site`. The watcher also takes `timeout_seconds` (default 15, range 1–300). A returned receipt contains `state`, `site`, `observed_at` and the site's confirmation `message`. The application driver owns form interaction. After a timeout, check the same URL again before considering another submission.
 
