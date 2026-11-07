@@ -5,6 +5,7 @@ from playwright.async_api import BrowserContext
 from pydantic import BaseModel
 from typing import Literal
 
+from ruin.auth.auto_registrar import fill_contact_phone, identity, signup, verify_sms
 from ruin.auth.autofill import fill_login, offer_chrome_login
 from ruin.agent.prompts import SYSTEM
 from ruin.browser.dom_sanitizer import snapshot
@@ -24,12 +25,22 @@ async def browser_task(context: BrowserContext, url: str, task: str, model: str,
         raise ValueError("Use an HTTPS URL to start the task.")
     page = await context.new_page()
     await page.goto(url, wait_until="domcontentloaded")
+    profile = identity()
+    registered_at = None
+    sms_filled = False
     async with AsyncOpenAI() as client:
         for _ in range(20):
             current = urlsplit(page.url)
             if (current.scheme, current.netloc) != (location.scheme, location.netloc):
                 raise RuntimeError("The page left the selected site. Complete sign-in before running the task.")
-            if autofill and await page.locator(
+            if registered_at is None:
+                registered_at = await signup(page, url, profile)
+                if registered_at is not None:
+                    continue
+            elif not sms_filled and await verify_sms(page, url, registered_at):
+                sms_filled = True
+                continue
+            if registered_at is None and autofill and await page.locator(
                 'input[type=password]:visible, input[autocomplete=one-time-code]:visible'
             ).count():
                 filled = await fill_login(page, url)
@@ -41,8 +52,12 @@ async def browser_task(context: BrowserContext, url: str, task: str, model: str,
                     ).first.wait_for(state="hidden", timeout=180000)
                     continue
             for frame in page.frames:
-                if await frame.locator('input[type=password]:visible, input[autocomplete=one-time-code]:visible').count():
+                protected = "input[type=password]:visible"
+                if frame != page.main_frame or not sms_filled:
+                    protected += ", input[autocomplete=one-time-code]:visible"
+                if await frame.locator(protected).count():
                     raise RuntimeError("Sign in using this browser before running the task.")
+            await fill_contact_phone(page, url, profile)
             labels, targets = await snapshot(page)
             payload = {"task": task, "title": await page.title(), "actions": labels}
             reply = await client.chat.completions.parse(

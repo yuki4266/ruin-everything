@@ -57,6 +57,15 @@ For example, if a visible button is labeled **Open guide**, the model can select
 
 Add `--autofill` to use the system keyring and Chrome’s sign-in form. For a form with one visible password field that submits to the selected HTTPS origin, the runner clicks the empty field so Chrome can offer credentials saved in **that browser profile**. Complete sign-in in the open tab. The runner waits up to three minutes for the credential fields to disappear, then resumes the task. It leaves account selection and form submission to the login UI. A Chrome fixture verifies same-tab continuation with a restrictive script policy.
 
+#### Local account registration
+
+<img src="docs/figures/signup.svg" alt="The selected form is checked for an explicit signup action. A matching form uses the local profile, and a subsequent code field can use a fresh domain-bound SMS." width="100%">
+
+For a browser task with `--site`, create `~/.ruin/identity.json` with owner-only permissions (`chmod 600`). Set `auto_signup` to `true` and supply string values for `first_name`, `last_name`, `email`, `phone` and `default_password`. This file stores the password in plain text. The local runner checks the selected HTTPS origin before each model decision until it submits a registration. It recognizes one visible **Create Account**, **Create an Account**, **Register** or **Sign Up** submit button on a same-origin POST form, fills recognized fields, and checks labeled Terms of Service, Terms of Use and Privacy Policy boxes. On an ordinary same-origin form it can also fill one empty, editable contact phone field. A visible matching signup field with a missing profile value leaves the tab open for completion.
+
+For a subsequent single one-time-code field, the runner checks macOS Messages for up to 30 seconds for an incoming text received since the submission and ending in `@hostname #code`. Read access to the Messages database is required. MCP challenge and receipt results include a `signup_policy` field reporting the local setting. Chrome and SQLite fixtures exercise form submission, ordinary phone inputs, cross-origin actions, message age, direction and domain matching.
+
+
 To provision credentials for local filling, use the entries below. The optional TOTP entry holds the site's Base32 seed.
 
 ```sh

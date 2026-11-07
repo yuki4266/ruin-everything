@@ -50,7 +50,7 @@ class ReceiptMCP(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(before.structuredContent["state"], "pending")
                     await greenhouse.evaluate("setTimeout(() => document.querySelector('div').hidden = false, 250)")
                     challenge = await client.call_tool(inspect, {**args, "wait_seconds": 5})
-                    self.assertEqual(challenge.structuredContent, {"state": "email_verification", "provider": "greenhouse"})
+                    self.assertEqual(challenge.structuredContent, {"state": "email_verification", "provider": "greenhouse", "signup_policy": "disabled"})
                     duplicate = await context.new_page()
                     await duplicate.goto(board)
                     ambiguous = await client.call_tool(inspect, args)

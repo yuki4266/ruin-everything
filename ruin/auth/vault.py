@@ -1,7 +1,5 @@
 from urllib.parse import urlsplit
 
-import keyring
-
 
 def origin_of(url: str) -> str:
     address = urlsplit(url)
@@ -11,4 +9,6 @@ def origin_of(url: str) -> str:
 
 
 def credential(origin: str, name: str) -> str | None:
+    import keyring
+
     return keyring.get_password("ruin:" + origin_of(origin), name)

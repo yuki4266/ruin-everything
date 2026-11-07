@@ -13,6 +13,35 @@ except ImportError:
 
 @unittest.skipUnless(browser_task, "install .[agent] to test model tasks")
 class AgentTest(unittest.IsolatedAsyncioTestCase):
+    async def test_signup_and_sms_before_model_decision(self):
+        site = "https://portal.test/"
+        profile = {"auto_signup": True, "default_password": "fixture-only", "email": "example@example.test"}
+        form = """<form method="post" action="/sms"><input type=email><input type=password>
+                  <button>Create Account</button></form>"""
+        verify = """<input autocomplete="one-time-code"><button onclick="
+            if (document.querySelector('input').value === '654321') {
+              document.title='Verified';document.body.replaceChildren()
+            }">Verify</button>"""
+        async with async_playwright() as driver:
+            browser = await driver.chromium.launch(channel=os.getenv("RUIN_TEST_CHANNEL"))
+            context = await browser.new_context()
+            await context.route(site + "**", lambda r: r.fulfill(
+                content_type="text/html", body=form if r.request.url == site else verify))
+            with patch("ruin.agent.browser_task.identity", return_value=profile), patch(
+                "ruin.auth.auto_registrar.sms_code", return_value="654321"
+            ), patch("openai.AsyncOpenAI") as client:
+                steps = [Decision(action="click", element_id=1), Decision(action="done", element_id=None)]
+                parse = AsyncMock(side_effect=[
+                    SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(parsed=s))]) for s in steps])
+                client.return_value.__aenter__.return_value.chat.completions.parse = parse
+                await browser_task(context, site, "Verify registration", "test")
+                states = [c.kwargs["messages"][-1]["content"] for c in parse.await_args_list]
+                self.assertIn("Verify", states[0])
+                self.assertIn("Verified", states[1])
+                for secret in ("654321", profile["default_password"], profile["email"]):
+                    self.assertNotIn(secret, "".join(states))
+            await browser.close()
+
     async def test_click_then_done(self):
         async def decide(**kwargs):
             state = kwargs["messages"][-1]["content"]

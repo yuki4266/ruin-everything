@@ -5,6 +5,7 @@ from typing import Annotated, Literal
 
 from ruin.agent.ashby import application_url, lookup_receipt, resume_ashby
 from ruin.agent.challenge import Provider, State, inspect_challenge
+from ruin.auth.auto_registrar import identity
 from ruin.browser.context import browser_context
 from ruin.config import PROFILE
 from ruin.updater import start_update_check
@@ -23,17 +24,27 @@ def main():
             parser.exit(1, "Install the MCP extra with python -m pip install -e '.[mcp]'.\n")
         raise
 
-    class Challenge(BaseModel):
+    def signup_status():
+        try:
+            enabled = identity().get("auto_signup") is True
+        except (ValueError, OSError):
+            return "identity profile unavailable"
+        return "auto-signup and phone filling enabled for browser tasks" if enabled else "disabled"
+
+    class LocalSettings(BaseModel):
+        signup_policy: str = Field(default_factory=signup_status)
+
+    class Challenge(LocalSettings):
         provider: Provider
         state: State
 
-    class Receipt(BaseModel):
+    class Receipt(LocalSettings):
         state: Literal["submitted"]
         site: str
         observed_at: str
         message: str
 
-    class Lookup(BaseModel):
+    class Lookup(LocalSettings):
         state: Literal["unrecorded", "submitted"]
         site: str
         observed_at: str | None = None
