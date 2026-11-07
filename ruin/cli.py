@@ -12,6 +12,11 @@ from ruin.config import PROFILE
 
 async def run(args):
     async with browser_context(PROFILE, args.cdp, args.channel) as context:
+        if args.task == "verify-email":
+            from ruin.auth.interceptor import verify_greenhouse
+            await verify_greenhouse(context, args.site, args.company, args.timeout)
+            print("Application confirmation appeared in the original tab.")
+            return
         if args.site:
             try:
                 from ruin.agent.browser_task import browser_task
@@ -35,12 +40,15 @@ def main():
     parser.add_argument("task", help="Use courses, or describe a browser task and supply --site.")
     parser.add_argument("--site", help="HTTPS starting URL for a click task")
     parser.add_argument("--autofill", action="store_true", help="Fill credentials for this origin from the system keyring")
+    parser.add_argument("--company", help="Employer name for Greenhouse verification")
     parser.add_argument("--model", default="gpt-4.1-mini")
     parser.add_argument("--cdp", metavar="URL", help="Connect to a local Chrome HTTP debugging endpoint")
     parser.add_argument("--channel", choices=["chrome"], help="Launch the dedicated profile in installed Chrome")
     parser.add_argument("--timeout", type=int, default=180, help="Seconds to wait for school verification")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
+    if args.task == "verify-email" and not (args.cdp and args.site and args.company):
+        parser.error("verify-email requires --cdp, --site and --company")
     if not args.site and args.task not in {"courses", "list my courses"}:
         parser.error("Browser tasks require --site.")
     if args.timeout <= 0:

@@ -1,7 +1,7 @@
 import sys
 from urllib.parse import urlsplit
 
-from playwright.async_api import Page
+from playwright.async_api import Page, TimeoutError as PlaywrightTimeoutError
 
 
 async def authenticate(page: Page, origin: str, timeout: int):
@@ -16,3 +16,13 @@ async def authenticate(page: Page, origin: str, timeout: int):
         ) and not location.path.startswith("/login")
 
     await page.wait_for_url(returned, timeout=timeout * 1000)
+
+
+async def verify_greenhouse(context, url, company, timeout):
+    from ruin.auth.email_otp_snatcher import verify_application
+    from ruin.config import PROFILE
+
+    try:
+        await verify_application(context, url, company, timeout, PROFILE.parent)
+    except (TimeoutError, PlaywrightTimeoutError):
+        raise RuntimeError("Verification timed out. Check the original application before retrying.") from None
