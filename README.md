@@ -1,6 +1,6 @@
 <p align="right"><strong>English</strong> &nbsp;·&nbsp; Read in translation: <a href="https://translate.google.com/translate?sl=en&amp;tl=zh-CN&amp;u=https%3A%2F%2Fgithub.com%2Fyuki4266%2Fruin-everything%2Fblob%2Fmain%2FREADME.md">Chinese</a> &nbsp;·&nbsp; <a href="https://translate.google.com/translate?sl=en&amp;tl=ja&amp;u=https%3A%2F%2Fgithub.com%2Fyuki4266%2Fruin-everything%2Fblob%2Fmain%2FREADME.md">Japanese</a> &nbsp;·&nbsp; <a href="https://translate.google.com/translate?sl=en&amp;tl=es&amp;u=https%3A%2F%2Fgithub.com%2Fyuki4266%2Fruin-everything%2Fblob%2Fmain%2FREADME.md">Spanish</a></p>
 
-# <img src="docs/figures/cover.svg" alt="Ruin Everything — a local Chrome runtime for browser agents" width="100%">
+# <img src="docs/figures/tab-wave.webp" alt="Ruin Everything: a receipt surfs a wave of blue and lavender browser tabs" width="100%">
 
 <p align="center">
   <a href="https://github.com/yuki4266/ruin-everything/stargazers"><img src="docs/figures/badges/stars.svg" alt="GitHub stars"></a>
