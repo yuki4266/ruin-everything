@@ -5,7 +5,7 @@ from playwright.async_api import BrowserContext
 from pydantic import BaseModel
 from typing import Literal
 
-from ruin.auth.autofill import fill_login
+from ruin.auth.autofill import fill_login, offer_chrome_login
 from ruin.agent.prompts import SYSTEM
 from ruin.browser.dom_sanitizer import snapshot
 
@@ -32,13 +32,13 @@ async def browser_task(context: BrowserContext, url: str, task: str, model: str,
             if autofill and await page.locator(
                 'input[type=password]:visible, input[autocomplete=one-time-code]:visible'
             ).count():
-                if await fill_login(page, url):
-                    print("Credentials filled locally. Complete sign-in in the browser.", file=sys.stderr)
-                    await page.wait_for_function(
-                        """() => !Array.from(document.querySelectorAll(
-                            'input[type=password], input[autocomplete=one-time-code]'
-                        )).some(el => el.getClientRects().length)""", timeout=180000
-                    )
+                filled = await fill_login(page, url)
+                chrome_login = await offer_chrome_login(page, url)
+                if filled or chrome_login:
+                    print("Complete sign-in in the open Chrome tab. The task will resume here.", file=sys.stderr)
+                    await page.locator(
+                        'input[type=password]:visible, input[autocomplete=one-time-code]:visible'
+                    ).first.wait_for(state="hidden", timeout=180000)
                     continue
             for frame in page.frames:
                 if await frame.locator('input[type=password]:visible, input[autocomplete=one-time-code]:visible').count():

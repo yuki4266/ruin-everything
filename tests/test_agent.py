@@ -36,3 +36,50 @@ class AgentTest(unittest.IsolatedAsyncioTestCase):
                 await browser_task(context, "https://portal.test/", "Submit", "test")
                 self.assertEqual(parse.await_count, 2)
             await browser.close()
+
+    async def test_chrome_login_offer_stays_on_the_original_form(self):
+        from ruin.auth.autofill import offer_chrome_login
+        async with async_playwright() as driver:
+            browser = await driver.chromium.launch(channel=os.getenv("RUIN_TEST_CHANNEL"))
+            context = await browser.new_context()
+            site = "https://portal.test/"
+            await context.route(site, lambda r: r.fulfill(content_type="text/html", body="<form><input type=password></form>"))
+            page = await context.new_page()
+            await page.goto(site)
+            await page.evaluate("""() => {
+                document.addEventListener('submit', e => {e.preventDefault(); window.submitted = true});
+                document.addEventListener('keydown', () => {window.keyPressed = true});
+            }""")
+            self.assertFalse(await offer_chrome_login(page, "https://other.test/"))
+            self.assertTrue(await offer_chrome_login(page, site))
+            self.assertTrue(await page.locator("input").evaluate("e => document.activeElement === e"))
+            self.assertFalse(await page.evaluate("Boolean(window.submitted || window.keyPressed)"))
+            for form in ('<form><input type=password autocomplete=new-password></form>',
+                         '<form><input type=password><input type=password></form>',
+                         '<form action="https://other.test/"><input type=password></form>'):
+                await page.set_content(form)
+                self.assertFalse(await offer_chrome_login(page, site))
+            await browser.close()
+
+    async def test_autofill_resumes_on_a_page_with_strict_csp(self):
+        async with async_playwright() as driver:
+            browser = await driver.chromium.launch(channel=os.getenv("RUIN_TEST_CHANNEL"))
+            context = await browser.new_context()
+            site = "https://portal.test/"
+            await context.route(site, lambda r: r.fulfill(
+                headers={"content-type": "text/html", "content-security-policy": "script-src 'self'"},
+                body='<form><input type="password"></form>',
+            ))
+            # Simulate completion in the same tab after the user receives the sign-in prompt.
+            await context.add_init_script("""document.addEventListener('focusin', event => {
+                if (event.target.type === 'password') setTimeout(() => {
+                    document.querySelector('form').remove(); document.title = 'Signed in';
+                }, 80);
+            });""")
+            with patch("ruin.auth.autofill.credential", return_value=None), patch("openai.AsyncOpenAI") as client:
+                message = SimpleNamespace(parsed=Decision(action="done", element_id=None))
+                parse = AsyncMock(return_value=SimpleNamespace(choices=[SimpleNamespace(message=message)]))
+                client.return_value.__aenter__.return_value.chat.completions.parse = parse
+                await browser_task(context, site, "Finish sign-in", "test", autofill=True)
+                self.assertIn("Signed in", parse.await_args.kwargs["messages"][-1]["content"])
+            await browser.close()

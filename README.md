@@ -53,9 +53,11 @@ For example, if a visible button is labeled **Open guide**, the model can select
 
 ### Local credential filling
 
-<img src="docs/figures/autofill.svg" alt="The system keyring supplies a matching credential to a sign-in field at the selected HTTPS origin." width="100%">
+<img src="docs/figures/autofill.svg" alt="At the selected HTTPS origin, the keyring can fill credentials and Chrome can offer saved sign-ins on the original form." width="100%">
 
-For a supported sign-in form at the selected HTTPS origin, provision the relevant entries in the system keyring and add `--autofill` to the task command. The optional TOTP entry holds the site's Base32 seed. Complete any remaining sign-in steps in the browser.
+Add `--autofill` to use the system keyring and Chrome’s sign-in form. For a form with one visible password field that submits to the selected HTTPS origin, the runner clicks the empty field so Chrome can offer credentials saved in **that browser profile**. Complete sign-in in the open tab. The runner waits up to three minutes for the credential fields to disappear, then resumes the task. It leaves account selection and form submission to the login UI. A Chrome fixture verifies same-tab continuation with a restrictive script policy.
+
+To provision credentials for local filling, use the entries below. The optional TOTP entry holds the site's Base32 seed.
 
 ```sh
 keyring set ruin:https://example.org username
