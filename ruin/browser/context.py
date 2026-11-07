@@ -57,7 +57,7 @@ async def browser_context(profile: Path, cdp: str | None = None, channel=None):
         else:
             raise RuntimeError("Chrome did not open port 9222. Check whether the dedicated profile is in use.")
     async with async_playwright() as playwright:
-        browser = await playwright.chromium.connect_over_cdp(url)
+        browser = await playwright.chromium.connect_over_cdp(url, no_defaults=True)
         if not browser.contexts:
             raise RuntimeError("Chrome has no accessible browser context.")
         yield browser.contexts[0]
