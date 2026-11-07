@@ -58,7 +58,8 @@ def main():
 
     @server.tool(annotations=ToolAnnotations(destructiveHint=False, idempotentHint=False))
     async def ruin_auto_register(site: str) -> Registration:
-        """Use the local profile on one open registration tab at the exact selected HTTPS URL."""
+        """Handle an open Workday Sign In or Create Account dialog at the exact job URL,
+        or fill a supported signup form. Credentials come from the local profile."""
         from playwright.async_api import TimeoutError as BrowserTimeout
         from ruin.auth.auto_registrar import signup, fill_contact_phone, verify_sms
         from ruin.auth.workday import workday_account

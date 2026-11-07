@@ -85,6 +85,8 @@ For a subsequent single one-time-code field, the runner checks macOS Messages fo
 
 On supported English Workday tenant forms, the CLI browser task tries the local email and password first. An explicit missing-account message opens registration. A generic sign-in failure leaves the original job open. After registration, Ruin checks the signed-in Outlook mailbox for a fresh activation message, follows a direct activation link on the exact tenant host, waits for visible confirmation and returns to the job URL. The adapter supports native POST forms and script-driven Workday dialogs with a recognized submit control. Local Chrome fixtures cover existing accounts, registration, activation and returning to the job. Production tenant layouts and wrapped email links can differ.
 
+The adapter selects Sign In inside the open Workday dialog, even when the page header also offers Sign In. For a six-digit email challenge, it checks for one fresh Outlook message with a link to the same tenant and one labeled code, enters the code in the original tab, then waits for visible activation confirmation. The Jain Global dialog controls were inspected in shared Chrome. The six-digit activation path was verified with a simulated mailbox.
+
 For a code sent to an existing tab, use the request time recorded when the site sent the SMS. Optionally add `sms_senders` to the local identity file, mapping an exact hostname to its dedicated sender string. Plain six-digit codes must come from that sender. Domain-bound messages work without a sender entry. Both paths require read access to the Mac Messages database.
 
 ```sh

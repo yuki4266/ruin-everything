@@ -107,3 +107,47 @@ class LocalFlow(unittest.IsolatedAsyncioTestCase):
                     INSERT INTO message VALUES (1, 1, 0, 'Your verification code is 123456');""")
             self.assertIsNone(sms_code(db, "example.test", 978307200, "other"))
             self.assertEqual(sms_code(db, "example.test", 978307200, "12345"), "123456")
+
+    async def test_workday_modal_with_email_code(self):
+        host = "https://fixture.wd1.myworkdayjobs.com"
+        site = host + "/job/42"
+        login = """<button>Sign In</button><div role="dialog">
+          <form onsubmit="document.querySelector('#missing').hidden=false">
+            <input name="email" data-automation-id="email"><input type=password name="password">
+            <button data-automation-id="signInSubmitButton">Sign In</button>
+          </form><p id="missing" hidden>Account does not exist.</p>
+          <a href="/create">Create Account</a></div>"""
+        create = """<div role="dialog"><form onsubmit="location.href='/verification'">
+          <input name="email" data-automation-id="email"><input name="pw" type=password>
+          <input name="pw2" type=password><button data-automation-id="createAccountSubmitButton">
+          Create Account</button></form></div>"""
+        verify = """<form method=post action="/confirmed"><label>Verification code
+          <input autocomplete="one-time-code" name="code"></label><button>Verify</button></form>"""
+        calls = []
+        async def serve(route):
+            url = route.request.url
+            calls.append(url)
+            now = datetime.now(timezone.utc).isoformat()
+            responses = {site: login, host + "/create": create, host + "/verification": verify,
+                         host + "/confirmed": "<p>Your email has been verified.</p>",
+                         OUTLOOK: f"""<div role=option data-itemid="fresh" aria-label="Verification code">
+                         Verify email<time datetime="{now}"></time></div>
+                         <div aria-label="Message body">Your verification code is 123456.
+                         <a href="{site}">Candidate home</a></div>"""}
+            if url == host + "/confirmed":
+                self.assertEqual(route.request.post_data, "code=123456")
+            await route.fulfill(content_type="text/html", body=responses.get(url, "Unexpected request"))
+        with tempfile.TemporaryDirectory() as tmp, patch("ruin.auth.workday.PROFILE", Path(tmp)/"chrome"):
+            async with async_playwright() as pw:
+                browser = await pw.chromium.launch(channel=os.getenv("RUIN_TEST_CHANNEL"))
+                context = await browser.new_context()
+                await context.route("**/*", serve)
+                page = await context.new_page()
+                await page.goto(site)
+                self.assertTrue(await workday_account(page, site, {
+                    "auto_signup": True, "email": "fixture@example.test", "default_password": "secret"
+                }))
+                self.assertEqual(page.url, site)
+                self.assertEqual(calls.count(host + "/confirmed"), 1)
+                self.assertFalse(any("?" in url for url in calls))
+                await browser.close()
