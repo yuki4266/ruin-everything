@@ -34,6 +34,16 @@
       "origin": "https://*.duke.edu",
       "chrome_password_dropdown": true,
       "actions": []
+    },
+    {
+      "origin": "https://paypal.com",
+      "chrome_password_dropdown": true,
+      "actions": []
+    },
+    {
+      "origin": "https://*.paypal.com",
+      "chrome_password_dropdown": true,
+      "actions": []
     }
   ]
 }

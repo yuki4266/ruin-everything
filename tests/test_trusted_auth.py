@@ -37,6 +37,19 @@ class PolicyTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 origin_pattern(bad)
 
+    def test_paypal_example_has_password_only_opt_in(self):
+        clients = load_trusted_oauth_clients(Path(__file__).resolve().parents[1] / "docs/trusted-auth.example.json")
+        for url in ("https://paypal.com/signin", "https://www.paypal.com/signin",
+                    "https://login.account.paypal.com/signin"):
+            client = trusted_client(clients, url)
+            self.assertTrue(client["chrome_password_dropdown"])
+            self.assertEqual(client["actions"], [])
+        for url in ("https://paypal.com.evil.test/signin",
+                    "https://www.paypal.com:8443/signin", "https://evilpaypal.com/signin"):
+            self.assertIsNone(trusted_client(clients, url))
+        with self.assertRaises(ValueError):
+            trusted_client(clients, "http://www.paypal.com/signin")
+
     def test_exact_and_narrower_rules_override_broad_rules(self):
         broad = {'origin': 'https://*.myworkdayjobs.com'}
         narrow = {'origin': 'https://*.wd5.myworkdayjobs.com'}

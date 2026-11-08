@@ -360,3 +360,5 @@ El panel B exige también el ID del cliente GitHub OAuth, la URL de retorno y lo
 Las pruebas con páginas simuladas en Chrome verifican coincidencias, rechazo de cambios de permisos, intentos únicos y exclusiones de campos. Las sugerencias nativas y las páginas de autorización de producción siguen sin verificar. Consulta la [referencia](docs/trusted-auth.md). Se mantienen los requisitos de permisos del navegador.
 
 La autorización de GitHub puede usar el selector estándar sin configurar la etiqueta; el ID del cliente, la URL de retorno y los permisos siguen siendo obligatorios. Las pruebas de Chrome verifican límites de dominio, puertos, rechazo entre tenants y el selector predeterminado. El envío real a Glama sigue sin verificar.
+
+El ejemplo incluye la selección de contraseña para `https://paypal.com` y `https://*.paypal.com` (panel C). Las listas de acciones vacías no preautorizan botones de acceso, pago ni autorización externa. Las pruebas cubren el dominio raíz, subdominios anidados, sufijos engañosos, HTTP y otros puertos; no verifican un acceso real a PayPal.

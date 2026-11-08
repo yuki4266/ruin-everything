@@ -334,3 +334,5 @@ Panel B requires a GitHub OAuth client ID, exact callback and exact scopes befor
 Chrome fixtures verify matching, refusal on changed permissions, single attempts and password-field exclusions; native password-manager suggestions and production consent pages remain unverified. See the [configuration reference](docs/trusted-auth.md). Existing browser permission requirements still apply.
 
 GitHub authorization can now use the standard button selector without a configured label; client ID, callback and scopes remain mandatory. Chrome fixtures verify suffix boundaries, ports, cross-tenant refusal and the default selector. Live Glama submission is not yet verified.
+
+The example now includes password-only opt-in for `https://paypal.com` and `https://*.paypal.com` (panel C). Their empty action lists do not pre-approve login, payment or external authorization buttons. Boundary tests cover root and nested subdomains, deceptive suffixes, HTTP and other ports; live PayPal login is not verified.
