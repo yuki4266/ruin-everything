@@ -9,7 +9,7 @@ from unittest.mock import patch
 from playwright.async_api import async_playwright
 
 from ruin.auth.autofill import click_trusted_login, offer_chrome_login
-from ruin.auth.trusted import load_trusted_oauth_clients, matches_action
+from ruin.auth.trusted import load_trusted_oauth_clients, matches_action, origin_matches, origin_pattern, trusted_client
 
 
 ORIGIN = 'https://app.test'
@@ -22,6 +22,31 @@ URL = 'https://github.com/login/oauth/authorize?client_id=fixture&redirect_uri=h
 
 
 class PolicyTest(unittest.TestCase):
+    def test_wildcard_dns_boundaries_and_ports(self):
+        pattern = 'https://*.myworkdayjobs.com'
+        for url in ('https://company.myworkdayjobs.com/job', 'https://company.wd5.myworkdayjobs.com/job',
+                    'https://company.wd5.myworkdayjobs.com:443/job'):
+            self.assertTrue(origin_matches(pattern, url))
+        for url in ('https://myworkdayjobs.com', 'https://evilmyworkdayjobs.com',
+                    'https://tenant.myworkdayjobs.com.evil.test', 'http://tenant.myworkdayjobs.com',
+                    'https://user@tenant.myworkdayjobs.com', 'https://tenant.myworkdayjobs.com:8443', 'https://tenant.myworkdayjobs.com:0',
+                    'https://bad..myworkdayjobs.com', 'https://tenant.myworkdayjobs.com.'):
+            self.assertFalse(origin_matches(pattern, url))
+        for bad in ('https://*', 'https://*.com', 'https://*workdayjobs.com',
+                    'https://*.foo.*.com', 'https://*.127.0.0.1', 'https://*.example.org/path'):
+            with self.assertRaises(ValueError):
+                origin_pattern(bad)
+
+    def test_exact_and_narrower_rules_override_broad_rules(self):
+        broad = {'origin': 'https://*.myworkdayjobs.com'}
+        narrow = {'origin': 'https://*.wd5.myworkdayjobs.com'}
+        exact = {'origin': 'https://company.wd5.myworkdayjobs.com'}
+        url = exact['origin'] + '/job'
+        self.assertIs(trusted_client([broad, narrow, exact], url), exact)
+        self.assertIs(trusted_client([narrow, broad], url), narrow)
+        broad['origin'] += ':443'
+        self.assertIs(trusted_client([broad, narrow], url), narrow)
+
     def test_exact_oauth_request(self):
         self.assertTrue(matches_action(ACTION, URL))
         for changed in (
@@ -119,3 +144,32 @@ class TrustedBrowserTest(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(await click_trusted_login(self.page, ORIGIN, clients, set()))
         await self.page.locator('form').evaluate("el => {el.action='/login';el.onsubmit=e=>e.preventDefault()}")
         self.assertEqual(await click_trusted_login(self.page, ORIGIN, clients, set()), 'Sign in')
+
+    async def test_wildcard_rule_cannot_move_between_tenants(self):
+        pattern = 'https://*.myworkdayjobs.com'
+        task = 'https://one.wd5.myworkdayjobs.com/login'
+        clients = [{'origin': pattern, 'actions': [{'origin': pattern, 'path': '/login',
+                    'kind': 'stay_signed_in', 'name': 'Stay signed in'}]}]
+        await self.page.goto('https://two.wd5.myworkdayjobs.com/login')
+        await self.page.set_content('<button>Stay signed in</button>')
+        self.assertIsNone(await click_trusted_login(self.page, task, clients, set()))
+        await self.page.goto(task)
+        await self.page.set_content('<button>Stay signed in</button>')
+        self.assertEqual(await click_trusted_login(self.page, task, clients, set()), 'Stay signed in')
+
+    async def test_standard_oauth_button_still_requires_exact_request(self):
+        action = copy.deepcopy(ACTION)
+        del action['name']
+        clients = [{'origin': ORIGIN, 'actions': [action]}]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'trusted-auth.json'
+            path.write_text(json.dumps({'trusted_oauth_clients': clients}))
+            self.assertEqual(load_trusted_oauth_clients(path), clients)
+        await self.page.goto(URL.replace('fixture', 'other'))
+        await self.page.set_content('<h1>Glama</h1><button name=authorize>Authorize Glama</button>')
+        self.assertIsNone(await click_trusted_login(self.page, ORIGIN, clients, set()))
+        await self.page.goto(URL)
+        await self.page.set_content('<button id=js-oauth-authorize-btn name=authorize>Authorize Example</button>')
+        self.assertEqual(await click_trusted_login(self.page, ORIGIN, clients, set()), 'Authorize Example')
+        await self.page.set_content('<button name=authorize>Allow</button><button name=authorize>Allow</button>')
+        self.assertIsNone(await click_trusted_login(self.page, ORIGIN, clients, set()))

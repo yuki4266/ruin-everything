@@ -68,21 +68,28 @@ async def click_trusted_login(page: Page, task_url: str, clients, attempted: set
     for index, action in enumerate(client.get("actions", [])):
         if index in attempted or not matches_action(action, page.url):
             continue
+        if action["kind"] != "oauth" and origin_of(page.url) != origin_of(task_url):
+            # A wildcard selects a tenant; it never authorizes moving to another tenant.
+            continue
         if action["kind"] == "login" and await page.locator('input[type=password]:visible').evaluate_all(
             "fields => fields.some(el => !el.value)"
         ):
             continue
         before = page.url
-        button = page.get_by_role("button", name=action["name"], exact=True)
+        if action["kind"] == "oauth" and "name" not in action:
+            button = page.locator('button#js-oauth-authorize-btn, button[name="authorize"]')
+        else:
+            button = page.get_by_role("button", name=action["name"], exact=True)
         if await button.count() != 1 or not await button.is_visible() or not await button.is_enabled():
             continue
         if not await button.evaluate("""el =>
             !el.form || new URL(el.form.action).origin === location.origin"""):
             continue
+        label = (await button.inner_text()).strip() or action.get("name", "Authorize")
         # Recheck after asynchronous DOM queries. Do not force or retry clicks.
         if page.url != before or not matches_action(action, page.url):
             return None
         attempted.add(index)
         await button.click(timeout=3000)
-        return action["name"]
+        return label
     return None

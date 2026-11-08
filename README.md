@@ -315,8 +315,10 @@ Select the snapshot to explore the latest star history.
 
 <img src="docs/figures/trusted-auth.svg" alt="The selected task matches exact login rules before one click; Chrome password keys use a separate opt-in." width="100%">
 
-Panel A shows the new `trusted_oauth_clients` configuration in `~/.ruin-everything/trusted-auth.json`. With `--autofill`, the selected task can click configured login, SSO, Stay signed in or Trust this browser buttons once. Match exact HTTPS origins, paths and button labels; tenant subdomains need separate entries. The [example configuration](docs/trusted-auth.example.json) includes Glama, Greenhouse, Workday and Duke SSO, with no unverified button rules enabled.
+Panel A shows the new `trusted_oauth_clients` configuration in `~/.ruin-everything/trusted-auth.json`. With `--autofill`, the selected task can click configured login, SSO, Stay signed in or Trust this browser buttons once. Match HTTPS origins, paths and button rules. Panel D adds explicit `https://*.greenhouse.io`, `https://*.myworkdayjobs.com` and `https://*.duke.edu` patterns for multi-level subdomains; exact entries override wildcard entries. Credentials and actions stay on the selected tenant origin. The [example configuration](docs/trusted-auth.example.json) includes Glama, Greenhouse, Workday and Duke SSO, with no unverified button rules enabled.
 
 Panel B requires a GitHub OAuth client ID, exact callback and exact scopes before a configured authorization click. Task wording cannot expand permissions. Panel C adds an explicit Chrome password-dropdown option when keyring has no password: focus, ArrowDown, Enter. Chrome may submit the form when no suggestion is present. This is a best-effort keyboard attempt, not a guarantee of filling or permanent login.
 
 Chrome fixtures verify matching, refusal on changed permissions, single attempts and password-field exclusions; native password-manager suggestions and production consent pages remain unverified. See the [configuration reference](docs/trusted-auth.md). Existing browser permission requirements still apply.
+
+GitHub authorization can now use the standard button selector without a configured label; client ID, callback and scopes remain mandatory. Chrome fixtures verify suffix boundaries, ports, cross-tenant refusal and the default selector. Live Glama submission is not yet verified.

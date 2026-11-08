@@ -19,6 +19,21 @@
       "origin": "https://shib.oit.duke.edu",
       "chrome_password_dropdown": true,
       "actions": []
+    },
+    {
+      "origin": "https://*.greenhouse.io",
+      "chrome_password_dropdown": true,
+      "actions": []
+    },
+    {
+      "origin": "https://*.myworkdayjobs.com",
+      "chrome_password_dropdown": true,
+      "actions": []
+    },
+    {
+      "origin": "https://*.duke.edu",
+      "chrome_password_dropdown": true,
+      "actions": []
     }
   ]
 }

@@ -1,5 +1,6 @@
 """Explicit, task-scoped login actions; never a background consent handler."""
 import json
+import re
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
@@ -7,9 +8,42 @@ from ruin.auth.vault import origin_of
 
 
 def exact_origin(value):
-    if not isinstance(value, str) or origin_of(value) != value:
+    if not isinstance(value, str) or "*" in value or origin_of(value) != value:
         raise ValueError("Trusted origins must be exact HTTPS origins without a trailing slash.")
     return value
+
+
+def origin_pattern(value):
+    """Accept an exact origin or one explicit leftmost DNS wildcard."""
+    if isinstance(value, str) and value.startswith("https://*."):
+        exact_origin(value.replace("https://*.", "https://wildcard.", 1))
+        host = urlsplit(value).hostname[2:]
+        if "." not in host or not valid_dns(host):
+            raise ValueError("Wildcard origins require a DNS domain suffix.")
+        # Parsing the port also rejects malformed or out-of-range values.
+        urlsplit(value).port
+        return value
+    return exact_origin(value)
+
+
+def valid_dns(host):
+    return len(host) <= 253 and all(re.fullmatch(
+        r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", label
+    ) for label in host.split(".")) and not host.replace(".", "").isdigit()
+
+
+def origin_matches(pattern, url):
+    try:
+        actual = origin_of(url)
+        origin_pattern(pattern)
+        if "*" not in pattern:
+            return actual == pattern
+        expected, address = urlsplit(pattern), urlsplit(actual)
+        suffix = expected.hostname[1:]
+        return (valid_dns(address.hostname) and address.hostname.endswith(suffix)
+                and (443 if address.port is None else address.port) == (443 if expected.port is None else expected.port))
+    except (TypeError, ValueError):
+        return False
 
 
 def load_trusted_oauth_clients(path: Path) -> list[dict]:
@@ -22,7 +56,7 @@ def load_trusted_oauth_clients(path: Path) -> list[dict]:
             raise ValueError()
         origins = set()
         for client in clients:
-            origin = exact_origin(client["origin"])
+            origin = origin_pattern(client["origin"])
             if origin in origins:
                 raise ValueError()
             origins.add(origin)
@@ -31,7 +65,7 @@ def load_trusted_oauth_clients(path: Path) -> list[dict]:
             if not isinstance(client.get("actions", []), list):
                 raise ValueError()
             for action in client.get("actions", []):
-                exact_origin(action["origin"])
+                origin_pattern(action["origin"])
                 path_value = action["path"]
                 if not isinstance(path_value, str) or not path_value.startswith("/") or any(
                     c in path_value for c in "?#"
@@ -39,9 +73,12 @@ def load_trusted_oauth_clients(path: Path) -> list[dict]:
                     raise ValueError()
                 if action["kind"] not in {"login", "sso", "stay_signed_in", "trust_browser", "oauth"}:
                     raise ValueError()
-                if not isinstance(action["name"], str) or not action["name"].strip():
+                if (action["kind"] != "oauth" or "name" in action) and (
+                    not isinstance(action.get("name"), str) or not action["name"].strip()
+                ):
                     raise ValueError()
                 if action["kind"] == "oauth":
+                    exact_origin(origin)
                     if (action["origin"], action["path"]) != ("https://github.com", "/login/oauth/authorize"):
                         raise ValueError()
                     oauth = action["oauth"]
@@ -63,12 +100,14 @@ def load_trusted_oauth_clients(path: Path) -> list[dict]:
 
 def trusted_client(clients, task_url):
     origin = origin_of(task_url)
-    return next((client for client in clients if client["origin"] == origin), None)
+    matched = [client for client in clients if origin_matches(client["origin"], origin)]
+    # An exact override wins; otherwise use the most specific DNS suffix.
+    return max(matched, key=lambda c: ("*" not in c["origin"], len(urlsplit(c["origin"]).hostname)), default=None)
 
 
 def matches_action(action, url):
     location = urlsplit(url)
-    if origin_of(url) != action["origin"] or location.path != action["path"]:
+    if not origin_matches(action["origin"], url) or location.path != action["path"]:
         return False
     if action["kind"] != "oauth":
         # OAuth endpoints cannot be authorized through a generic login rule.

@@ -341,8 +341,10 @@ ruin courses --cdp http://127.0.0.1:9222 --json
 
 <img src="docs/figures/trusted-auth.svg" alt="選択中のタスクがログイン規則を完全一致で確認し、一度だけクリックする。Chrome のパスワード操作は別途有効化する。" width="100%">
 
-図 A は `~/.ruin-everything/trusted-auth.json` の `trusted_oauth_clients` を示します。`--autofill` 使用時、設定済みのログイン、SSO、Stay signed in、Trust this browser ボタンを規則ごとに一度だけクリックします。HTTPS オリジン、パス、ボタン名は完全一致が必要です。テナントのサブドメインは個別に登録します。[設定例](docs/trusted-auth.example.json) には Glama、Greenhouse、Workday、Duke SSO を含み、未検証のボタン規則は空にしています。
+図 A は `~/.ruin-everything/trusted-auth.json` の `trusted_oauth_clients` を示します。`--autofill` 使用時、設定済みのログイン、SSO、Stay signed in、Trust this browser ボタンを規則ごとに一度だけクリックします。HTTPS オリジン、パス、ボタン規則を照合します。図 D は `https://*.greenhouse.io`、`https://*.myworkdayjobs.com`、`https://*.duke.edu` による多階層サブドメイン対応を示します。完全一致の設定が優先され、認証情報と操作は選択したテナントに限定されます。[設定例](docs/trusted-auth.example.json) には Glama、Greenhouse、Workday、Duke SSO を含み、未検証のボタン規則は空にしています。
 
 図 B の GitHub OAuth ではクライアント ID、コールバック URL、スコープも一致する必要があります。タスクの文章は許可を拡張しません。図 C は任意の Chrome パスワード操作です。keyring にパスワードがない場合、フォーカス、ArrowDown、Enter を送信します。候補がないとフォームを送信する場合があり、入力成功や永続ログインは保証しません。
 
 Chrome のテスト用ページで一致判定、権限変更の拒否、試行回数、入力欄の除外を検証しました。ネイティブの候補選択と本番の認可ページは未検証です。[設定の詳細](docs/trusted-auth.md)を参照してください。既存のブラウザー権限要件は引き続き適用されます。
+
+GitHub 認可では標準ボタンセレクターを使用でき、ボタン名の事前設定は不要です。クライアント ID、コールバック、スコープの照合は必須です。Chrome のテストでドメイン境界、ポート、別テナントの拒否と標準セレクターを検証しました。Glama への実際の登録は未検証です。
