@@ -75,7 +75,7 @@ class PostActionTests(unittest.IsolatedAsyncioTestCase):
             window.submits=0; document.querySelector('button').onclick=()=>{
                 submits++;
                 setTimeout(()=>{const f=document.createElement('iframe');f.width=430;f.height=260;
-                    f.src='https://another.test/widget';document.body.append(f)},1100);
+                    f.src='https://another.test/widget';document.body.append(f)},2800);
             };
         }""")
         result = await exact_action(self.context, SITE, "Apply")

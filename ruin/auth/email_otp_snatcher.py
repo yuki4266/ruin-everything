@@ -185,11 +185,12 @@ async def verify_application(context, url: str, company: str, timeout: int, dire
                         raise RuntimeError("Unrecognized code fields. The application is still open.")
                     if job_key(app.url) != key:
                         raise RuntimeError("The original job tab changed after filling.")
-                    await click(app, app.get_by_role("button", name=re.compile(
-                        r"^(?:submit(?: application)?|verify(?: code)?)$", re.I
-                    )))
                     receipt = app.get_by_text(RECEIPT).first
                     expired = app.get_by_text(EXPIRED).first
+                    verify = app.get_by_role("button", name=re.compile(
+                        r"^(?:submit(?: application)?|verify(?: code)?)$", re.I
+                    ))
+                    await click(app, verify, completion=receipt.or_(expired).first)
                     await receipt.or_(expired).first.wait_for(timeout=15000)
                     if await receipt.is_visible():
                         return

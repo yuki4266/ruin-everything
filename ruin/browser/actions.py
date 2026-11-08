@@ -76,7 +76,7 @@ async def settle(page, site):
     return ActionResult("challenge_pending", kind, attempts, reason)
 
 
-async def execute(page, site, target=None, *, timeout=5000, enter=False):
+async def execute(page, site, target=None, *, timeout=5000, enter=False, completion=None):
     """With no target, resume the open widget without replaying a prior click."""
     if page.url != site or page.is_closed():
         raise RuntimeError("The selected tab changed before the action.")
@@ -93,14 +93,26 @@ async def execute(page, site, target=None, *, timeout=5000, enter=False):
                 await target.press("Enter", timeout=timeout)
             else:
                 await target.click(timeout=timeout)
+            # Verification SDKs may fetch configuration before mounting an iframe.
+            # Start at 1.5 seconds and keep observing the same action. Never replay it.
+            deadline = asyncio.get_running_loop().time() + 6
             await asyncio.sleep(1.5)
-            return await settle(page, site)
+            while True:
+                result = await settle(page, site)
+                if result.state != "no_challenge" or (
+                    completion is not None and await completion.is_visible()
+                ):
+                    return result
+                remaining = deadline - asyncio.get_running_loop().time()
+                if remaining <= 0:
+                    return result
+                await asyncio.sleep(min(0.25, remaining))
     except LockBusy:
         raise RuntimeError("Another Ruin action is in progress in shared Chrome.") from None
 
 
-async def click(page, target, *, timeout=5000, enter=False):
-    result = await execute(page, page.url, target, timeout=timeout, enter=enter)
+async def click(page, target, *, timeout=5000, enter=False, completion=None):
+    result = await execute(page, page.url, target, timeout=timeout, enter=enter, completion=completion)
     if result.state == "challenge_pending":
         raise RuntimeError(f"{result.kind} pending after {result.attempts} attempts. {result.reason}")
     return result
