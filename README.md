@@ -67,7 +67,7 @@ For example, if a visible button is labeled **Open guide**, the model can select
 
 <img src="docs/figures/autofill.svg" alt="At the selected HTTPS origin, the keyring can fill credentials and Chrome can offer saved sign-ins on the original form." width="100%">
 
-Add `--autofill` to use the system keyring and Chrome’s sign-in form. For a form with one visible password field that submits to the selected HTTPS origin, the runner clicks the empty field so Chrome can offer credentials saved in **that browser profile**. Complete sign-in in the open tab. The runner waits up to three minutes for the credential fields to disappear, then resumes the task. It leaves account selection and form submission to the login UI. A Chrome fixture verifies same-tab continuation with a restrictive script policy.
+Add `--autofill` to use the system keyring and Chrome’s sign-in form. For a form with one visible password field that submits to the selected HTTPS origin, the runner clicks the empty field so Chrome can offer credentials saved in **that browser profile**. Complete sign-in in the open tab. The runner waits up to three minutes for the credential fields to disappear, then resumes the task. Without trusted login options, it leaves account selection and form submission to the login UI. A Chrome fixture verifies same-tab continuation with a restrictive script policy.
 
 #### Local account registration
 
@@ -310,3 +310,13 @@ Select the snapshot to explore the latest star history.
 ⭐ [If Ruin helped you recover a browser task, give it a star on GitHub.](https://github.com/yuki4266/ruin-everything)
 
 <!-- mcp-name: io.github.yuki4266/ruin-everything -->
+
+### Trusted login configuration
+
+<img src="docs/figures/trusted-auth.svg" alt="The selected task matches exact login rules before one click; Chrome password keys use a separate opt-in." width="100%">
+
+Panel A shows the new `trusted_oauth_clients` configuration in `~/.ruin-everything/trusted-auth.json`. With `--autofill`, the selected task can click configured login, SSO, Stay signed in or Trust this browser buttons once. Match exact HTTPS origins, paths and button labels; tenant subdomains need separate entries. The [example configuration](docs/trusted-auth.example.json) includes Glama, Greenhouse, Workday and Duke SSO, with no unverified button rules enabled.
+
+Panel B requires a GitHub OAuth client ID, exact callback and exact scopes before a configured authorization click. Task wording cannot expand permissions. Panel C adds an explicit Chrome password-dropdown option when keyring has no password: focus, ArrowDown, Enter. Chrome may submit the form when no suggestion is present. This is a best-effort keyboard attempt, not a guarantee of filling or permanent login.
+
+Chrome fixtures verify matching, refusal on changed permissions, single attempts and password-field exclusions; native password-manager suggestions and production consent pages remain unverified. See the [configuration reference](docs/trusted-auth.md). Existing browser permission requirements still apply.

@@ -336,3 +336,13 @@ ruin courses --cdp http://127.0.0.1:9222 --json
 点击快照可查看最新的 Star 走势。
 
 ⭐ [如果 Ruin 帮你找回了中断的浏览器任务，欢迎到 GitHub 点一颗 Star。](https://github.com/yuki4266/ruin-everything)
+
+### 受信任登录配置
+
+<img src="docs/figures/trusted-auth.svg" alt="当前任务精确匹配登录规则后点击一次；Chrome 密码快捷键需单独开启。" width="100%">
+
+图 A 展示新增的 `~/.ruin-everything/trusted-auth.json` 中的 `trusted_oauth_clients`。开启 `--autofill` 后，当前任务可执行已配置的登录、SSO、Stay signed in 或 Trust this browser 按钮。规则精确匹配 HTTPS 来源、路径和按钮名称，每条只尝试一次；租户子域名需单独添加。[配置示例](docs/trusted-auth.example.json) 包含 Glama、Greenhouse、Workday 和 Duke SSO，尚未验证的按钮规则留空。
+
+图 B 中的 GitHub OAuth 授权还需匹配应用 ID、完整回调地址和权限范围；任务文字不会扩大权限。图 C 为可选 Chrome 密码下拉：keyring 无密码时聚焦并发送 ArrowDown、Enter。没有建议项时 Enter 可能提交表单，因此这只是一次键盘尝试，不保证自动填充或永久登录。
+
+Chrome 模拟页面已验证匹配、权限变更拒绝、单次尝试及密码框排除规则；原生密码建议和生产授权页尚未实测。详见[配置说明](docs/trusted-auth.md)。现有浏览器权限要求仍然适用。

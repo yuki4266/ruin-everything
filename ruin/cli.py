@@ -72,7 +72,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run browser tasks and resume verification in a shared local Chrome session.")
     parser.add_argument("task", help="Use identity, browser, watch, verify-email, verify-sms, keep-alive, resume-ashby, courses, or a click task with --site.")
     parser.add_argument("--site", help="HTTPS starting URL for a click task")
-    parser.add_argument("--autofill", action="store_true", help="Fill credentials for this origin from the system keyring")
+    parser.add_argument("--autofill", action="store_true", help="Use keyring and configured trusted login actions for this task")
     parser.add_argument("--requested-at", type=float, metavar="UNIX_SECONDS",
                         help="Original code-request time for SMS or a Greenhouse form without a resend control")
     parser.add_argument("--company", help="Employer name for Greenhouse verification")

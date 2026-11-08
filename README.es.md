@@ -336,3 +336,13 @@ Gracias a quienes prueban flujos de trabajo, responden preguntas y envían mejor
 Selecciona la imagen para consultar el historial de estrellas actualizado.
 
 ⭐ [Si Ruin te ayudó a retomar una tarea en el navegador, dale una estrella en GitHub.](https://github.com/yuki4266/ruin-everything)
+
+### Configuración de inicio de sesión de confianza
+
+<img src="docs/figures/trusted-auth.svg" alt="La tarea seleccionada comprueba reglas exactas antes de un clic; las teclas de contraseñas de Chrome requieren una opción adicional." width="100%">
+
+El panel A muestra `trusted_oauth_clients` en `~/.ruin-everything/trusted-auth.json`. Con `--autofill`, la tarea puede pulsar una vez por regla los botones configurados de acceso, SSO, Stay signed in o Trust this browser. Deben coincidir exactamente el origen HTTPS, la ruta y el nombre del botón. Los subdominios requieren entradas propias. El [ejemplo](docs/trusted-auth.example.json) incluye Glama, Greenhouse, Workday y Duke SSO sin activar reglas de botones no verificadas.
+
+El panel B exige también el ID del cliente GitHub OAuth, la URL de retorno y los permisos exactos. El texto de la tarea no amplía los permisos. El panel C permite enfocar el campo y enviar ArrowDown y Enter cuando keyring no tiene contraseña. Sin sugerencias, Enter puede enviar el formulario; no garantiza el autocompletado ni una sesión permanente.
+
+Las pruebas con páginas simuladas en Chrome verifican coincidencias, rechazo de cambios de permisos, intentos únicos y exclusiones de campos. Las sugerencias nativas y las páginas de autorización de producción siguen sin verificar. Consulta la [referencia](docs/trusted-auth.md). Se mantienen los requisitos de permisos del navegador.

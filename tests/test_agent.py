@@ -112,3 +112,25 @@ class AgentTest(unittest.IsolatedAsyncioTestCase):
                 await browser_task(context, site, "Finish sign-in", "test", autofill=True)
                 self.assertIn("Signed in", parse.await_args.kwargs["messages"][-1]["content"])
             await browser.close()
+
+    async def test_trusted_action_reuses_and_preserves_original_tab(self):
+        site = "https://portal.test/session"
+        async with async_playwright() as driver:
+            browser = await driver.chromium.launch(channel=os.getenv("RUIN_TEST_CHANNEL"))
+            context = await browser.new_context()
+            await context.route(site, lambda r: r.fulfill(content_type="text/html", body=
+                "<button onclick=\"document.title='Signed in';this.remove()\">Stay signed in</button>"))
+            page = await context.new_page()
+            await page.goto(site)
+            context.ruin_trusted_oauth_clients = [{"origin": "https://portal.test", "actions": [{
+                "origin": "https://portal.test", "path": "/session", "kind": "stay_signed_in", "name": "Stay signed in"
+            }]}]
+            with patch("openai.AsyncOpenAI") as client:
+                message = SimpleNamespace(parsed=Decision(action="done", element_id=None))
+                parse = AsyncMock(return_value=SimpleNamespace(choices=[SimpleNamespace(message=message)]))
+                client.return_value.__aenter__.return_value.chat.completions.parse = parse
+                await browser_task(context, site, "Continue sign-in", "test", autofill=True)
+                self.assertIn("Signed in", parse.await_args.kwargs["messages"][-1]["content"])
+                self.assertEqual(context.pages, [page])
+                self.assertFalse(page.is_closed())
+            await browser.close()

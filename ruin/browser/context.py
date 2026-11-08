@@ -38,6 +38,9 @@ async def listening():
 
 @asynccontextmanager
 async def browser_context(profile: Path, cdp: str | None = None, channel=None, *, launch_if_missing=True):
+    from ruin.auth.trusted import load_trusted_oauth_clients
+
+    clients = load_trusted_oauth_clients(profile.parent / "trusted-auth.json")
     url = cdp or LOCAL_CDP
     endpoint = urlsplit(url)
     if endpoint.scheme != "http" or endpoint.hostname not in {"localhost", "127.0.0.1", "::1"}:
@@ -62,4 +65,6 @@ async def browser_context(profile: Path, cdp: str | None = None, channel=None, *
         browser = await playwright.chromium.connect_over_cdp(url, no_defaults=True)
         if not browser.contexts:
             raise RuntimeError("Chrome has no accessible browser context.")
-        yield browser.contexts[0]
+        context = browser.contexts[0]
+        context.ruin_trusted_oauth_clients = clients
+        yield context

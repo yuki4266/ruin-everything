@@ -2,6 +2,7 @@ from playwright.async_api import Page
 
 from ruin.auth.totp import current_code
 from ruin.auth.vault import credential, origin_of
+from ruin.auth.trusted import matches_action, trusted_client
 
 
 async def fill_login(page: Page, url: str) -> bool:
@@ -27,7 +28,7 @@ async def fill_login(page: Page, url: str) -> bool:
     return filled
 
 
-async def offer_chrome_login(page: Page, url: str) -> bool:
+async def offer_chrome_login(page: Page, url: str, *, clients=()) -> bool:
     """Focus a single login password field so Chrome can offer a saved sign-in."""
     origin = origin_of(url)
     if origin_of(page.url) != origin:
@@ -44,4 +45,44 @@ async def offer_chrome_login(page: Page, url: str) -> bool:
         return False
     if not await field.evaluate("el => Boolean(el.value)"):
         await field.click(timeout=3000)
+        client = trusted_client(clients, url)
+        if client and client.get("chrome_password_dropdown") and not credential(origin, "password"):
+            # Chrome owns its popup. Enter may submit if no suggestion is offered.
+            if origin_of(page.url) != origin or not await field.evaluate(
+                "el => document.activeElement === el && !el.value"
+            ):
+                return True
+            await field.press("ArrowDown")
+            if origin_of(page.url) == origin and await field.evaluate(
+                "el => document.activeElement === el"
+            ):
+                await field.press("Enter")
     return True
+
+
+async def click_trusted_login(page: Page, task_url: str, clients, attempted: set) -> str | None:
+    """Execute at most one configured action, once per task, on the selected tab."""
+    client = trusted_client(clients, task_url)
+    if client is None:
+        return None
+    for index, action in enumerate(client.get("actions", [])):
+        if index in attempted or not matches_action(action, page.url):
+            continue
+        if action["kind"] == "login" and await page.locator('input[type=password]:visible').evaluate_all(
+            "fields => fields.some(el => !el.value)"
+        ):
+            continue
+        before = page.url
+        button = page.get_by_role("button", name=action["name"], exact=True)
+        if await button.count() != 1 or not await button.is_visible() or not await button.is_enabled():
+            continue
+        if not await button.evaluate("""el =>
+            !el.form || new URL(el.form.action).origin === location.origin"""):
+            continue
+        # Recheck after asynchronous DOM queries. Do not force or retry clicks.
+        if page.url != before or not matches_action(action, page.url):
+            return None
+        attempted.add(index)
+        await button.click(timeout=3000)
+        return action["name"]
+    return None
