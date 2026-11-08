@@ -107,7 +107,7 @@ Cuando aparezca el puzle de NetEase Yidun en una oferta del portal universitario
 
 Para un envío autorizado usa `ruin_action(site, button)` o `ruin action --site URL --button LABEL`. Indica la URL exacta y el nombre visible del botón. Tras un solo clic, Ruin espera 1,5 segundos y examina la pestaña y sus marcos visibles. Con la URL sola reanuda un reto abierto. El recibo del sitio confirma el envío.
 
-La figura muestra cómo ddddocr y OpenCV localizan el hueco. El ejecutor convierte las coordenadas a la escala visible, descuenta el desplazamiento inicial y corrige la pieza antes de soltarla. Las pruebas de navegador cubren un marco de otro origen con aparición tardía, escala y desplazamiento, capas de canvas y cuadrículas. Las cuadrículas de imágenes y los puzles de una capa usan Ollama local (modelo predeterminado: `ollama pull qwen3-vl:2b-instruct`). Si el reto persiste tras tres intentos, devuelve `challenge_pending`.
+La figura muestra cómo ddddocr y OpenCV localizan el hueco. El ejecutor convierte las coordenadas a la escala visible, descuenta el desplazamiento inicial y corrige la pieza antes de soltarla. Las pruebas de navegador cubren un marco de otro origen con aparición tardía, escala y desplazamiento, capas de canvas, una vista previa con avatar y cuadrículas. Las cuadrículas de imágenes y los puzles de una capa usan Ollama local (modelo predeterminado: `ollama pull qwen3-vl:2b-instruct`). Si el reto persiste tras tres intentos, devuelve `challenge_pending`.
 
 <img src="docs/figures/post-action.svg" alt="Un solo clic inicia la inspección del reto. El recibo del sitio confirma el resultado." width="100%">
 

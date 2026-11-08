@@ -107,7 +107,7 @@ ruin "Open the help page" --site https://example.org --channel chrome
 
 許可された送信には `ruin_action(site, button)` または `ruin action --site URL --button LABEL` を使います。元のタブの正確な URL とボタン名を指定します。クリック後 1.5 秒待ち、表示中のフレームを含めて検査します。URL だけを渡すと、開いている認証を再開します。送信済みの記録にはサイトの受付表示を確認します。
 
-図のように ddddocr と OpenCV で画像を照合し、表示倍率と初期位置を考慮してドラッグを補正します。ブラウザーのテストでは遅延する別オリジンのポップアップ、縮尺、初期位置、Canvas とグリッドを検証します。画像グリッドと単一レイヤーの画像にはローカルの Ollama を使います（標準モデルは `ollama pull qwen3-vl:2b-instruct`）。3 回試しても認証が残る場合は `challenge_pending` を返します。
+図のように ddddocr と OpenCV で画像を照合し、表示倍率と初期位置を考慮してドラッグを補正します。ブラウザーのテストでは遅延する別オリジンのポップアップ、縮尺、初期位置、Canvas、アバター付きプレビューとグリッドを検証します。画像グリッドと単一レイヤーの画像にはローカルの Ollama を使います（標準モデルは `ollama pull qwen3-vl:2b-instruct`）。3 回試しても認証が残る場合は `challenge_pending` を返します。
 
 <img src="docs/figures/post-action.svg" alt="一度クリックした後に認証を検出し、サイトの受付表示を別途確認します。" width="100%">
 

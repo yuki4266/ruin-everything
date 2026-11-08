@@ -107,7 +107,7 @@ ruin "Open the help page" --site https://example.org --channel chrome
 
 已授权的表单提交统一调用 `ruin_action(site, button)`，命令行可用 `ruin action --site URL --button LABEL`。传入原标签页的完整网址和按钮名称。执行器点击一次，等待 1.5 秒，再检查原页及可见子框架。只传网址可接管已出现的验证。重试只操作验证组件，投递结果以官网回执为准。
 
-如下图，横向拼图使用 ddddocr 和 OpenCV 在原图上定位缺口，换算显示比例、扣除拼块起点，并在松手前校正位置。浏览器回归用例覆盖延迟跨域弹窗、缩放和偏移、双层 Canvas 及九宫格控件。图片九宫格与单层视觉拼图使用本机 Ollama 视觉模型，默认安装命令为 `ollama pull qwen3-vl:2b-instruct`。三轮后验证仍在时返回 `challenge_pending` 并保留原页。
+如下图，横向拼图使用 ddddocr 和 OpenCV 在原图上定位缺口，换算显示比例、扣除拼块起点，并在松手前校正位置。浏览器回归用例覆盖延迟跨域弹窗、缩放和偏移、双层 Canvas、带头像横幅的普通预览及九宫格控件。图片九宫格与单层视觉拼图使用本机 Ollama 视觉模型，默认安装命令为 `ollama pull qwen3-vl:2b-instruct`。三轮后验证仍在时返回 `challenge_pending` 并保留原页。
 
 <img src="docs/figures/post-action.svg" alt="提交一次后自动检查验证组件，处理拼图并另行核验官网回执。" width="100%">
 

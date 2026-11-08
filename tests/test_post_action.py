@@ -127,6 +127,18 @@ class PostActionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((result.state, result.attempts), ("challenge_cleared", 2))
         self.assertEqual(await self.page.evaluate("refreshes"), 1)
 
+    async def test_decorative_banner_and_avatar_in_preview(self):
+        await self.page.set_content("""
+            <div role="dialog" style="position:fixed">
+              <div style="width:310px;height:100px;background-image:linear-gradient(red,blue)">
+                <img width="40" height="40" alt="Profile">
+              </div>
+              <button onclick="document.title='Clicked'">Confirm</button>
+            </div>""")
+        result = await exact_action(self.context, SITE, 'Confirm')
+        self.assertEqual(result.state, 'no_challenge')
+        self.assertEqual(await self.page.title(), 'Clicked')
+
     async def test_unsupported_visible_canvas_remains_pending(self):
         await self.page.set_content(
             '<dialog open>安全验证<canvas width="150" height="120"></canvas></dialog>'

@@ -89,8 +89,7 @@
                 }
                 if (board?.matches('canvas') && actionable(board) && /drag|slide|拼图|滑块|拖动/i.test(text))
                     fallback = {kind:'canvas_drag',scope,board,refresh};
-                else if (!fallback && (piece || board?.matches('canvas') || semantic) &&
-                    (board || knobs.length) && (semantic || piece || board?.matches('canvas')))
+                else if (!fallback && (board?.matches('canvas') || (semantic && (board || knobs.length))))
                     fallback = {kind:'unresolved',scope,refresh};
 
             }
