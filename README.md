@@ -79,6 +79,12 @@ For manual setup of a browser task with `--site`, create `~/.ruin/identity.json`
 
 For a subsequent single one-time-code field, the runner checks macOS Messages for up to 30 seconds for an incoming text received since the submission and ending in `@hostname #code`. Read access to the Messages database is required. MCP challenge and receipt results include a `signup_policy` field reporting the local setting. Chrome and SQLite fixtures exercise form submission, ordinary phone inputs, cross-origin actions, message age, direction and domain matching.
 
+#### Feishu Jobs rotation puzzle
+
+With the rotation puzzle open, pass the exact Feishu Jobs login URL to `ruin_auto_register` and enable `auto_signup` in the local profile. As shown below, the tool matches the edges of the two rings and drags the slider once. On the live Learnings recruiting site, the widget accepted the drag and the resend button showed a 30-second countdown. The tool returns `sms_requested` when that countdown is visible. An unresolved puzzle returns `slider_pending`.
+
+<img src="docs/figures/feishu-slider.svg" alt="The original login tab shows the inner disc and outer ring. After the drag, the resend countdown confirms the SMS request." width="100%">
+
 #### Workday accounts and signed-in sessions
 
 <img src="docs/figures/account-session.svg" alt="The Workday branch checks sign-in before account creation and Outlook activation. The session branch periodically checks a separate status tab." width="100%">

@@ -91,6 +91,12 @@ Para un campo de código de un solo uso posterior, el ejecutor verifica macOS Me
 
 <a name="workday-accounts-and-signed-in-sessions"></a>
 
+#### Puzle de rotación en Feishu Jobs
+
+Con el puzle abierto, activa `auto_signup` en el perfil local y pasa la URL completa de la página de acceso a `ruin_auto_register`. Como muestra la figura, la herramienta compara los bordes de los dos anillos y arrastra el control una vez. En el sitio de empleo de Learnings, el sistema aceptó el movimiento y el botón de reenvío mostró una cuenta atrás de 30 segundos. La herramienta devuelve `sms_requested` al ver la cuenta atrás y `slider_pending` si el resultado sigue pendiente.
+
+<img src="docs/figures/feishu-slider.svg" alt="La pestaña de acceso muestra dos anillos. Tras alinearlos, el botón de reenvío indica cuánto falta para pedir otro SMS." width="100%">
+
 #### Cuentas Workday y sesiones iniciadas
 
 <img src="docs/figures/account-session.svg" alt="La sucursal de Workday verifica el inicio de sesión antes de la creación de la cuenta y la activación de Outlook. La rama de sesión comprueba periódicamente una pestaña de estado independiente." width="100%">

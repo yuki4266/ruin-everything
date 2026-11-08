@@ -36,7 +36,8 @@ def main():
 
     class Registration(LocalSettings):
         sms_filled: bool = False
-        state: Literal["submitted", "workday_account_step_completed", "phone_filled", "no_match"]
+        state: Literal["submitted", "workday_account_step_completed", "phone_filled", "no_match",
+                       "slider_pending", "sms_requested"]
 
     class Challenge(LocalSettings):
         provider: Provider
@@ -59,9 +60,11 @@ def main():
     @server.tool(annotations=ToolAnnotations(destructiveHint=False, idempotentHint=False))
     async def ruin_auto_register(site: str) -> Registration:
         """Handle an open Workday Sign In or Create Account dialog at the exact job URL,
-        or fill a supported signup form. Credentials come from the local profile."""
+        a visible Feishu Jobs rotation slider at its exact login URL, or a supported signup form.
+        Credentials come from the local profile."""
         from playwright.async_api import TimeoutError as BrowserTimeout
         from ruin.auth.auto_registrar import signup, fill_contact_phone, verify_sms
+        from ruin.auth.feishu import feishu_slider
         from ruin.auth.workday import workday_account
         from ruin.auth.vault import origin_of
 
@@ -71,6 +74,9 @@ def main():
             tabs = [p for p in context.pages if p.url == site]
             if len(tabs) != 1:
                 raise RuntimeError("Open exactly one tab at the selected registration URL.")
+            slider = await feishu_slider(tabs[0], site, profile)
+            if slider:
+                return Registration(state=slider)
             if await workday_account(tabs[0], site, profile):
                 return Registration(state="workday_account_step_completed")
             requested = await signup(tabs[0], site, profile)

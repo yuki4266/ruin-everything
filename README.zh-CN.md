@@ -91,6 +91,12 @@ ruin "Open the help page" --site https://example.org --channel chrome
 
 <a name="workday-accounts-and-signed-in-sessions"></a>
 
+#### 飞书招聘的旋转拼图
+
+旋转拼图出现后，在本地配置中启用 `auto_signup`，将当前飞书招聘登录页的完整网址传给 `ruin_auto_register`。如下图所示，工具比对内外圆环的边缘，拖动一次滑块。在乐信圣文招聘网站实测时，页面提示“验证通过”，随后显示“重新获取(30s)”。工具看到倒计时后返回 `sms_requested`，拼图仍待确认时返回 `slider_pending`。
+
+<img src="docs/figures/feishu-slider.svg" alt="在原登录页拖动滑块，对齐内外圆环。重新获取短信的倒计时确认请求已发出。" width="100%">
+
 #### Workday 帐户和登录会话
 
 <img src="docs/figures/account-session.svg" alt="Workday 分支在帐户创建和 Outlook 激活之前检查登录。会话分支定期检查单独的状态标签页。" width="100%">

@@ -91,6 +91,12 @@ ruin "Open the help page" --site https://example.org --channel chrome
 
 <a name="workday-accounts-and-signed-in-sessions"></a>
 
+#### 飛書採用サイトの回転パズル
+
+回転パズルが表示されたら、ローカル設定で `auto_signup` を有効にし、そのログイン画面の完全な URL を `ruin_auto_register` に渡します。図のように内円と外周の境界を照合し、スライダーを一度ドラッグします。楽信聖文の採用サイトでは認証に成功し、再送ボタンに残り 30 秒と表示されました。カウントダウンが見えると `sms_requested`、パズルの結果を確認できない場合は `slider_pending` を返します。
+
+<img src="docs/figures/feishu-slider.svg" alt="元のログイン画面で内円と外周を合わせると、SMS 再送ボタンにカウントダウンが表示されます。" width="100%">
+
 #### Workday アカウントとサインイン セッション
 
 <img src="docs/figures/account-session.svg" alt="Workday ブランチは、アカウントの作成と Outlook のアクティブ化の前にサインインをチェックします。セッション ブランチは、別のステータス タブを定期的にチェックします。" width="100%">
