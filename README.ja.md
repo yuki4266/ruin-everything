@@ -261,7 +261,7 @@ claude mcp add --scope user --transport stdio ruin-everything -e RUIN_AUTO_UPDAT
 
 初回は `unrecorded` が返ります。これは、この例に該当する受付記録がローカルに見つからなかったという意味です。この読み取り専用の呼び出しは PyPI の公開版で確認済みです。
 
-リポジトリには以下が含まれます[ルーティング命令](AGENTS.md#ruin-everything-application-routing)Codex 用に作成し、からインポートします。[クロード.md](CLAUDE.md)。他のワークスペースに適用するには、アプリケーション ルーティング セクションをユーザーレベルの `~/.codex/AGENTS.md` または `~/.claude/CLAUDE.md` にコピーします。クライアントのアクセス許可とサイトの検証は、 Duo 、 PayPal 、およびその他のサポートされていないプロバイダーにも引き続き適用されます。
+リポジトリには以下が含まれます[ルーティング命令](AGENTS.md#ruin-everything-application-routing)Codex 用に作成し、からインポートします。[クロード.md](CLAUDE.md)。他のワークスペースに適用するには、アプリケーション ルーティング セクションをユーザーレベルの `~/.codex/AGENTS.md` または `~/.claude/CLAUDE.md` にコピーします。汎用のローカル Chrome ログインフローで PayPal へのログインを試すことはできます（[信頼済みログインの図、パネル C](docs/figures/trusted-auth.svg)）。PayPal Security Challenge 専用アダプターは未実装であり、ローカル Chrome でも通常のサイト認証が表示される場合があります。これはコード確認に基づく文書の明確化であり、実際の PayPal ログイン成功を検証したものではありません。Duo や専用アダプターのない他のフローにも、クライアントの権限と通常の認証が適用されます。
 
 4 つのツールはすべて `site` を使用します。インスペクターはデフォルトで 1 回チェックします。同じタブで `pending` からの変更を監視するには、`wait_seconds` を 1 ～ 300 に設定します。 CLI からは、 `ruin watch --site "$JOB_URL" --timeout 30` を使用します。サポートされている状態が検出されるか、元のタブが失われるか、制限時間に達すると、監視は終了します。
 

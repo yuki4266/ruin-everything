@@ -239,7 +239,7 @@ After connecting your client, try this prompt with the fictional URL below. It w
 
 On a fresh install, the expected state is `unrecorded`: the tool checked the local journal and found no receipt for this example. This read-only call was verified against the PyPI server.
 
-The repository includes [routing instructions](AGENTS.md#ruin-everything-application-routing) for Codex and imports them from [CLAUDE.md](CLAUDE.md). To apply them in other workspaces, copy the application routing section into your user-level `~/.codex/AGENTS.md` or `~/.claude/CLAUDE.md`. Client permissions and site verification still apply to Duo, PayPal and other unsupported providers.
+The repository includes [routing instructions](AGENTS.md#ruin-everything-application-routing) for Codex and imports them from [CLAUDE.md](CLAUDE.md). To apply them in other workspaces, copy the application routing section into your user-level `~/.codex/AGENTS.md` or `~/.claude/CLAUDE.md`. PayPal sign-in can be attempted through the generic local Chrome login flow ([trusted login figure, panel C](docs/figures/trusted-auth.svg)). No dedicated PayPal Security Challenge adapter is implemented; normal site verification may still appear on local Chrome. This is a documentation clarification based on code inspection, not a verified live PayPal sign-in. Client permissions and normal verification still apply to Duo and other flows without a dedicated adapter.
 
 All four tools take `site`. The inspector checks once by default. Set `wait_seconds` to 1–300 to watch that same tab for a change from `pending`. From the CLI, use `ruin watch --site "$JOB_URL" --timeout 30`. The watch ends after detecting a supported state, losing the original tab, or reaching the time limit.
 

@@ -261,7 +261,7 @@ claude mcp add --scope user --transport stdio ruin-everything -e RUIN_AUTO_UPDAT
 
 首次安装时应返回 `unrecorded`，表示工具已查询本机记录，没有找到这个示例的回执。我们已用 PyPI 发布版验证这次只读调用。
 
-该存储库包括[路由指令](AGENTS.md#ruin-everything-application-routing)用于 Codex 并从以下位置导入它们[克劳德.md](CLAUDE.md)。要将它们应用到其他工作区，请将应用程序路由部分复制到用户级 `~/.codex/AGENTS.md` 或 `~/.claude/CLAUDE.md` 中。客户端权限和站点验证仍然适用于 Duo 、 PayPal 和其他不受支持的提供商。
+该存储库包括[路由指令](AGENTS.md#ruin-everything-application-routing)用于 Codex 并从以下位置导入它们[克劳德.md](CLAUDE.md)。要将它们应用到其他工作区，请将应用程序路由部分复制到用户级 `~/.codex/AGENTS.md` 或 `~/.claude/CLAUDE.md` 中。可以通过通用的本机 Chrome 登录流程尝试登录 PayPal（[受信任登录示意图 C](docs/figures/trusted-auth.svg)）。目前尚未实现 PayPal Security Challenge 专用适配器；本机 Chrome 仍可能出现正常的站点验证。这是基于代码检查的文档澄清，并不表示已经验证实际 PayPal 登录成功。Duo 及其他没有专用适配器的流程仍须遵守客户端权限和正常验证。
 
 所有四个工具均采用 `site`。检查员默认检查一次。将 `wait_seconds` 设置为 1–300 以观察同一标签页中 `pending` 的变化。在 CLI 中，使用 `ruin watch --site "$JOB_URL" --timeout 30` 。手表在检测到受支持的状态、丢失原始标签页或达到时间限制后结束。
 
