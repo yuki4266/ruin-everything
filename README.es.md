@@ -199,6 +199,8 @@ El recibo ilustrado es un ejemplo. El patrón de recibo proviene de una aplicaci
 
 <img src="docs/figures/mcp-receipts.svg" alt="Un agente consulta el diario Ashby local por URL del trabajo. Puede devolver pruebas guardadas sin conexión o mirar la pestaña original para obtener un nuevo recibo." width="100%">
 
+Las versiones etiquetadas incluyen el servidor MCP. Un cliente compatible con el registro puede iniciarlo con `uvx ruin-everything@0.2.0`. [Versiones en GitHub](https://github.com/yuki4266/ruin-everything/releases)
+
 Proporcione al cliente la URL exacta del trabajo y describa lo que ve. Si la pregunta es si se aprobó una solicitud Ashby, el cliente verifica primero el diario de recibos. Si el formulario está esperando verificación, el cliente inspecciona la pestaña abierta.
 
 <img src="docs/figures/challenge-routing.svg" alt="Para una URL de trabajo exacta, el inspector identifica un mensaje de código de correo electrónico Greenhouse o un marco reCAPTCHA Ashby y devuelve el estado observado." width="100%">

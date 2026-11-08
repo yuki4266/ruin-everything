@@ -1,0 +1,27 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.yuki4266/ruin-everything",
+  "title": "Ruin Everything",
+  "description": "Reconnect to local Chrome tabs, inspect application challenges, and look up submission receipts.",
+  "repository": {
+    "url": "https://github.com/yuki4266/ruin-everything",
+    "source": "github"
+  },
+  "version": "0.2.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "ruin-everything",
+      "version": "0.2.0",
+      "runtimeHint": "uvx",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        {
+          "name": "RUIN_AUTO_UPDATE",
+          "description": "Let the client manage the installed package version.",
+          "default": "0"
+        }
+      ]
+    }
+  ]
+}

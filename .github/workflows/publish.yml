@@ -54,3 +54,25 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
+
+  registry:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify the manifest matches the release
+        run: jq -e --arg v "${GITHUB_REF_NAME#v}" '.version == $v and .packages[0].version == $v' server.json
+      - name: Install the official registry publisher
+        working-directory: ${{ runner.temp }}
+        run: |
+          curl -fsSLo publisher.tgz https://github.com/modelcontextprotocol/registry/releases/download/v1.8.8/mcp-publisher_linux_amd64.tar.gz
+          echo '09f1fa70ee146b640584274a1a6b2b8a0310b05d4321fa9224e6df6a016d67f4  publisher.tgz' | sha256sum --check
+          tar -xzf publisher.tgz mcp-publisher
+      - name: Publish the tagged PyPI version to the MCP Registry
+        run: |
+          "$RUNNER_TEMP/mcp-publisher" login github-oidc
+          "$RUNNER_TEMP/mcp-publisher" publish server.json

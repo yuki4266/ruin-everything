@@ -199,6 +199,8 @@ receipt = await resume_ashby(context, application_url, timeout=300,
 
 <img src="docs/figures/mcp-receipts.svg" alt="代理通过职位 URL 检查本地 Ashby 日志。它可以离线返回保存的证据或查看原始标签页以获取新回执。" width="100%">
 
+正式版本默认包含 MCP 服务。支持目录安装的客户端可直接运行 `uvx ruin-everything@0.2.0`。 [GitHub 发布记录](https://github.com/yuki4266/ruin-everything/releases)
+
 向客户提供准确的工作 URL 并描述您所看到的内容。如果问题是Ashby申请是否通过，客户首先检查回执日志。如果表单正在等待验证，客户端将检查打开的标签页。
 
 <img src="docs/figures/challenge-routing.svg" alt="对于一个确切的职位 URL，检查员会识别 Greenhouse 电子邮件代码提示或 Ashby reCAPTCHA 框架并返回观察到的状态。" width="100%">

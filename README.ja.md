@@ -199,6 +199,8 @@ receipt = await resume_ashby(context, application_url, timeout=300,
 
 <img src="docs/figures/mcp-receipts.svg" alt="エージェントは求人 URL によってローカル Ashby ジャーナルをチェックします。保存された証拠をオフラインで返すことも、元のタブで新しい領収書を確認することもできます。" width="100%">
 
+タグ付きリリースには MCP サーバーが含まれます。レジストリ対応クライアントは `uvx ruin-everything@0.2.0` で直接起動できます。 [GitHub のリリース](https://github.com/yuki4266/ruin-everything/releases)
+
 クライアントに正確な求人 URL を伝え、表示された内容を説明します。 Ashby アプリケーションが処理されたかどうかが問題の場合、クライアントは最初に受付記録 ジャーナルを確認します。フォームが検証を待機している場合、クライアントは開いているタブを検査します。
 
 <img src="docs/figures/challenge-routing.svg" alt="1 つの正確な求人 URL に対して、インスペクタは Greenhouse 電子メール コード プロンプトまたは Ashby reCAPTCHA フレームを識別し、観察された状態を返します。" width="100%">

@@ -177,6 +177,8 @@ The illustrated receipt is an example. The receipt pattern comes from a complete
 
 <img src="docs/figures/mcp-receipts.svg" alt="An agent checks the local Ashby journal by job URL. It can return saved evidence offline or watch the original tab for a new receipt." width="100%">
 
+Tagged releases include the MCP server by default. A registry client can launch the package directly with `uvx ruin-everything@0.2.0`. [GitHub releases](https://github.com/yuki4266/ruin-everything/releases)
+
 Give the client the exact job URL and describe what you see. If the question is whether an Ashby application went through, the client checks the receipt journal first. If the form is waiting for verification, the client inspects the open tab.
 
 <img src="docs/figures/challenge-routing.svg" alt="For one exact job URL, the inspector identifies a Greenhouse email code prompt or an Ashby reCAPTCHA frame and returns the observed state." width="100%">
@@ -306,3 +308,5 @@ Thank you to everyone who tests a workflow, answers a question or sends a patch.
 Select the snapshot to explore the latest star history.
 
 ⭐ [If Ruin helped you recover a browser task, give it a star on GitHub.](https://github.com/yuki4266/ruin-everything)
+
+<!-- mcp-name: io.github.yuki4266/ruin-everything -->
