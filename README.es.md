@@ -103,6 +103,15 @@ Cuando aparezca el puzle de NetEase Yidun en una oferta del portal universitario
 
 <img src="docs/figures/yidun-slider.svg" alt="La pieza se desplaza hasta el hueco y el botón de reenvío muestra una cuenta atrás." width="100%">
 
+### Verificación después de enviar un formulario
+
+Para un envío autorizado usa `ruin_action(site, button)` o `ruin action --site URL --button LABEL`. Indica la URL exacta y el nombre visible del botón. Tras un solo clic, Ruin espera 1,5 segundos y examina la pestaña y sus marcos visibles. Con la URL sola reanuda un reto abierto. El recibo del sitio confirma el envío.
+
+La figura muestra cómo ddddocr y OpenCV localizan el hueco. El ejecutor convierte las coordenadas a la escala visible, descuenta el desplazamiento inicial y corrige la pieza antes de soltarla. Las pruebas de navegador cubren un marco de otro origen con aparición tardía, escala y desplazamiento, capas de canvas y cuadrículas. Las cuadrículas de imágenes y los puzles de una capa usan Ollama local (modelo predeterminado: `ollama pull qwen3-vl:2b-instruct`). Si el reto persiste tras tres intentos, devuelve `challenge_pending`.
+
+<img src="docs/figures/post-action.svg" alt="Un solo clic inicia la inspección del reto. El recibo del sitio confirma el resultado." width="100%">
+
+
 #### Cuentas Workday y sesiones iniciadas
 
 <img src="docs/figures/account-session.svg" alt="La sucursal de Workday verifica el inicio de sesión antes de la creación de la cuenta y la activación de Outlook. La rama de sesión comprueba periódicamente una pestaña de estado independiente." width="100%">
@@ -219,6 +228,7 @@ Proporcione al cliente la URL exacta del trabajo y describa lo que ve. Si la pre
 
 | Herramienta | Cuándo usarla | Resultado |
 | --- | --- | --- |
+| `ruin_action` | URL exacta y nombre visible del botón de un formulario autorizado. | Procesa el reto tras el clic. Con la URL sola, reanuda el reto. |
 | `ruin_auto_register` | El formulario de registro o contacto seleccionado está abierto en su URL HTTPS exacta. | Acción de perfil local y política de registro actual. Un formulario enviado aún puede requerir verificación. |
 | `inspect_application_challenge` | Greenhouse solicita un código de correo electrónico de ocho caracteres, un conector informa `[one-time authentication code withheld]` o Ashby muestra una cuadrícula reCAPTCHA. Úselo también para localizar un formulario compatible perdido. | El proveedor y el estado visible. Una pestaña faltante o duplicada obtiene su propio resultado. El formulario permanece abierto. |
 | `get_ashby_receipt` | En el momento del traspaso, incluso con Chrome cerrado | Un recibo guardado o `unrecorded`. Un registro perdido deja el resultado desconocido. |
@@ -263,7 +273,7 @@ En una instalación nueva se espera `unrecorded`. El servidor ha consultado el r
 
 El repositorio incluye [instrucciones de enrutamiento](AGENTS.md#ruin-everything-application-routing) para Codex y los importa desde [CLAUDE.md](CLAUDE.md). Para aplicarlos en otros espacios de trabajo, copie la sección de enrutamiento de aplicaciones en su `~/.codex/AGENTS.md` o `~/.claude/CLAUDE.md` de nivel de usuario. Se puede intentar iniciar sesión en PayPal mediante el flujo genérico de Chrome local ([figura de acceso de confianza, panel C](docs/figures/trusted-auth.svg)). No hay un adaptador específico para PayPal Security Challenge; la verificación normal del sitio puede aparecer incluso en Chrome local. Esta aclaración documental se basa en la inspección del código, no en un inicio de sesión real verificado en PayPal. Los permisos del cliente y la verificación normal siguen aplicándose a Duo y a otros flujos sin adaptador específico.
 
-Las cuatro herramientas aceptan `site`. El inspector comprueba una vez de forma predeterminada. Configure `wait_seconds` en 1–300 para observar esa misma pestaña en busca de un cambio desde `pending`. Desde la CLI, utilice `ruin watch --site "$JOB_URL" --timeout 30`. La vigilancia finaliza después de detectar un estado compatible, perder la pestaña original o alcanzar el límite de tiempo.
+Las cinco herramientas aceptan `site`. El inspector comprueba una vez de forma predeterminada. Configure `wait_seconds` en 1–300 para observar esa misma pestaña en busca de un cambio desde `pending`. Desde la CLI, utilice `ruin watch --site "$JOB_URL" --timeout 30`. La vigilancia finaliza después de detectar un estado compatible, perder la pestaña original o alcanzar el límite de tiempo.
 
 En una simulación local de Chrome, una nueva sesión de CLI de Codex a la que se le dio solo la URL de Greenhouse y el síntoma de código de ocho caracteres seleccionó `inspect_application_challenge` como su primera llamada de herramienta y devolvió `email_verification`. El formulario simulado permaneció vacío.
 

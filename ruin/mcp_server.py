@@ -7,6 +7,7 @@ from ruin.agent.ashby import application_url, lookup_receipt, resume_ashby
 from ruin.agent.challenge import Provider, State, inspect_challenge
 from ruin.auth.auto_registrar import identity
 from ruin.browser.context import browser_context
+from ruin.browser.actions import ActionResult, exact_action
 from ruin.config import PROFILE
 from ruin.updater import start_update_check
 
@@ -37,7 +38,7 @@ def main():
     class Registration(LocalSettings):
         sms_filled: bool = False
         state: Literal["submitted", "workday_account_step_completed", "phone_filled", "no_match",
-                       "slider_pending", "sms_requested"]
+                       "slider_pending", "sms_requested", "challenge_cleared", "challenge_pending", "navigated"]
 
     class Challenge(LocalSettings):
         provider: Provider
@@ -56,6 +57,14 @@ def main():
         message: str | None = None
 
     server = FastMCP("Ruin Everything")
+
+    @server.tool(annotations=ToolAnnotations(destructiveHint=True, idempotentHint=False))
+    async def ruin_action(site: str, button: str | None = None) -> ActionResult:
+        """Execute an authorized form button by exact visible name on its exact open HTTPS URL.
+        Use for every form submission. Automatically handle visual challenges after clicking.
+        Omit button to resume a pending challenge. The action result is not a submission receipt."""
+        async with browser_context(PROFILE, args.cdp, launch_if_missing=False) as context:
+            return await exact_action(context, site, button)
 
     @server.tool(annotations=ToolAnnotations(destructiveHint=False, idempotentHint=False))
     async def ruin_auto_register(site: str) -> Registration:
@@ -81,6 +90,10 @@ def main():
                 slider = await moka_slider(tabs[0], site, profile)
             if slider:
                 return Registration(state=slider)
+            if profile.get("auto_signup") is True:
+                visual = await exact_action(context, site)
+                if visual.state != "no_challenge":
+                    return Registration(state=visual.state)
             if await workday_account(tabs[0], site, profile):
                 return Registration(state="workday_account_step_completed")
             requested = await signup(tabs[0], site, profile)

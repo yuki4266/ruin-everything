@@ -11,6 +11,7 @@ from urllib.parse import parse_qs, urlsplit
 import regex
 from playwright.async_api import Page
 
+from ruin.browser.actions import click
 from ruin.rules_loader import BUNDLED, load_rules, validate
 
 OUTLOOK = "https://outlook.office.com/mail/"
@@ -165,7 +166,7 @@ async def verify_application(context, url: str, company: str, timeout: int, dire
                         await mail.locator(rules["outlook"]["rows"]).first.wait_for(timeout=10000)
                         baseline.update((r["id"], r["received"]) for r in await rows(mail, rules))
                         started = time.time()
-                        await resend.click(timeout=5000)
+                        await click(app, resend)
                     code = await receive(mail, baseline, company, started, rules,
                                          required_job=key[2] if resume_existing and not attempt else None)
                     if job_key(app.url) != key:
@@ -184,9 +185,9 @@ async def verify_application(context, url: str, company: str, timeout: int, dire
                         raise RuntimeError("Unrecognized code fields. The application is still open.")
                     if job_key(app.url) != key:
                         raise RuntimeError("The original job tab changed after filling.")
-                    await app.get_by_role("button", name=re.compile(
+                    await click(app, app.get_by_role("button", name=re.compile(
                         r"^(?:submit(?: application)?|verify(?: code)?)$", re.I
-                    )).click(timeout=5000)
+                    )))
                     receipt = app.get_by_text(RECEIPT).first
                     expired = app.get_by_text(EXPIRED).first
                     await receipt.or_(expired).first.wait_for(timeout=15000)

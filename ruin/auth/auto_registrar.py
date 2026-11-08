@@ -9,6 +9,7 @@ from contextlib import closing
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from ruin.browser.actions import click
 from .vault import origin_of
 
 
@@ -89,7 +90,7 @@ async def signup(page, url, profile):
     if not await button.evaluate(eligible, origin_of(url)) or not await form.evaluate("f => f.checkValidity()"):
         raise RuntimeError("The registration form needs attention in the open tab.")
     requested = time.time()
-    await button.click(timeout=5000)
+    await click(page, button)
     return requested
 
 

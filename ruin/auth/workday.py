@@ -7,6 +7,7 @@ from urllib.parse import urlsplit
 
 from playwright.async_api import TimeoutError as BrowserTimeout
 
+from ruin.browser.actions import click
 from ruin.auth.auto_registrar import SIGNUP, signup
 from ruin.auth.email_otp_snatcher import OUTLOOK, mailbox_lock, rows
 from ruin.auth.vault import origin_of
@@ -91,7 +92,7 @@ async def verify_email_code(page, site, value):
         raise RuntimeError("No unique email verification action in the Workday form.")
     await guard_account_button(buttons[0], site)
     await field.fill(value)
-    await buttons[0].click(timeout=5000)
+    await click(page, buttons[0])
 
 
 async def submit_workday_registration(page, site, profile):
@@ -120,7 +121,7 @@ async def submit_workday_registration(page, site, profile):
             await box.check()
     requested = time.time()
     wrapper = await dialog.query_selector('[data-automation-id=click_filter][aria-label="Create Account" i]:visible')
-    await (wrapper or button).click(timeout=5000)
+    await click(page, wrapper or button)
     return requested
 
 
@@ -148,7 +149,7 @@ async def workday_account(page, site, profile, timeout=60, allow_create=True):
         await guard_account_button(button, site)
         await email_field.fill(profile["email"])
         await password_field.fill(profile["default_password"])
-        await sign_in.click(timeout=5000)
+        await click(page, sign_in)
         missing = page.get_by_text(MISSING).first
         try:
             await page.wait_for_function("""pattern => {
@@ -169,7 +170,7 @@ async def workday_account(page, site, profile, timeout=60, allow_create=True):
         if not allow_create:
             raise RuntimeError("Workday still reports a missing account after activation.")
         create = scope.get_by_role("link", name=SIGNUP).or_(scope.get_by_role("button", name=SIGNUP))
-        await create.click(timeout=5000)
+        await click(page, create)
         await passwords.nth(1).wait_for(timeout=5000)
     if await passwords.count() != 2 or origin_of(page.url) != origin_of(site):
         return False

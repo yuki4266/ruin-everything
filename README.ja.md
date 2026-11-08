@@ -103,6 +103,15 @@ ruin "Open the help page" --site https://example.org --channel chrome
 
 <img src="docs/figures/yidun-slider.svg" alt="ピースを穴に合わせて横に動かすと、ログイン画面に SMS 再送までの秒数が表示されます。" width="100%">
 
+### フォーム送信後の自動確認
+
+許可された送信には `ruin_action(site, button)` または `ruin action --site URL --button LABEL` を使います。元のタブの正確な URL とボタン名を指定します。クリック後 1.5 秒待ち、表示中のフレームを含めて検査します。URL だけを渡すと、開いている認証を再開します。送信済みの記録にはサイトの受付表示を確認します。
+
+図のように ddddocr と OpenCV で画像を照合し、表示倍率と初期位置を考慮してドラッグを補正します。ブラウザーのテストでは遅延する別オリジンのポップアップ、縮尺、初期位置、Canvas とグリッドを検証します。画像グリッドと単一レイヤーの画像にはローカルの Ollama を使います（標準モデルは `ollama pull qwen3-vl:2b-instruct`）。3 回試しても認証が残る場合は `challenge_pending` を返します。
+
+<img src="docs/figures/post-action.svg" alt="一度クリックした後に認証を検出し、サイトの受付表示を別途確認します。" width="100%">
+
+
 #### Workday アカウントとサインイン セッション
 
 <img src="docs/figures/account-session.svg" alt="Workday ブランチは、アカウントの作成と Outlook のアクティブ化の前にサインインをチェックします。セッション ブランチは、別のステータス タブを定期的にチェックします。" width="100%">
@@ -219,6 +228,7 @@ receipt = await resume_ashby(context, application_url, timeout=300,
 
 | ツール | いつ電話するか | 結果 |
 | --- | --- | --- |
+| `ruin_action` | 許可されたフォームの正確な URL とボタン名。 | クリック後に認証を処理し、URL だけで認証を再開します。 |
 | `ruin_auto_register` | 選択した登録フォームまたは連絡フォームは、正確な HTTPS URL で開かれます。 | ローカル プロファイル アクションと現在のサインアップ ポリシー。送信されたフォームでも検証が必要な場合があります。 |
 | `inspect_application_challenge` | Greenhouse は 8 文字の電子メール コードを要求し、コネクタは `[one-time authentication code withheld]` を報告するか、Ashby が reCAPTCHA グリッドを表示します。また、失われたサポートされているフォームを見つけるためにも使用します。 | プロバイダーと表示状態。タブが欠落しているか重複している場合は、独自の結果が得られます。フォームは開いたままになります。 |
 | `get_ashby_receipt` | 受け渡し時、Chromeを閉じた状態でも | 保存された受付記録または `unrecorded` 。記録が欠落していると、結果は不明のままになります。 |
@@ -263,7 +273,7 @@ claude mcp add --scope user --transport stdio ruin-everything -e RUIN_AUTO_UPDAT
 
 リポジトリには以下が含まれます[ルーティング命令](AGENTS.md#ruin-everything-application-routing)Codex 用に作成し、からインポートします。[クロード.md](CLAUDE.md)。他のワークスペースに適用するには、アプリケーション ルーティング セクションをユーザーレベルの `~/.codex/AGENTS.md` または `~/.claude/CLAUDE.md` にコピーします。汎用のローカル Chrome ログインフローで PayPal へのログインを試すことはできます（[信頼済みログインの図、パネル C](docs/figures/trusted-auth.svg)）。PayPal Security Challenge 専用アダプターは未実装であり、ローカル Chrome でも通常のサイト認証が表示される場合があります。これはコード確認に基づく文書の明確化であり、実際の PayPal ログイン成功を検証したものではありません。Duo や専用アダプターのない他のフローにも、クライアントの権限と通常の認証が適用されます。
 
-4 つのツールはすべて `site` を使用します。インスペクターはデフォルトで 1 回チェックします。同じタブで `pending` からの変更を監視するには、`wait_seconds` を 1 ～ 300 に設定します。 CLI からは、 `ruin watch --site "$JOB_URL" --timeout 30` を使用します。サポートされている状態が検出されるか、元のタブが失われるか、制限時間に達すると、監視は終了します。
+5 つのツールはすべて `site` を使用します。インスペクターはデフォルトで 1 回チェックします。同じタブで `pending` からの変更を監視するには、`wait_seconds` を 1 ～ 300 に設定します。 CLI からは、 `ruin watch --site "$JOB_URL" --timeout 30` を使用します。サポートされている状態が検出されるか、元のタブが失われるか、制限時間に達すると、監視は終了します。
 
 ローカル Chrome シミュレーションでは、Greenhouse URL と 8 文字のコード シンプトムのみを指定した新しい Codex CLI セッションは、最初のツール呼び出しとして `inspect_application_challenge` を選択し、 `email_verification` を返しました。シミュレートされたフォームは空のままでした。
 

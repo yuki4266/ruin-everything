@@ -1,5 +1,6 @@
 from playwright.async_api import Page
 
+from ruin.browser.actions import click
 from ruin.auth.totp import current_code
 from ruin.auth.vault import credential, origin_of
 from ruin.auth.trusted import matches_action, trusted_client
@@ -56,7 +57,7 @@ async def offer_chrome_login(page: Page, url: str, *, clients=()) -> bool:
             if origin_of(page.url) == origin and await field.evaluate(
                 "el => document.activeElement === el"
             ):
-                await field.press("Enter")
+                await click(page, field, timeout=3000, enter=True)
     return True
 
 
@@ -90,6 +91,6 @@ async def click_trusted_login(page: Page, task_url: str, clients, attempted: set
         if page.url != before or not matches_action(action, page.url):
             return None
         attempted.add(index)
-        await button.click(timeout=3000)
+        await click(page, button, timeout=3000)
         return label
     return None

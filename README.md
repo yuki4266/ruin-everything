@@ -91,6 +91,15 @@ When the ZhongAn campus job page shows the NetEase Yidun jigsaw, pass its full U
 
 <img src="docs/figures/yidun-slider.svg" alt="The Yidun tile moves horizontally to the matching outline. The login dialog then shows a resend countdown." width="100%">
 
+### After a form action
+
+Use `ruin_action(site, button)` for an authorized submission, or `ruin action --site URL --button LABEL` from the CLI. Give the exact open URL and visible button name. Ruin clicks once, waits 1.5 seconds and scans the original tab and visible frames for a puzzle. Calling the same tool with only the URL resumes an open challenge. A retry operates on the widget. Confirm submission from the site’s receipt.
+
+The figure shows how a jigsaw moves from image to page coordinates. Ruin combines ddddocr and OpenCV, accounts for the initial piece position and checks the rendered position before releasing. Browser fixtures exercise a delayed cross-origin popup, an offset piece rendered at a different scale, canvas layers and grid controls. Image grids and single-layer visual puzzles use a local Ollama vision model (default `ollama pull qwen3-vl:2b-instruct`). After three unresolved rounds the tool reports `challenge_pending` with the tab open.
+
+<img src="docs/figures/post-action.svg" alt="The original submit click leads to visual inspection, a widget retry loop, and a separate site receipt." width="100%">
+
+
 #### Workday accounts and signed-in sessions
 
 <img src="docs/figures/account-session.svg" alt="The Workday branch checks sign-in before account creation and Outlook activation. The session branch periodically checks a separate status tab." width="100%">
@@ -197,6 +206,7 @@ Give the client the exact job URL and describe what you see. If the question is 
 
 | Tool | When to call it | Result |
 | --- | --- | --- |
+| `ruin_action` | The exact original tab and visible button name for an authorized form action. | One click with automatic visual verification, or resume with the URL alone. |
 | `ruin_auto_register` | The selected registration or contact form is open at its exact HTTPS URL. | Local profile action and current signup policy. A submitted form can still require verification. |
 | `inspect_application_challenge` | Greenhouse asks for an eight-character email code, a connector reports `[one-time authentication code withheld]`, or Ashby shows a reCAPTCHA grid. Also use it to locate a lost supported form. | The provider and visible state. A missing or duplicate tab gets its own result. The form stays open. |
 | `get_ashby_receipt` | At handoff, even with Chrome closed | A saved receipt or `unrecorded`. A missing record leaves the outcome unknown. |
@@ -241,7 +251,7 @@ On a fresh install, the expected state is `unrecorded`: the tool checked the loc
 
 The repository includes [routing instructions](AGENTS.md#ruin-everything-application-routing) for Codex and imports them from [CLAUDE.md](CLAUDE.md). To apply them in other workspaces, copy the application routing section into your user-level `~/.codex/AGENTS.md` or `~/.claude/CLAUDE.md`. PayPal sign-in can be attempted through the generic local Chrome login flow ([trusted login figure, panel C](docs/figures/trusted-auth.svg)). No dedicated PayPal Security Challenge adapter is implemented; normal site verification may still appear on local Chrome. This is a documentation clarification based on code inspection, not a verified live PayPal sign-in. Client permissions and normal verification still apply to Duo and other flows without a dedicated adapter.
 
-All four tools take `site`. The inspector checks once by default. Set `wait_seconds` to 1–300 to watch that same tab for a change from `pending`. From the CLI, use `ruin watch --site "$JOB_URL" --timeout 30`. The watch ends after detecting a supported state, losing the original tab, or reaching the time limit.
+All five tools take `site`. The inspector checks once by default. Set `wait_seconds` to 1–300 to watch that same tab for a change from `pending`. From the CLI, use `ruin watch --site "$JOB_URL" --timeout 30`. The watch ends after detecting a supported state, losing the original tab, or reaching the time limit.
 
 In a local Chrome simulation, a fresh Codex CLI session given only the Greenhouse URL and the eight-character-code symptom selected `inspect_application_challenge` as its first tool call and returned `email_verification`. The simulated form stayed empty.
 

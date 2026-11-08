@@ -12,6 +12,12 @@ from ruin.updater import start_update_check
 
 
 async def run(args):
+    if args.task == "action":
+        from dataclasses import asdict
+        from ruin.browser.actions import exact_action
+        async with browser_context(PROFILE, args.cdp, launch_if_missing=False) as context:
+            print(json.dumps(asdict(await exact_action(context, args.site, args.button))))
+        return
     if args.task == "identity":
         from ruin.auth.identity_setup import setup
         await setup()
@@ -72,6 +78,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run browser tasks and resume verification in a shared local Chrome session.")
     parser.add_argument("task", help="Use identity, browser, watch, verify-email, verify-sms, keep-alive, resume-ashby, courses, or a click task with --site.")
     parser.add_argument("--site", help="HTTPS starting URL for a click task")
+    parser.add_argument("--button", help="Exact visible button label for an action. Omit to resume a challenge.")
     parser.add_argument("--autofill", action="store_true", help="Use keyring and configured trusted login actions for this task")
     parser.add_argument("--requested-at", type=float, metavar="UNIX_SECONDS",
                         help="Original code-request time for SMS or a Greenhouse form without a resend control")

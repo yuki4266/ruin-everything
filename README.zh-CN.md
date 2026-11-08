@@ -103,6 +103,15 @@ ruin "Open the help page" --site https://example.org --channel chrome
 
 <img src="docs/figures/yidun-slider.svg" alt="拼块横向移动至匹配的缺口，登录框随后显示重新获取短信的倒计时。" width="100%">
 
+### 表单提交后的自动验证
+
+已授权的表单提交统一调用 `ruin_action(site, button)`，命令行可用 `ruin action --site URL --button LABEL`。传入原标签页的完整网址和按钮名称。执行器点击一次，等待 1.5 秒，再检查原页及可见子框架。只传网址可接管已出现的验证。重试只操作验证组件，投递结果以官网回执为准。
+
+如下图，横向拼图使用 ddddocr 和 OpenCV 在原图上定位缺口，换算显示比例、扣除拼块起点，并在松手前校正位置。浏览器回归用例覆盖延迟跨域弹窗、缩放和偏移、双层 Canvas 及九宫格控件。图片九宫格与单层视觉拼图使用本机 Ollama 视觉模型，默认安装命令为 `ollama pull qwen3-vl:2b-instruct`。三轮后验证仍在时返回 `challenge_pending` 并保留原页。
+
+<img src="docs/figures/post-action.svg" alt="提交一次后自动检查验证组件，处理拼图并另行核验官网回执。" width="100%">
+
+
 #### Workday 帐户和登录会话
 
 <img src="docs/figures/account-session.svg" alt="Workday 分支在帐户创建和 Outlook 激活之前检查登录。会话分支定期检查单独的状态标签页。" width="100%">
@@ -219,6 +228,7 @@ receipt = await resume_ashby(context, application_url, timeout=300,
 
 | 工具 | 什么时候调用它 | 结果 |
 | --- | --- | --- |
+| `ruin_action` | 已授权表单的完整网址与可见按钮名称。 | 点击后自动处理验证。只传网址可继续当前验证。 |
 | `ruin_auto_register` | 所选的注册或联系表单将在其确切的 HTTPS URL 上打开。 | 本地配置文件操作和当前注册政策。提交的表格仍然需要验证。 |
 | `inspect_application_challenge` | Greenhouse 要求提供八个字符的电子邮件代码，连接器报告 `[one-time authentication code withheld]` ，或者 Ashby 显示 reCAPTCHA 网格。还可以使用它来查找丢失的受支持表单。 | 提供者和可见状态。丢失或重复的标签页会得到自己的结果。该表格保持打开状态。 |
 | `get_ashby_receipt` | 切换时，即使 Chrome 关闭 | 已保存的回执或 `unrecorded` 。记录缺失导致结果未知。 |
@@ -263,7 +273,7 @@ claude mcp add --scope user --transport stdio ruin-everything -e RUIN_AUTO_UPDAT
 
 该存储库包括[路由指令](AGENTS.md#ruin-everything-application-routing)用于 Codex 并从以下位置导入它们[克劳德.md](CLAUDE.md)。要将它们应用到其他工作区，请将应用程序路由部分复制到用户级 `~/.codex/AGENTS.md` 或 `~/.claude/CLAUDE.md` 中。可以通过通用的本机 Chrome 登录流程尝试登录 PayPal（[受信任登录示意图 C](docs/figures/trusted-auth.svg)）。目前尚未实现 PayPal Security Challenge 专用适配器；本机 Chrome 仍可能出现正常的站点验证。这是基于代码检查的文档澄清，并不表示已经验证实际 PayPal 登录成功。Duo 及其他没有专用适配器的流程仍须遵守客户端权限和正常验证。
 
-所有四个工具均采用 `site`。检查员默认检查一次。将 `wait_seconds` 设置为 1–300 以观察同一标签页中 `pending` 的变化。在 CLI 中，使用 `ruin watch --site "$JOB_URL" --timeout 30` 。手表在检测到受支持的状态、丢失原始标签页或达到时间限制后结束。
+五个工具均采用 `site`。检查员默认检查一次。将 `wait_seconds` 设置为 1–300 以观察同一标签页中 `pending` 的变化。在 CLI 中，使用 `ruin watch --site "$JOB_URL" --timeout 30` 。手表在检测到受支持的状态、丢失原始标签页或达到时间限制后结束。
 
 在本地 Chrome 模拟中，仅给出 Greenhouse URL 和八字符代码症状的新 Codex CLI 会话选择 `inspect_application_challenge` 作为其第一个工具调用并返回 `email_verification` 。模拟表格保持空白。
 

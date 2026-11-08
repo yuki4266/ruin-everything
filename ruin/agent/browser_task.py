@@ -5,6 +5,7 @@ from playwright.async_api import BrowserContext
 from pydantic import BaseModel
 from typing import Literal
 
+from ruin.browser.actions import click
 from ruin.auth.auto_registrar import fill_contact_phone, identity, signup, verify_sms
 from ruin.auth.workday import workday_account
 from ruin.auth.vault import origin_of
@@ -102,6 +103,6 @@ async def browser_task(context: BrowserContext, url: str, task: str, model: str,
                 return
             if step.element_id not in targets or urlsplit(page.url) != current:
                 raise RuntimeError("The page or action changed. Execution stopped.")
-            await targets[step.element_id].click(timeout=5000)
+            await click(page, targets[step.element_id])
             await page.wait_for_load_state("domcontentloaded")
         raise RuntimeError("Reached the 20-step limit.")

@@ -37,7 +37,7 @@ class ReceiptMCP(unittest.IsolatedAsyncioTestCase):
                 async with stdio_client(params) as streams, ClientSession(*streams) as client:
                     await client.initialize()
                     tools = (await client.list_tools()).tools
-                    self.assertEqual({t.name for t in tools}, {"ruin_auto_register", "inspect_application_challenge", "get_ashby_receipt", "watch_ashby_receipt"})
+                    self.assertEqual({t.name for t in tools}, {"ruin_action", "ruin_auto_register", "inspect_application_challenge", "get_ashby_receipt", "watch_ashby_receipt"})
                     registration = await client.call_tool("ruin_auto_register", {"site": site})
                     self.assertEqual(registration.structuredContent["state"], "no_match")
                     inspect = "inspect_application_challenge"
@@ -69,6 +69,11 @@ class ReceiptMCP(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(pending.structuredContent["state"], "unrecorded")
                     self.assertEqual(pending.structuredContent["site"], site)
                     self.assertFalse((Path(temp) / ".ruin-everything").exists())
+                    await page.set_content('<button onclick="this.remove()">Apply</button>')
+                    action = await client.call_tool("ruin_action", {"site": site, "button": "Apply"})
+                    self.assertFalse(action.isError, action.content)
+                    self.assertEqual(action.structuredContent["state"], "no_challenge")
+                    self.assertEqual(await page.get_by_role("button").count(), 0)
                     missed = await client.call_tool("watch_ashby_receipt", {"site": site, "timeout_seconds": 1})
                     self.assertTrue(missed.isError)
                     self.assertIn("No official receipt", missed.content[0].text)
