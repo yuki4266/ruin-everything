@@ -326,3 +326,11 @@ Los diagramas dibujados a mano son SVG editables. Usan líneas Rough.js y letras
 Gracias a quienes prueban flujos de trabajo, responden preguntas y envían mejoras. Estos avatares corresponden a las contribuciones registradas mediante commits en GitHub.
 
 <a href="https://github.com/yuki4266/ruin-everything/graphs/contributors"><img src="https://contrib.rocks/image?repo=yuki4266/ruin-everything" alt="Ver las contribuciones por commit en GitHub"></a>
+
+## Historial de estrellas
+
+<a href="https://www.star-history.com/?repos=yuki4266%2Fruin-everything&amp;type=date"><img src="docs/figures/repository-activity.svg" alt="Gráfico radial con las estrellas, las bifurcaciones, las personas que han contribuido y la actividad de los últimos siete días." width="100%"></a>
+
+Selecciona la imagen para consultar el historial de estrellas actualizado.
+
+⭐ [Si Ruin te ayudó a retomar una tarea en el navegador, dale una estrella en GitHub.](https://github.com/yuki4266/ruin-everything)

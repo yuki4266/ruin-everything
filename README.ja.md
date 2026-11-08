@@ -326,3 +326,11 @@ ruin courses --cdp http://127.0.0.1:9222 --json
 動作確認、質問への回答、修正にご協力いただいた皆さんに感謝します。以下は GitHub のコミット履歴に記録された貢献者です。
 
 <a href="https://github.com/yuki4266/ruin-everything/graphs/contributors"><img src="https://contrib.rocks/image?repo=yuki4266/ruin-everything" alt="GitHub のコミット貢献者を見る"></a>
+
+## スターの推移
+
+<a href="https://www.star-history.com/?repos=yuki4266%2Fruin-everything&amp;type=date"><img src="docs/figures/repository-activity.svg" alt="Ruin Everything のスター数、フォーク数、貢献者数、直近7日間の活動を示すレーダーチャート。" width="100%"></a>
+
+画像をクリックすると、最新のスター数の推移を確認できます。
+
+⭐ [Ruin がブラウザーでの作業再開に役立ったら、GitHub でスターをお願いします。](https://github.com/yuki4266/ruin-everything)

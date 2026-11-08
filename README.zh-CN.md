@@ -326,3 +326,11 @@ ruin courses --cdp http://127.0.0.1:9222 --json
 感谢每一位试跑流程、回答问题和提交修改的人。下方头像来自 GitHub 的提交贡献记录。
 
 <a href="https://github.com/yuki4266/ruin-everything/graphs/contributors"><img src="https://contrib.rocks/image?repo=yuki4266/ruin-everything" alt="查看 GitHub 提交贡献者"></a>
+
+## Star 历史
+
+<a href="https://www.star-history.com/?repos=yuki4266%2Fruin-everything&amp;type=date"><img src="docs/figures/repository-activity.svg" alt="Ruin Everything 的 GitHub 活动快照，展示 Star、Fork、贡献者及最近七天的活动。" width="100%"></a>
+
+点击快照可查看最新的 Star 走势。
+
+⭐ [如果 Ruin 帮你找回了中断的浏览器任务，欢迎到 GitHub 点一颗 Star。](https://github.com/yuki4266/ruin-everything)

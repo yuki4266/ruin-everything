@@ -298,3 +298,11 @@ Trying Ruin in a new MCP client? [Share your setup and one tool result](https://
 Thank you to everyone who tests a workflow, answers a question or sends a patch. GitHub commit contributors appear below.
 
 <a href="https://github.com/yuki4266/ruin-everything/graphs/contributors"><img src="https://contrib.rocks/image?repo=yuki4266/ruin-everything" alt="View GitHub commit contributors"></a>
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=yuki4266%2Fruin-everything&amp;type=date"><img src="docs/figures/repository-activity.svg" alt="Dated radar chart of GitHub stars, forks, contributors, and seven-day activity for Ruin Everything." width="100%"></a>
+
+Select the snapshot to explore the latest star history.
+
+⭐ [If Ruin helped you recover a browser task, give it a star on GitHub.](https://github.com/yuki4266/ruin-everything)
