@@ -1,0 +1,28 @@
+name: Report a bug
+description: Help someone reproduce a problem with a command or MCP tool.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: This report is public. Use a fictional employer and example URL. Remove identity files, email addresses, cookies, passwords and verification codes.
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, Ruin version or commit, and CLI or MCP client.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How can we reproduce it?
+      placeholder: Which command or tool did you call? What was visible before the call?
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: What did you expect, and what happened?
+      description: Include the returned state or a short redacted error if available.
+    validations:
+      required: true

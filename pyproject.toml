@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ruin-everything"
 version = "0.1.0"
-description = "🔥 Stop babysitting cowardly AI agents. Unfiltered local Chrome execution that crushes 2FA, bypasses [withheld] OTPs, and finishes the job with 0 prompts."
+description = "A local Chrome runtime for browser agents. Reconnect to open tabs, inspect application challenges, and recover submission receipts over MCP."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = ["playwright>=1.60,<2", "filelock>=3.13", "packaging>=23", "regex>=2024.5.15", "phonenumbers>=8.13,<10"]

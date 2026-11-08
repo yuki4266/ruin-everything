@@ -11,7 +11,7 @@
 
 **接着上一个智能体停下的地方，继续浏览器任务。** Ruin 连接本机 Chrome。新的 CLI 进程或 MCP 客户端可以找到原先打开的申请标签页，完成受支持的验证步骤，并检查网站的确认信息。
 
-[设置Chrome](#use-a-shared-local-chrome-window) · [连接 MCP 客户端](#connect-an-agent-over-mcp) · [查看已测试的内容](#verification)
+[设置Chrome](#use-a-shared-local-chrome-window) · [连接 MCP 客户端](#connect-an-agent-over-mcp) · [查看已测试的内容](#verification) · [试用第一个 MCP 工具](#first-mcp-call) · [参与贡献](#community)
 
 | 在您的浏览器中 | Ruin 可以做什么 |
 | --- | --- |
@@ -237,6 +237,16 @@ codex mcp add ruin-everything --env RUIN_AUTO_UPDATE=0 -- uvx --isolated --refre
 claude mcp add --scope user --transport stdio ruin-everything -e RUIN_AUTO_UPDATE=0 -- uvx --isolated --refresh --from 'ruin-everything[mcp]' ruin-mcp
 ```
 
+<a id="first-mcp-call"></a>
+
+### 试用第一个 MCP 工具
+
+连接客户端后，可以复制下面这句话试用。示例使用虚构的职位网址，关着 Chrome 也能运行，无需注册或填写个人资料。
+
+> 请对 `https://jobs.ashbyhq.com/example/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/application` 调用 `get_ashby_receipt`，告诉我返回的状态。
+
+首次安装时应返回 `unrecorded`，表示工具已查询本机记录，没有找到这个示例的回执。我们已用 PyPI 发布版验证这次只读调用。
+
 该存储库包括[路由指令](AGENTS.md#ruin-everything-application-routing)用于 Codex 并从以下位置导入它们[克劳德.md](CLAUDE.md)。要将它们应用到其他工作区，请将应用程序路由部分复制到用户级 `~/.codex/AGENTS.md` 或 `~/.claude/CLAUDE.md` 中。客户端权限和站点验证仍然适用于 Duo 、 PayPal 和其他不受支持的提供商。
 
 所有四个工具均采用 `site`。检查员默认检查一次。将 `wait_seconds` 设置为 1–300 以观察同一标签页中 `pending` 的变化。在 CLI 中，使用 `ruin watch --site "$JOB_URL" --timeout 30` 。手表在检测到受支持的状态、丢失原始标签页或达到时间限制后结束。
@@ -300,3 +310,19 @@ ruin courses --cdp http://127.0.0.1:9222 --json
 手绘图表是可编辑的 SVG。他们使用 Rough.js 线条和 Kalam 字体。[图源](docs/figures) · [粗糙.js](https://roughjs.com/) · [卡拉姆字体许可](docs/figures/Kalam-LICENSE.txt)
 
 [发展规划](PLAN.md) · [贡献和数字指南](AGENTS.md) · [MIT 许可证](LICENSE)
+
+<a id="community"></a>
+
+## 参与 Ruin Everything
+
+<img src="docs/figures/community.svg" alt="在 GitHub 报告问题、分享用法和提交修改的三个入口。" width="100%">
+
+你用哪个 MCP 客户端跑通了 Ruin？欢迎[分享配置和一次工具返回的结果](https://github.com/yuki4266/ruin-everything/discussions/categories/show-and-tell)，方便下一位用户复现。如果卡在安装或连接环节，可以[在问答区提问](https://github.com/yuki4266/ruin-everything/discussions/categories/q-a)。
+
+[报告问题](https://github.com/yuki4266/ruin-everything/issues/new?template=bug.yml) · [提出想法](https://github.com/yuki4266/ruin-everything/discussions/categories/ideas) · [贡献翻译、测试或修复](CONTRIBUTING.md)
+
+### 贡献者
+
+感谢每一位试跑流程、回答问题和提交修改的人。下方头像来自 GitHub 的提交贡献记录。
+
+<a href="https://github.com/yuki4266/ruin-everything/graphs/contributors"><img src="https://contrib.rocks/image?repo=yuki4266/ruin-everything" alt="查看 GitHub 提交贡献者"></a>

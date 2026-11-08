@@ -11,7 +11,7 @@
 
 **Pick up a browser task where the last agent left it.** Ruin connects to Chrome on your machine. A new CLI run or MCP client can find the same open application tab, finish a supported verification step, and check what the site actually confirmed.
 
-[Set up Chrome](#use-a-shared-local-chrome-window) · [Connect an MCP client](#connect-an-agent-over-mcp) · [See what has been tested](#verification)
+[Set up Chrome](#use-a-shared-local-chrome-window) · [Connect an MCP client](#connect-an-agent-over-mcp) · [See what has been tested](#verification) · [Try your first MCP call](#first-mcp-call) · [Contribute](#community)
 
 | In your browser | What Ruin can do |
 | --- | --- |
@@ -215,6 +215,16 @@ codex mcp add ruin-everything --env RUIN_AUTO_UPDATE=0 -- uvx --isolated --refre
 claude mcp add --scope user --transport stdio ruin-everything -e RUIN_AUTO_UPDATE=0 -- uvx --isolated --refresh --from 'ruin-everything[mcp]' ruin-mcp
 ```
 
+<a id="first-mcp-call"></a>
+
+### Try your first MCP call
+
+After connecting your client, try this prompt with the fictional URL below. It works with Chrome closed and requires no job application or identity profile.
+
+> Call `get_ashby_receipt` for `https://jobs.ashbyhq.com/example/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/application` and tell me its state.
+
+On a fresh install, the expected state is `unrecorded`: the tool checked the local journal and found no receipt for this example. This read-only call was verified against the PyPI server.
+
 The repository includes [routing instructions](AGENTS.md#ruin-everything-application-routing) for Codex and imports them from [CLAUDE.md](CLAUDE.md). To apply them in other workspaces, copy the application routing section into your user-level `~/.codex/AGENTS.md` or `~/.claude/CLAUDE.md`. Client permissions and site verification still apply to Duo, PayPal and other unsupported providers.
 
 All four tools take `site`. The inspector checks once by default. Set `wait_seconds` to 1–300 to watch that same tab for a change from `pending`. From the CLI, use `ruin watch --site "$JOB_URL" --timeout 30`. The watch ends after detecting a supported state, losing the original tab, or reaching the time limit.
@@ -272,3 +282,19 @@ A live Duke run returned course links after sign-in. A second run with the same 
 The hand-drawn diagrams are editable SVGs. They use Rough.js linework and Kalam lettering. [Figure sources](docs/figures) · [Rough.js](https://roughjs.com/) · [Kalam font license](docs/figures/Kalam-LICENSE.txt)
 
 [Development plan](PLAN.md) · [Contribution and figure guidelines](AGENTS.md) · [MIT license](LICENSE)
+
+<a id="community"></a>
+
+## Contribute to Ruin Everything
+
+<img src="docs/figures/community.svg" alt="Where to report a bug, share a workflow or propose a patch on GitHub." width="100%">
+
+Trying Ruin in a new MCP client? [Share your setup and one tool result](https://github.com/yuki4266/ruin-everything/discussions/categories/show-and-tell) so someone else can repeat it. If setup stopped partway, [ask in Q&A](https://github.com/yuki4266/ruin-everything/discussions/categories/q-a).
+
+[Report a bug](https://github.com/yuki4266/ruin-everything/issues/new?template=bug.yml) · [Suggest an idea](https://github.com/yuki4266/ruin-everything/discussions/categories/ideas) · [Contribute a translation, test or fix](CONTRIBUTING.md)
+
+### Contributors
+
+Thank you to everyone who tests a workflow, answers a question or sends a patch. GitHub commit contributors appear below.
+
+<a href="https://github.com/yuki4266/ruin-everything/graphs/contributors"><img src="https://contrib.rocks/image?repo=yuki4266/ruin-everything" alt="View GitHub commit contributors"></a>

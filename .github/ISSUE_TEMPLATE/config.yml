@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Ask a setup question
+    url: https://github.com/yuki4266/ruin-everything/discussions/categories/q-a
+    about: Get help connecting your MCP client.
+  - name: Suggest an improvement
+    url: https://github.com/yuki4266/ruin-everything/discussions/categories/ideas
+    about: Describe the browser step you would like Ruin to support.
+  - name: Share a workflow
+    url: https://github.com/yuki4266/ruin-everything/discussions/categories/show-and-tell
+    about: Show what you tried and what your MCP client returned.

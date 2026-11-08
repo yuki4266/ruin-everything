@@ -11,7 +11,7 @@
 
 **前のエージェントが中断したところから、ブラウザ操作を再開できます。** Ruin はローカルの Chrome に接続します。新しい CLI プロセスや MCP クライアントから元の応募タブを見つけ、対応する認証手順を進めて、サイトに表示された受付結果を確認できます。
 
-[Chromeのセットアップ](#use-a-shared-local-chrome-window) · [MCP クライアントを接続する](#connect-an-agent-over-mcp) · [何がテストされたかを確認する](#verification)
+[Chromeのセットアップ](#use-a-shared-local-chrome-window) · [MCP クライアントを接続する](#connect-an-agent-over-mcp) · [何がテストされたかを確認する](#verification) · [MCP ツールを試す](#first-mcp-call) · [貢献する](#community)
 
 | ブラウザで | Ruinでできること |
 | --- | --- |
@@ -237,6 +237,16 @@ codex mcp add ruin-everything --env RUIN_AUTO_UPDATE=0 -- uvx --isolated --refre
 claude mcp add --scope user --transport stdio ruin-everything -e RUIN_AUTO_UPDATE=0 -- uvx --isolated --refresh --from 'ruin-everything[mcp]' ruin-mcp
 ```
 
+<a id="first-mcp-call"></a>
+
+### MCP ツールを試す
+
+クライアントの接続後に、架空の求人 URL を使って次のように依頼できます。Chrome を閉じたまま試せます。応募やプロフィールの登録は不要です。
+
+> `https://jobs.ashbyhq.com/example/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/application` を指定して `get_ashby_receipt` を呼び出し、結果の状態を教えてください。
+
+初回は `unrecorded` が返ります。これは、この例に該当する受付記録がローカルに見つからなかったという意味です。この読み取り専用の呼び出しは PyPI の公開版で確認済みです。
+
 リポジトリには以下が含まれます[ルーティング命令](AGENTS.md#ruin-everything-application-routing)Codex 用に作成し、からインポートします。[クロード.md](CLAUDE.md)。他のワークスペースに適用するには、アプリケーション ルーティング セクションをユーザーレベルの `~/.codex/AGENTS.md` または `~/.claude/CLAUDE.md` にコピーします。クライアントのアクセス許可とサイトの検証は、 Duo 、 PayPal 、およびその他のサポートされていないプロバイダーにも引き続き適用されます。
 
 4 つのツールはすべて `site` を使用します。インスペクターはデフォルトで 1 回チェックします。同じタブで `pending` からの変更を監視するには、`wait_seconds` を 1 ～ 300 に設定します。 CLI からは、 `ruin watch --site "$JOB_URL" --timeout 30` を使用します。サポートされている状態が検出されるか、元のタブが失われるか、制限時間に達すると、監視は終了します。
@@ -300,3 +310,19 @@ ruin courses --cdp http://127.0.0.1:9222 --json
 手書きの図は編集可能な SVG です。 Rough.js の線画と Kalam レタリングを使用します。[図の出典](docs/figures) · [ラフ.js](https://roughjs.com/) · [Kalam フォントのライセンス](docs/figures/Kalam-LICENSE.txt)
 
 [開発計画](PLAN.md) · [投稿と数値のガイドライン](AGENTS.md) · [MITライセンス](LICENSE)
+
+<a id="community"></a>
+
+## Ruin Everything に貢献する
+
+<img src="docs/figures/community.svg" alt="GitHub で不具合を報告し、使い方を共有し、変更を提案する方法。" width="100%">
+
+お使いの MCP クライアントで Ruin が動いたら、[設定とツールの実行結果を共有してください](https://github.com/yuki4266/ruin-everything/discussions/categories/show-and-tell)。次に試す人の手がかりになります。接続で困ったときは [Q&A で質問できます](https://github.com/yuki4266/ruin-everything/discussions/categories/q-a)。
+
+[不具合を報告する](https://github.com/yuki4266/ruin-everything/issues/new?template=bug.yml) · [アイデアを提案する](https://github.com/yuki4266/ruin-everything/discussions/categories/ideas) · [翻訳・テスト・修正に参加する](CONTRIBUTING.md)
+
+### 貢献者
+
+動作確認、質問への回答、修正にご協力いただいた皆さんに感謝します。以下は GitHub のコミット履歴に記録された貢献者です。
+
+<a href="https://github.com/yuki4266/ruin-everything/graphs/contributors"><img src="https://contrib.rocks/image?repo=yuki4266/ruin-everything" alt="GitHub のコミット貢献者を見る"></a>

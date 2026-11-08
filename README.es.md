@@ -11,7 +11,7 @@
 
 **Retome una tarea en el navegador donde la dejó el agente anterior.** Ruin se conecta a Chrome en su equipo. Otra ejecución de la CLI o un cliente MCP puede volver a la misma pestaña de la candidatura, completar un paso de verificación compatible y consultar la confirmación del sitio.
 
-[Configurar Chrome](#use-a-shared-local-chrome-window) · [Conectar un cliente MCP](#connect-an-agent-over-mcp) · [Ver lo que se ha probado](#verification)
+[Configurar Chrome](#use-a-shared-local-chrome-window) · [Conectar un cliente MCP](#connect-an-agent-over-mcp) · [Ver lo que se ha probado](#verification) · [Prueba tu primera llamada MCP](#first-mcp-call) · [Cómo contribuir](#community)
 
 | En tu navegador | Qué puede hacer Ruin |
 | --- | --- |
@@ -237,6 +237,16 @@ codex mcp add ruin-everything --env RUIN_AUTO_UPDATE=0 -- uvx --isolated --refre
 claude mcp add --scope user --transport stdio ruin-everything -e RUIN_AUTO_UPDATE=0 -- uvx --isolated --refresh --from 'ruin-everything[mcp]' ruin-mcp
 ```
 
+<a id="first-mcp-call"></a>
+
+### Prueba tu primera llamada MCP
+
+Tras conectar el cliente, prueba esta petición con la URL ficticia del ejemplo. Funciona con Chrome cerrado y no requiere una candidatura ni un perfil personal.
+
+> Llama a `get_ashby_receipt` con `https://jobs.ashbyhq.com/example/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/application` y dime qué estado devuelve.
+
+En una instalación nueva se espera `unrecorded`. El servidor ha consultado el registro local y no ha encontrado un comprobante para este ejemplo. Verificamos esta consulta de solo lectura con la versión de PyPI.
+
 El repositorio incluye [instrucciones de enrutamiento](AGENTS.md#ruin-everything-application-routing) para Codex y los importa desde [CLAUDE.md](CLAUDE.md). Para aplicarlos en otros espacios de trabajo, copie la sección de enrutamiento de aplicaciones en su `~/.codex/AGENTS.md` o `~/.claude/CLAUDE.md` de nivel de usuario. Los permisos de cliente y la verificación del sitio aún se aplican a Duo, PayPal y otros proveedores no compatibles.
 
 Las cuatro herramientas aceptan `site`. El inspector comprueba una vez de forma predeterminada. Configure `wait_seconds` en 1–300 para observar esa misma pestaña en busca de un cambio desde `pending`. Desde la CLI, utilice `ruin watch --site "$JOB_URL" --timeout 30`. La vigilancia finaliza después de detectar un estado compatible, perder la pestaña original o alcanzar el límite de tiempo.
@@ -300,3 +310,19 @@ Una ejecución de Duke en vivo devolvió enlaces de cursos después de iniciar s
 Los diagramas dibujados a mano son SVG editables. Usan líneas Rough.js y letras Kalam. [Fuentes de figuras](docs/figures) · [áspero.js](https://roughjs.com/) · [Licencia de fuente Kalam](docs/figures/Kalam-LICENSE.txt)
 
 [plan de desarrollo](PLAN.md) · [Pautas de contribución y cifras.](AGENTS.md) · [licencia MIT](LICENSE)
+
+<a id="community"></a>
+
+## Contribuye a Ruin Everything
+
+<img src="docs/figures/community.svg" alt="Dónde informar de un fallo, compartir un flujo de trabajo o proponer cambios en GitHub." width="100%">
+
+¿Has probado Ruin con tu cliente MCP? [Comparte tu configuración y el resultado de una llamada](https://github.com/yuki4266/ruin-everything/discussions/categories/show-and-tell) para que otra persona pueda reproducirla. Si te atascas durante la instalación, [pregunta en el foro de ayuda](https://github.com/yuki4266/ruin-everything/discussions/categories/q-a).
+
+[Informar de un fallo](https://github.com/yuki4266/ruin-everything/issues/new?template=bug.yml) · [Proponer una idea](https://github.com/yuki4266/ruin-everything/discussions/categories/ideas) · [Aportar una traducción, prueba o corrección](CONTRIBUTING.md)
+
+### Personas que contribuyen
+
+Gracias a quienes prueban flujos de trabajo, responden preguntas y envían mejoras. Estos avatares corresponden a las contribuciones registradas mediante commits en GitHub.
+
+<a href="https://github.com/yuki4266/ruin-everything/graphs/contributors"><img src="https://contrib.rocks/image?repo=yuki4266/ruin-everything" alt="Ver las contribuciones por commit en GitHub"></a>
