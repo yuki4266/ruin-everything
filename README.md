@@ -85,6 +85,12 @@ With the rotation puzzle open, pass the exact Feishu Jobs login URL to `ruin_aut
 
 <img src="docs/figures/feishu-slider.svg" alt="The original login tab shows the inner disc and outer ring. After the drag, the resend countdown confirms the SMS request." width="100%">
 
+#### ZhongAn SMS login on Moka
+
+When the ZhongAn campus job page shows the NetEase Yidun jigsaw, pass its full URL, including the `#/job/…` fragment, to `ruin_auto_register` with local `auto_signup` enabled. As shown below, the tool matches the piece outline to the gap and drags it in the original tab. On the live site, the SMS button changed to a resend countdown. The tool returns `sms_requested` for that countdown and `slider_pending` for an unconfirmed puzzle.
+
+<img src="docs/figures/yidun-slider.svg" alt="The Yidun tile moves horizontally to the matching outline. The login dialog then shows a resend countdown." width="100%">
+
 #### Workday accounts and signed-in sessions
 
 <img src="docs/figures/account-session.svg" alt="The Workday branch checks sign-in before account creation and Outlook activation. The session branch periodically checks a separate status tab." width="100%">

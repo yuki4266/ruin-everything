@@ -97,6 +97,12 @@ Con el puzle abierto, activa `auto_signup` en el perfil local y pasa la URL comp
 
 <img src="docs/figures/feishu-slider.svg" alt="La pestaña de acceso muestra dos anillos. Tras alinearlos, el botón de reenvío indica cuánto falta para pedir otro SMS." width="100%">
 
+#### Acceso por SMS en el portal de ZhongAn en Moka
+
+Cuando aparezca el puzle de NetEase Yidun en una oferta del portal universitario de ZhongAn, activa `auto_signup` en el perfil local y pasa a `ruin_auto_register` la URL completa con el fragmento `#/job/…`. Como muestra la figura, la herramienta busca el hueco por el contorno de la pieza y la arrastra en la pestaña original. En la prueba en el sitio de ZhongAn apareció la cuenta atrás para pedir otro SMS. La herramienta devuelve `sms_requested` al verla y `slider_pending` si el resultado está pendiente.
+
+<img src="docs/figures/yidun-slider.svg" alt="La pieza se desplaza hasta el hueco y el botón de reenvío muestra una cuenta atrás." width="100%">
+
 #### Cuentas Workday y sesiones iniciadas
 
 <img src="docs/figures/account-session.svg" alt="La sucursal de Workday verifica el inicio de sesión antes de la creación de la cuenta y la activación de Outlook. La rama de sesión comprueba periódicamente una pestaña de estado independiente." width="100%">

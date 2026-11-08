@@ -97,6 +97,12 @@ ruin "Open the help page" --site https://example.org --channel chrome
 
 <img src="docs/figures/feishu-slider.svg" alt="元のログイン画面で内円と外周を合わせると、SMS 再送ボタンにカウントダウンが表示されます。" width="100%">
 
+#### 衆安の Moka 採用サイトでの SMS ログイン
+
+衆安の新卒採用ページに網易易盾のパズルが表示されたら、ローカルの `auto_signup` を有効にし、`#/job/…` を含む URL 全体を `ruin_auto_register` に渡します。図のように元のタブでピースの輪郭と穴を照合し、横にドラッグします。実際の採用サイトで SMS の再送までの秒数が表示されることを確認しました。カウントダウンを確認すると `sms_requested`、結果が確認できない場合は `slider_pending` を返します。
+
+<img src="docs/figures/yidun-slider.svg" alt="ピースを穴に合わせて横に動かすと、ログイン画面に SMS 再送までの秒数が表示されます。" width="100%">
+
 #### Workday アカウントとサインイン セッション
 
 <img src="docs/figures/account-session.svg" alt="Workday ブランチは、アカウントの作成と Outlook のアクティブ化の前にサインインをチェックします。セッション ブランチは、別のステータス タブを定期的にチェックします。" width="100%">

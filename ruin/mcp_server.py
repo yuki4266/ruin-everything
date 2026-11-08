@@ -60,11 +60,13 @@ def main():
     @server.tool(annotations=ToolAnnotations(destructiveHint=False, idempotentHint=False))
     async def ruin_auto_register(site: str) -> Registration:
         """Handle an open Workday Sign In or Create Account dialog at the exact job URL,
-        a visible Feishu Jobs rotation slider at its exact login URL, or a supported signup form.
+        a Feishu Jobs rotation slider, a ZhongAn Moka job with a visible Yidun jigsaw,
+        or a supported signup form. Use the exact open URL, including the job fragment.
         Credentials come from the local profile."""
         from playwright.async_api import TimeoutError as BrowserTimeout
         from ruin.auth.auto_registrar import signup, fill_contact_phone, verify_sms
         from ruin.auth.feishu import feishu_slider
+        from ruin.auth.yidun import moka_slider
         from ruin.auth.workday import workday_account
         from ruin.auth.vault import origin_of
 
@@ -75,6 +77,8 @@ def main():
             if len(tabs) != 1:
                 raise RuntimeError("Open exactly one tab at the selected registration URL.")
             slider = await feishu_slider(tabs[0], site, profile)
+            if slider is None:
+                slider = await moka_slider(tabs[0], site, profile)
             if slider:
                 return Registration(state=slider)
             if await workday_account(tabs[0], site, profile):

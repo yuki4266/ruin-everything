@@ -8,7 +8,7 @@ version = "0.2.0"
 description = "A local Chrome runtime for browser agents. Reconnect to open tabs, inspect application challenges, and recover submission receipts over MCP."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["playwright>=1.60,<2", "filelock>=3.13", "packaging>=23", "regex>=2024.5.15", "phonenumbers>=8.13,<10", "mcp>=1.12,<2"]
+dependencies = ["playwright>=1.60,<2", "opencv-python-headless>=4.8,<6", "numpy>=1.24", "filelock>=3.13", "packaging>=23", "regex>=2024.5.15", "phonenumbers>=8.13,<10", "mcp>=1.12,<2"]
 
 [project.urls]
 Repository = "https://github.com/yuki4266/ruin-everything"

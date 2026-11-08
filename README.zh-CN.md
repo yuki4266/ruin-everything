@@ -97,6 +97,12 @@ ruin "Open the help page" --site https://example.org --channel chrome
 
 <img src="docs/figures/feishu-slider.svg" alt="在原登录页拖动滑块，对齐内外圆环。重新获取短信的倒计时确认请求已发出。" width="100%">
 
+#### 众安校园招聘的短信登录
+
+在众安校园招聘的 Moka 职位页看到网易易盾拼图后，启用本地 `auto_signup`，把包含 `#/job/…` 的完整网址传给 `ruin_auto_register`。如下图所示，插件在原标签页比对拼块轮廓与缺口，再横向拖动。众安实测中，登录框显示了“重新获取（56）”。插件确认短信倒计时后返回 `sms_requested`，验证结果待确认时返回 `slider_pending`。
+
+<img src="docs/figures/yidun-slider.svg" alt="拼块横向移动至匹配的缺口，登录框随后显示重新获取短信的倒计时。" width="100%">
+
 #### Workday 帐户和登录会话
 
 <img src="docs/figures/account-session.svg" alt="Workday 分支在帐户创建和 Outlook 激活之前检查登录。会话分支定期检查单独的状态标签页。" width="100%">
