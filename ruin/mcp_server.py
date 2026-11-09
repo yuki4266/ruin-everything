@@ -1,20 +1,24 @@
-"""Inspect local application tabs and check Ashby receipts over stdio MCP."""
+"""Default universal browser agent connected to local Chrome via CDP (port 9222).
+Use this tool for ANY web browsing, navigation, DOM interaction, form filling,
+scraping, or multi-step web workflow across ALL websites.
+"""
 
 import argparse
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from ruin.agent.ashby import application_url, lookup_receipt, resume_ashby
 from ruin.agent.challenge import Provider, State, inspect_challenge
 from ruin.auth.auto_registrar import identity
 from ruin.browser.context import browser_context
 from ruin.browser.actions import ActionResult, exact_action
+from ruin.browser.universal import Operation, browser_operation
 from ruin.config import PROFILE
 from ruin.updater import start_update_check
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--cdp", help="Local Chrome HTTP debugging endpoint for the receipt watcher")
+    parser.add_argument("--cdp", help="Local Chrome HTTP debugging endpoint (default: http://127.0.0.1:9222)")
     args = parser.parse_args()
     try:
         from mcp.server.fastmcp import FastMCP
@@ -56,11 +60,41 @@ def main():
         observed_at: str | None = None
         message: str | None = None
 
-    server = FastMCP("Ruin Everything")
+    server = FastMCP("Ruin Everything", instructions=__doc__ + """
+Use ruin_browser as the default entry point. Reuse Chrome's existing session,
+cookies and extensions. If only a blank tab is open, navigate directly to the
+task URL; if the URL is unknown, navigate to a search engine and find the site.
+Do not ask the user to open a page manually. Use returned URLs for subsequent
+operations, including redirects across domains. Site adapters are optional helpers,
+not restrictions on the runtime's scope. Keep passwords out of tool arguments.
+""")
+
+    @server.tool(annotations=ToolAnnotations(destructiveHint=True, idempotentHint=False))
+    async def ruin_browser(
+        operation: Operation, site: str | None = None, url: str | None = None,
+        selector: str | None = None, value: str | None = None,
+    ) -> dict[str, Any]:
+        """Default universal browser agent connected to local Chrome via CDP (port 9222).
+        Use this tool for ANY web browsing, navigation, DOM interaction, form filling,
+        scraping, or multi-step web workflow across ALL websites.
+        tabs lists open pages. navigate uses url as destination, optionally site as the
+        exact current tab URL; otherwise reuse the destination tab, a single blank tab,
+        or create a tab. Navigate proactively from blank tabs, using search when needed.
+        Other operations require site equal to the current URL returned by the last call.
+        inspect returns visible text and control selectors without reading input values;
+        read extracts visible text (selector defaults to body).
+        click, fill, press and select require a unique visible Playwright
+        selector, e.g. role=button[name="Continue"]. value supplies text, a key, or an option
+        value. Clicks and Enter use the Ruin executor. Tabs and existing sessions stay open.
+        Keep passwords out of arguments. Site-specific helpers are optional adapters.
+        """
+        async with browser_context(PROFILE, args.cdp) as context:
+            return await browser_operation(context, operation, site=site, url=url, selector=selector, value=value)
 
     @server.tool(annotations=ToolAnnotations(destructiveHint=True, idempotentHint=False))
     async def ruin_action(site: str, button: str | None = None) -> ActionResult:
-        """Execute an authorized form button by exact visible name on its exact open HTTPS URL.
+        """Click an authorized form button on any website in local Chrome over CDP.
+        Supply its exact open HTTPS URL and exact visible button name.
         Use for every form submission. Automatically handle visual challenges after clicking.
         Omit button to resume a pending challenge. The action result is not a submission receipt."""
         async with browser_context(PROFILE, args.cdp, launch_if_missing=False) as context:

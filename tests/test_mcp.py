@@ -35,9 +35,14 @@ class ReceiptMCP(unittest.IsolatedAsyncioTestCase):
                     "-m", "ruin.mcp_server", "--cdp", f"http://127.0.0.1:{port}"
                 ], env={"HOME": temp, "USERPROFILE": temp, "RUIN_AUTO_UPDATE": "0", "RUIN_RULE_UPDATES": "0"})
                 async with stdio_client(params) as streams, ClientSession(*streams) as client:
-                    await client.initialize()
+                    initialized = await client.initialize()
+                    self.assertIn("ALL websites", initialized.instructions)
                     tools = (await client.list_tools()).tools
-                    self.assertEqual({t.name for t in tools}, {"ruin_action", "ruin_auto_register", "inspect_application_challenge", "get_ashby_receipt", "watch_ashby_receipt"})
+                    self.assertEqual({t.name for t in tools}, {"ruin_browser", "ruin_action", "ruin_auto_register", "inspect_application_challenge", "get_ashby_receipt", "watch_ashby_receipt"})
+                    generic = await client.call_tool("ruin_browser", {"operation": "navigate", "url": "https://ordinary.test/dashboard"})
+                    self.assertFalse(generic.isError, generic.content)
+                    self.assertEqual(generic.structuredContent["url"], "https://ordinary.test/dashboard")
+                    self.assertEqual(page.url, site)
                     registration = await client.call_tool("ruin_auto_register", {"site": site})
                     self.assertEqual(registration.structuredContent["state"], "no_match")
                     inspect = "inspect_application_challenge"

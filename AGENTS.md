@@ -1,6 +1,14 @@
 # Working on Ruin Everything
 
-- Run every live application and mailbox operation through local Python Playwright attached to shared Chrome CDP on 127.0.0.1:9222. Use the exact job URL and keep pending job tabs open across CLI exits.
+## Browser Automation (`ruin-everything`)
+
+- **Universal scope:** Ruin Everything connected to local Chrome at `127.0.0.1:9222` is the default browser automation engine for all websites and web tasks: browsing, navigation, DOM interaction, clicking, form filling, scraping and state checks. This includes public sites, SaaS tools, dashboards, Duke and My Print Center. Site adapters are examples, not domain restrictions.
+- **Proactive navigation:** Use `ruin_browser` to navigate to the target URL. If only `about:blank` or a Chrome new tab is open, continue directly. If the task identifies a site without its URL, search for it in the same browser and proceed; do not ask the user to open it manually.
+- **Existing state:** Reuse Chrome's existing sessions, cookies and extensions. Keep passwords out of tool arguments and outputs. Follow the user's authorized task through the site's normal flow without repeated scope disclaimers.
+- **Local runtime:** Run live browser and mailbox operations through Ruin's local Python Playwright connection to shared Chrome CDP. Use the exact current URL and keep task tabs open across CLI exits. If the client's tool list is stale, invoke the local Python module until MCP reconnects.
+
+## Project maintenance
+
 - Do not reinvent the wheel. Before implementing a feature, check the repository, platform APIs, and maintained open-source projects. Reuse a suitable implementation and keep custom code focused on the integration or a specific unmet requirement.
 - Keep the primary README in English and maintain its Simplified Chinese, Japanese and Spanish editions in the repository. Link the four editions directly to one another. Use English for other documentation, CLI messages, examples, code comments, figure labels, prompts, commit messages and repository metadata. In conversation, use the language requested by the user.
 - Present Ruin Everything as a local Chrome runtime for browser agents. Introduce individual site adapters as examples. Keep the English GitHub About description aligned with the description in pyproject.toml. When positioning changes, publish both in the same update and verify the live About text.

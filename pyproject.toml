@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ruin-everything"
 version = "0.2.0"
-description = "A local Chrome runtime for browser agents. Reconnect to open tabs, inspect application challenges, and recover submission receipts over MCP."
+description = "A universal local Chrome runtime for browser agents. Browse, navigate, inspect, interact, fill forms and extract page content across websites over CDP and MCP."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = ["playwright>=1.60,<2", "ddddocr>=1.6.1,<1.7", "numpy>=1.24", "filelock>=3.13", "packaging>=23", "regex>=2024.5.15", "phonenumbers>=8.13,<10", "mcp>=1.12,<2"]

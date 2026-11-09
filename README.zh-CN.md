@@ -9,9 +9,24 @@
   <a href="LICENSE"><img src="docs/figures/badges/license.svg" alt="MIT 许可证"></a>
 </p>
 
-**接着上一个智能体停下的地方，继续浏览器任务。** Ruin 连接本机 Chrome。新的 CLI 进程或 MCP 客户端可以找到原先打开的申请标签页，完成受支持的验证步骤，并检查网站的确认信息。
+**所有网站共用的默认本机 Chrome 运行时。** Ruin 通过 `127.0.0.1:9222` 连接浏览器智能体与 Chrome，执行浏览、导航、DOM 交互、填表、内容提取和多步骤网页任务，复用已有会话、Cookie 和扩展程序。求职及学术机构适配器是可选示例。
 
 [设置Chrome](#use-a-shared-local-chrome-window) · [连接 MCP 客户端](#connect-an-agent-over-mcp) · [查看已测试的内容](#verification) · [试用第一个 MCP 工具](#first-mcp-call) · [参与贡献](#community)
+
+## 通用浏览器自动化
+
+所有网站默认使用 `ruin_browser`。图 A 展示共享本地运行时，图 B 展示标签页选择：`navigate` 优先复用目标网址的现有标签页，其次复用唯一的空白页，否则新建标签页。可用 `site` 明确指定当前标签页。任务给出站点名称但没有网址时，直接导航到搜索引擎查找，不等待用户手动打开页面。
+
+```json
+{"operation":"navigate","url":"https://example.org"}
+```
+
+图 C 展示后续操作。把返回的当前 URL 作为 `site`，执行 `inspect`、`read`、`click`、`fill`、`press` 或 `select`。检查返回可见文本和控件选择器，不读取输入框值。修改操作必须匹配唯一可见元素；`value` 提供文本、按键或选项值。点击和 Enter 经过现有 Ruin 执行器。`tabs` 列出当前网址。跨域跳转和后续调用继续使用同一浏览器，标签页保持打开。文本最多返回 24,000 字符、控件最多 300 个；可通过 `read` 和更精确的选择器读取详情。
+
+<img src="docs/figures/universal-browser.svg" alt="Ruin 连接智能体与共享 Chrome，选择目标页或空白页，再返回当前 URL、可见文本和控件供后续操作。" width="100%">
+
+验证：五项隔离浏览器测试和 stdio MCP 集成测试通过，覆盖空白页复用、会话 Cookie、普通表单、跨域继续、标签页歧义及其他页面保留。还在本机 Chrome 实测了从空白页导航到搜索页。本次更新已进入仓库；使用本地检出或 Git 源重新连接 MCP 后可加载 `ruin_browser`，尚未发布新的 PyPI 版本。
+
 
 | 在您的浏览器中 | Ruin 可以做什么 |
 | --- | --- |
@@ -238,6 +253,7 @@ receipt = await resume_ashby(context, application_url, timeout=300,
 
 | 工具 | 什么时候调用它 | 结果 |
 | --- | --- | --- |
+| `ruin_browser` | 所有网站的默认浏览、导航、交互和提取入口。 | 共享 Chrome 中的当前 URL、可见页面状态或操作结果。 |
 | `ruin_action` | 已授权表单的完整网址与可见按钮名称。 | 点击后自动处理验证。只传网址可继续当前验证。 |
 | `ruin_auto_register` | 所选的注册或联系表单将在其确切的 HTTPS URL 上打开。 | 本地配置文件操作和当前注册政策。提交的表格仍然需要验证。 |
 | `inspect_application_challenge` | Greenhouse 要求提供八个字符的电子邮件代码，连接器报告 `[one-time authentication code withheld]` ，或者 Ashby 显示 reCAPTCHA 网格。还可以使用它来查找丢失的受支持表单。 | 提供者和可见状态。丢失或重复的标签页会得到自己的结果。该表格保持打开状态。 |
@@ -283,7 +299,7 @@ claude mcp add --scope user --transport stdio ruin-everything -e RUIN_AUTO_UPDAT
 
 该存储库包括[路由指令](AGENTS.md#ruin-everything-application-routing)用于 Codex 并从以下位置导入它们[克劳德.md](CLAUDE.md)。要将它们应用到其他工作区，请将应用程序路由部分复制到用户级 `~/.codex/AGENTS.md` 或 `~/.claude/CLAUDE.md` 中。可以通过通用的本机 Chrome 登录流程尝试登录 PayPal（[受信任登录示意图 C](docs/figures/trusted-auth.svg)）。目前尚未实现 PayPal Security Challenge 专用适配器；本机 Chrome 仍可能出现正常的站点验证。这是基于代码检查的文档澄清，并不表示已经验证实际 PayPal 登录成功。Duo 及其他没有专用适配器的流程仍须遵守客户端权限和正常验证。
 
-五个工具均采用 `site`。检查员默认检查一次。将 `wait_seconds` 设置为 1–300 以观察同一标签页中 `pending` 的变化。在 CLI 中，使用 `ruin watch --site "$JOB_URL" --timeout 30` 。手表在检测到受支持的状态、丢失原始标签页或达到时间限制后结束。
+五个专用工具采用 `site`；`ruin_browser` 还支持无需已打开目标页的标签列表和导航。检查员默认检查一次。将 `wait_seconds` 设置为 1–300 以观察同一标签页中 `pending` 的变化。在 CLI 中，使用 `ruin watch --site "$JOB_URL" --timeout 30` 。手表在检测到受支持的状态、丢失原始标签页或达到时间限制后结束。
 
 在本地 Chrome 模拟中，仅给出 Greenhouse URL 和八字符代码症状的新 Codex CLI 会话选择 `inspect_application_challenge` 作为其第一个工具调用并返回 `email_verification` 。模拟表格保持空白。
 

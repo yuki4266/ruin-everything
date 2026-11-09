@@ -9,9 +9,24 @@
   <a href="LICENSE"><img src="docs/figures/badges/license.svg" alt="licencia MIT"></a>
 </p>
 
-**Retome una tarea en el navegador donde la dejó el agente anterior.** Ruin se conecta a Chrome en su equipo. Otra ejecución de la CLI o un cliente MCP puede volver a la misma pestaña de la candidatura, completar un paso de verificación compatible y consultar la confirmación del sitio.
+**El entorno local de Chrome predeterminado para cualquier sitio web.** Ruin conecta los agentes a Chrome en `127.0.0.1:9222` para navegar, interactuar con el DOM, rellenar formularios, extraer contenido y completar flujos de varios pasos. Reutiliza la sesión, las cookies y las extensiones existentes. Los adaptadores de candidaturas y acceso institucional son ejemplos opcionales.
 
 [Configurar Chrome](#use-a-shared-local-chrome-window) · [Conectar un cliente MCP](#connect-an-agent-over-mcp) · [Ver lo que se ha probado](#verification) · [Prueba tu primera llamada MCP](#first-mcp-call) · [Cómo contribuir](#community)
+
+## Automatización universal del navegador
+
+Usa `ruin_browser` como entrada predeterminada para cualquier sitio. El panel A muestra el entorno compartido y el B la selección de pestaña. `navigate` reutiliza una pestaña con la URL de destino; en su defecto, una única pestaña vacía; si no existe ninguna, abre otra. `site` permite elegir la pestaña actual. Si solo conoces el nombre del sitio, navega a un buscador y continúa sin esperar que el usuario abra la página.
+
+```json
+{"operation":"navigate","url":"https://example.org"}
+```
+
+El panel C muestra cómo continuar: usa la URL devuelta como `site` para `inspect`, `read`, `click`, `fill`, `press` o `select`. La inspección devuelve texto visible y selectores sin leer los valores de los campos. Las modificaciones requieren un único elemento visible; `value` contiene texto, una tecla o el valor de una opción. Los clics y Enter pasan por el ejecutor Ruin existente. `tabs` enumera las URL actuales. Las pestañas se conservan, también tras cambiar de dominio. El texto se limita a 24.000 caracteres y los controles a 300; usa `read` con un selector más preciso para obtener detalles.
+
+<img src="docs/figures/universal-browser.svg" alt="Ruin conecta el agente a Chrome compartido, elige una pestaña de destino o vacía y devuelve la URL actual, el texto visible y los controles." width="100%">
+
+Verificación: pasan cinco pruebas aisladas de navegador y la integración MCP por stdio. Cubren pestañas vacías, cookies de sesión, formularios, cambios de dominio, pestañas ambiguas y conservación de otras páginas. También se comprobó en Chrome local la navegación desde una pestaña vacía a un buscador. Es una actualización del repositorio: reconecta MCP desde esta copia o la fuente Git para cargar la herramienta. No se ha publicado una nueva versión en PyPI.
+
 
 | En tu navegador | Qué puede hacer Ruin |
 | --- | --- |
@@ -238,6 +253,7 @@ Proporcione al cliente la URL exacta del trabajo y describa lo que ve. Si la pre
 
 | Herramienta | Cuándo usarla | Resultado |
 | --- | --- | --- |
+| `ruin_browser` | Entrada predeterminada para navegar, interactuar y extraer contenido de cualquier sitio. | URL actual, estado visible o resultado de la acción en Chrome compartido. |
 | `ruin_action` | URL exacta y nombre visible del botón de un formulario autorizado. | Procesa el reto tras el clic. Con la URL sola, reanuda el reto. |
 | `ruin_auto_register` | El formulario de registro o contacto seleccionado está abierto en su URL HTTPS exacta. | Acción de perfil local y política de registro actual. Un formulario enviado aún puede requerir verificación. |
 | `inspect_application_challenge` | Greenhouse solicita un código de correo electrónico de ocho caracteres, un conector informa `[one-time authentication code withheld]` o Ashby muestra una cuadrícula reCAPTCHA. Úselo también para localizar un formulario compatible perdido. | El proveedor y el estado visible. Una pestaña faltante o duplicada obtiene su propio resultado. El formulario permanece abierto. |
@@ -283,7 +299,7 @@ En una instalación nueva se espera `unrecorded`. El servidor ha consultado el r
 
 El repositorio incluye [instrucciones de enrutamiento](AGENTS.md#ruin-everything-application-routing) para Codex y los importa desde [CLAUDE.md](CLAUDE.md). Para aplicarlos en otros espacios de trabajo, copie la sección de enrutamiento de aplicaciones en su `~/.codex/AGENTS.md` o `~/.claude/CLAUDE.md` de nivel de usuario. Se puede intentar iniciar sesión en PayPal mediante el flujo genérico de Chrome local ([figura de acceso de confianza, panel C](docs/figures/trusted-auth.svg)). No hay un adaptador específico para PayPal Security Challenge; la verificación normal del sitio puede aparecer incluso en Chrome local. Esta aclaración documental se basa en la inspección del código, no en un inicio de sesión real verificado en PayPal. Los permisos del cliente y la verificación normal siguen aplicándose a Duo y a otros flujos sin adaptador específico.
 
-Las cinco herramientas aceptan `site`. El inspector comprueba una vez de forma predeterminada. Configure `wait_seconds` en 1–300 para observar esa misma pestaña en busca de un cambio desde `pending`. Desde la CLI, utilice `ruin watch --site "$JOB_URL" --timeout 30`. La vigilancia finaliza después de detectar un estado compatible, perder la pestaña original o alcanzar el límite de tiempo.
+Las cinco herramientas especializadas aceptan `site`. El inspector comprueba una vez de forma predeterminada. Configure `wait_seconds` en 1–300 para observar esa misma pestaña en busca de un cambio desde `pending`. Desde la CLI, utilice `ruin watch --site "$JOB_URL" --timeout 30`. La vigilancia finaliza después de detectar un estado compatible, perder la pestaña original o alcanzar el límite de tiempo.
 
 En una simulación local de Chrome, una nueva sesión de CLI de Codex a la que se le dio solo la URL de Greenhouse y el síntoma de código de ocho caracteres seleccionó `inspect_application_challenge` como su primera llamada de herramienta y devolvió `email_verification`. El formulario simulado permaneció vacío.
 

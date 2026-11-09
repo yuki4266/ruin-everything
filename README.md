@@ -9,9 +9,24 @@
   <a href="LICENSE"><img src="docs/figures/badges/license.svg" alt="MIT license"></a>
 </p>
 
-**Pick up a browser task where the last agent left it.** Ruin connects to Chrome on your machine. A new CLI run or MCP client can find the same open application tab, finish a supported verification step, and check what the site actually confirmed.
+**Your default local Chrome runtime for every website.** Ruin connects browser agents to Chrome at `127.0.0.1:9222` for browsing, navigation, DOM interaction, form filling, extraction and multi-step web tasks. It reuses the existing browser session, cookies and extensions. Application and institutional adapters are optional examples.
 
 [Set up Chrome](#use-a-shared-local-chrome-window) · [Connect an MCP client](#connect-an-agent-over-mcp) · [See what has been tested](#verification) · [Try your first MCP call](#first-mcp-call) · [Contribute](#community)
+
+## Universal browser automation
+
+Use `ruin_browser` as the default entry point for any website. Panel A shows the shared local runtime; panel B shows tab selection. `navigate` reuses an exact destination tab, otherwise a single blank tab, otherwise opens a new tab. Give `site` to select a current tab explicitly. If the task names a site without a URL, navigate to a search engine and locate it without waiting for the user to open a page.
+
+```json
+{"operation":"navigate","url":"https://example.org"}
+```
+
+Panel C shows the continuation loop. Use the returned current URL as `site` for `inspect`, `read`, `click`, `fill`, `press` or `select`. Inspection returns visible text and selectors without reading input values. Mutations require one visible element; `value` supplies text, a key or an option value. Clicks and Enter use the existing Ruin executor. `tabs` lists current URLs. Tabs remain open across calls, including redirects to another domain. Text is capped at 24,000 characters and controls at 300; use `read` with a narrower selector for detail.
+
+<img src="docs/figures/universal-browser.svg" alt="Ruin connects an agent to shared Chrome, selects a destination or blank tab, and returns the current URL, visible text and controls for the next step." width="100%">
+
+Verification: five isolated browser tests and the stdio MCP integration pass, covering blank-tab reuse, session cookies, ordinary forms, cross-domain continuation, ambiguous tabs and preservation of unrelated pages. Live Chrome also navigated from a blank tab to a search page. This is a repository update; reconnect MCP using this checkout or the Git source to load `ruin_browser`. No new PyPI release is claimed.
+
 
 | In your browser | What Ruin can do |
 | --- | --- |
@@ -34,7 +49,7 @@ Live verification covered the IEEE institution lookup, the redirect to Duke, and
 
 <img src="docs/figures/command-guide.svg" alt="Five terminal commands and when to use each, from starting Chrome to watching an existing application for its receipt." width="100%">
 
-For a new task, start the shared browser and open the target site. For an interrupted application, choose the site-specific watcher and pass the original job URL. Generic click tasks open a new tab.
+For a new task, use `ruin_browser` to navigate directly to the target site in shared Chrome. For an interrupted application, choose the site-specific watcher and pass the original job URL. Generic click tasks open a new tab.
 
 <img src="docs/figures/architecture.svg" alt="Independent clients reconnect to the original tab in shared Chrome." width="100%">
 
@@ -210,12 +225,13 @@ The illustrated receipt is an example. The receipt pattern comes from a complete
 
 Tagged releases include the MCP server by default. A registry client can launch the package directly with `uvx ruin-everything@0.2.0`. [GitHub releases](https://github.com/yuki4266/ruin-everything/releases)
 
-Give the client the exact job URL and describe what you see. If the question is whether an Ashby application went through, the client checks the receipt journal first. If the form is waiting for verification, the client inspects the open tab.
+For general tasks, start with `ruin_browser`. For a specialized application check, give the client the exact job URL and describe what you see. If the question is whether an Ashby application went through, the client checks the receipt journal first. If the form is waiting for verification, the client inspects the open tab.
 
 <img src="docs/figures/challenge-routing.svg" alt="For one exact job URL, the inspector identifies a Greenhouse email code prompt or an Ashby reCAPTCHA frame and returns the observed state." width="100%">
 
 | Tool | When to call it | Result |
 | --- | --- | --- |
+| `ruin_browser` | Default for browsing, navigation, interaction and extraction on any website. | Current URL, visible page state or action result in shared Chrome. |
 | `ruin_action` | The exact original tab and visible button name for an authorized form action. | One click with automatic visual verification, or resume with the URL alone. |
 | `ruin_auto_register` | The selected registration or contact form is open at its exact HTTPS URL. | Local profile action and current signup policy. A submitted form can still require verification. |
 | `inspect_application_challenge` | Greenhouse asks for an eight-character email code, a connector reports `[one-time authentication code withheld]`, or Ashby shows a reCAPTCHA grid. Also use it to locate a lost supported form. | The provider and visible state. A missing or duplicate tab gets its own result. The form stays open. |
@@ -259,9 +275,9 @@ After connecting your client, try this prompt with the fictional URL below. It w
 
 On a fresh install, the expected state is `unrecorded`: the tool checked the local journal and found no receipt for this example. This read-only call was verified against the PyPI server.
 
-The repository includes [routing instructions](AGENTS.md#ruin-everything-application-routing) for Codex and imports them from [CLAUDE.md](CLAUDE.md). To apply them in other workspaces, copy the application routing section into your user-level `~/.codex/AGENTS.md` or `~/.claude/CLAUDE.md`. PayPal sign-in can be attempted through the generic local Chrome login flow ([trusted login figure, panel C](docs/figures/trusted-auth.svg)). No dedicated PayPal Security Challenge adapter is implemented; normal site verification may still appear on local Chrome. This is a documentation clarification based on code inspection, not a verified live PayPal sign-in. Client permissions and normal verification still apply to Duo and other flows without a dedicated adapter.
+The repository includes [routing instructions](AGENTS.md#ruin-everything-application-routing) for Codex and imports them from [CLAUDE.md](CLAUDE.md). To apply them in other workspaces, copy the Browser Automation section and any relevant application routing rules into your user-level `~/.codex/AGENTS.md` or `~/.claude/CLAUDE.md`. PayPal sign-in can be attempted through the generic local Chrome login flow ([trusted login figure, panel C](docs/figures/trusted-auth.svg)). No dedicated PayPal Security Challenge adapter is implemented; normal site verification may still appear on local Chrome. This is a documentation clarification based on code inspection, not a verified live PayPal sign-in. Client permissions and normal verification still apply to Duo and other flows without a dedicated adapter.
 
-All five tools take `site`. The inspector checks once by default. Set `wait_seconds` to 1–300 to watch that same tab for a change from `pending`. From the CLI, use `ruin watch --site "$JOB_URL" --timeout 30`. The watch ends after detecting a supported state, losing the original tab, or reaching the time limit.
+The five specialized tools take `site`; `ruin_browser` also supports tab listing and navigation without an existing target tab. The inspector checks once by default. Set `wait_seconds` to 1–300 to watch that same tab for a change from `pending`. From the CLI, use `ruin watch --site "$JOB_URL" --timeout 30`. The watch ends after detecting a supported state, losing the original tab, or reaching the time limit.
 
 In a local Chrome simulation, a fresh Codex CLI session given only the Greenhouse URL and the eight-character-code symptom selected `inspect_application_challenge` as its first tool call and returned `email_verification`. The simulated form stayed empty.
 

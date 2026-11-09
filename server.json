@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.yuki4266/ruin-everything",
   "title": "Ruin Everything",
-  "description": "Reconnect to local Chrome tabs, inspect application challenges, and look up submission receipts.",
+  "description": "Universal local Chrome automation over CDP: navigate, inspect, fill forms and extract page content.",
   "repository": {
     "url": "https://github.com/yuki4266/ruin-everything",
     "source": "github"

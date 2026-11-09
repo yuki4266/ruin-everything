@@ -9,9 +9,24 @@
   <a href="LICENSE"><img src="docs/figures/badges/license.svg" alt="MITライセンス"></a>
 </p>
 
-**前のエージェントが中断したところから、ブラウザ操作を再開できます。** Ruin はローカルの Chrome に接続します。新しい CLI プロセスや MCP クライアントから元の応募タブを見つけ、対応する認証手順を進めて、サイトに表示された受付結果を確認できます。
+**すべてのウェブサイトで使う既定のローカル Chrome ランタイム。** Ruin は `127.0.0.1:9222` でエージェントを Chrome に接続し、閲覧、移動、DOM 操作、フォーム入力、抽出、複数ステップの作業を実行します。既存のセッション、Cookie、拡張機能を再利用します。応募や機関認証のアダプターは任意の例です。
 
 [Chromeのセットアップ](#use-a-shared-local-chrome-window) · [MCP クライアントを接続する](#connect-an-agent-over-mcp) · [何がテストされたかを確認する](#verification) · [MCP ツールを試す](#first-mcp-call) · [貢献する](#community)
+
+## 汎用ブラウザ自動化
+
+どのサイトでも `ruin_browser` を既定の入口にします。図 A は共有ランタイム、図 B はタブの選択を示します。`navigate` は移動先と一致するタブ、唯一の空白タブの順に再利用し、どちらもなければ新規タブを開きます。`site` で現在のタブを指定できます。URL がなくサイト名だけが分かる場合は、検索エンジンで探して続行します。
+
+```json
+{"operation":"navigate","url":"https://example.org"}
+```
+
+図 C のように、返された現在の URL を `site` にして `inspect`、`read`、`click`、`fill`、`press`、`select` を続けます。検査は表示テキストとセレクターを返し、入力欄の値を読み取りません。変更操作は一つの表示要素を指定し、`value` にテキスト、キー、選択肢の値を渡します。クリックと Enter は既存の Ruin 実行器を使います。`tabs` は現在の URL 一覧です。ドメインをまたいでもタブを保持します。テキストは 24,000 文字、要素は 300 件までです。詳細は範囲を絞った `read` で取得します。
+
+<img src="docs/figures/universal-browser.svg" alt="Ruin が共有 Chrome の移動先または空白タブを選び、現在の URL、表示テキスト、操作要素を返す流れ。" width="100%">
+
+検証：独立したブラウザテスト 5 件と stdio MCP 統合テストが成功しました。空白タブ、Cookie、通常のフォーム、別ドメインへの移動、重複タブ、他のページの保持を確認しています。実際のローカル Chrome でも空白タブから検索ページへの移動を確認しました。今回はリポジトリの更新です。ローカルのコードまたは Git ソースで MCP を再接続すると新ツールを読み込めます。新しい PyPI リリースは未公開です。
+
 
 | ブラウザで | Ruinでできること |
 | --- | --- |
@@ -238,6 +253,7 @@ receipt = await resume_ashby(context, application_url, timeout=300,
 
 | ツール | いつ電話するか | 結果 |
 | --- | --- | --- |
+| `ruin_browser` | すべてのサイトの閲覧、移動、操作、抽出の既定入口。 | 共有 Chrome の現在の URL、ページ状態または操作結果。 |
 | `ruin_action` | 許可されたフォームの正確な URL とボタン名。 | クリック後に認証を処理し、URL だけで認証を再開します。 |
 | `ruin_auto_register` | 選択した登録フォームまたは連絡フォームは、正確な HTTPS URL で開かれます。 | ローカル プロファイル アクションと現在のサインアップ ポリシー。送信されたフォームでも検証が必要な場合があります。 |
 | `inspect_application_challenge` | Greenhouse は 8 文字の電子メール コードを要求し、コネクタは `[one-time authentication code withheld]` を報告するか、Ashby が reCAPTCHA グリッドを表示します。また、失われたサポートされているフォームを見つけるためにも使用します。 | プロバイダーと表示状態。タブが欠落しているか重複している場合は、独自の結果が得られます。フォームは開いたままになります。 |
@@ -283,7 +299,7 @@ claude mcp add --scope user --transport stdio ruin-everything -e RUIN_AUTO_UPDAT
 
 リポジトリには以下が含まれます[ルーティング命令](AGENTS.md#ruin-everything-application-routing)Codex 用に作成し、からインポートします。[クロード.md](CLAUDE.md)。他のワークスペースに適用するには、アプリケーション ルーティング セクションをユーザーレベルの `~/.codex/AGENTS.md` または `~/.claude/CLAUDE.md` にコピーします。汎用のローカル Chrome ログインフローで PayPal へのログインを試すことはできます（[信頼済みログインの図、パネル C](docs/figures/trusted-auth.svg)）。PayPal Security Challenge 専用アダプターは未実装であり、ローカル Chrome でも通常のサイト認証が表示される場合があります。これはコード確認に基づく文書の明確化であり、実際の PayPal ログイン成功を検証したものではありません。Duo や専用アダプターのない他のフローにも、クライアントの権限と通常の認証が適用されます。
 
-5 つのツールはすべて `site` を使用します。インスペクターはデフォルトで 1 回チェックします。同じタブで `pending` からの変更を監視するには、`wait_seconds` を 1 ～ 300 に設定します。 CLI からは、 `ruin watch --site "$JOB_URL" --timeout 30` を使用します。サポートされている状態が検出されるか、元のタブが失われるか、制限時間に達すると、監視は終了します。
+5 つの専用ツールは `site` を使用します。インスペクターはデフォルトで 1 回チェックします。同じタブで `pending` からの変更を監視するには、`wait_seconds` を 1 ～ 300 に設定します。 CLI からは、 `ruin watch --site "$JOB_URL" --timeout 30` を使用します。サポートされている状態が検出されるか、元のタブが失われるか、制限時間に達すると、監視は終了します。
 
 ローカル Chrome シミュレーションでは、Greenhouse URL と 8 文字のコード シンプトムのみを指定した新しい Codex CLI セッションは、最初のツール呼び出しとして `inspect_application_challenge` を選択し、 `email_verification` を返しました。シミュレートされたフォームは空のままでした。
 
