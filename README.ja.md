@@ -22,6 +22,16 @@
 
 <a name="choose-a-starting-point"></a>
 
+## 機関認証をバックグラウンドで処理する
+
+`ruin watch` は共有 Chrome の既存タブと新規タブを 500 ミリ秒ごとに確認します。IEEE Xplore、ACM Digital Library、Springer Nature Link の機関検索で Duke University を選び、出版社のリダイレクトをたどります。Duke SSO では Chrome の保存済みログインを利用できます。信頼設定でパスワード候補を無効にできます。Duo の認証はブラウザー上で進めます。
+
+macOS では継続して使う環境で `ruin watch --install` を実行すると、ログイン時にサービスが起動し、Chrome への再接続を待機します。`ruin watch --uninstall` で解除できます。`ruin watch --site URL` は従来どおり指定した応募の認証状態を確認します。
+
+<img src="docs/figures/academic-watch.svg" alt="学術サイトを巡回し Duke の機関認証をたどる流れ。" width="100%">
+
+IEEE の機関検索から Duke への遷移と、既存の Duke セッションで出版社の PDF を取得できることを実機で確認しました。ACM と Springer の検索、新規タブ、重複操作の抑制はブラウザーのテスト環境で検証しました。
+
 ## 出発点を選択してください
 
 <img src="docs/figures/command-guide.svg" alt="Chrome の起動から既存のアプリケーションの受信の監視まで、5 つのターミナル コマンドとそれぞれをいつ使用するか。" width="100%">

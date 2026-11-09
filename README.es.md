@@ -22,6 +22,16 @@
 
 <a name="choose-a-starting-point"></a>
 
+## Acceso institucional en segundo plano
+
+Ejecute `ruin watch` para comprobar las pestañas abiertas y nuevas de Chrome cada 500 ms. El proceso busca Duke University en IEEE Xplore, ACM Digital Library y Springer Nature Link y sigue la redirección de la editorial. Chrome puede ofrecer las credenciales guardadas en Duke SSO. Una regla de confianza existente puede desactivar el menú de contraseñas. Duo continúa en el navegador.
+
+En macOS, ejecute `ruin watch --install` desde una instalación persistente para iniciar el servicio al entrar en su cuenta. El servicio vuelve a conectarse cuando Chrome está disponible. Para quitarlo, ejecute `ruin watch --uninstall`. El comando `ruin watch --site URL` sigue comprobando una solicitud concreta.
+
+<img src="docs/figures/academic-watch.svg" alt="Chrome comprueba pestañas académicas y sigue el acceso institucional de Duke." width="100%">
+
+La prueba en IEEE verificó la búsqueda de la institución, la redirección a Duke y la descarga del PDF editorial con una sesión de Duke existente. Las pruebas en un navegador aislado cubren ACM, Springer, pestañas nuevas y la prevención de acciones repetidas.
+
 ## Elige un punto de partida
 
 <img src="docs/figures/command-guide.svg" alt="Cinco comandos de terminal y cuándo usar cada uno, desde iniciar Chrome hasta observar una aplicación existente para su recepción." width="100%">

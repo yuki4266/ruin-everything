@@ -33,7 +33,7 @@ box(24,335,305,92,'#e8dcfa');text(40,362,'Same-origin, empty login field');text(
 line(332,382,376,382);el('text',{x:339,y:368,style:'font-size:12px'},'keys');
 box(379,335,317,92,'#d9f1e5');text(395,362,'Focus → ArrowDown → Enter');text(395,388,'One attempt in this task');text(395,412,'Existing values stay untouched','small');
 text(24,461,'Chrome owns the popup. Enter may submit if no suggestion appears.','small');
-text(24,484,'No background watcher. No promise of permanent sign-in.','small');
+text(24,484,'Task mode acts on the selected tab.','small');
 text(24,528,'D / Wildcards choose one tenant', 'heading');
 box(24,546,672,96,'#fbe6b2');
 text(40,573,'Rule: https://*.myworkdayjobs.com');

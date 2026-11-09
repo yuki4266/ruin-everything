@@ -1,13 +1,14 @@
 from playwright.async_api import Page
 
 from ruin.browser.actions import click
-from ruin.auth.totp import current_code
 from ruin.auth.vault import credential, origin_of
 from ruin.auth.trusted import matches_action, trusted_client
 
 
 async def fill_login(page: Page, url: str) -> bool:
     """Fill explicitly provisioned fields in the current top-level document."""
+    from ruin.auth.totp import current_code
+
     origin = origin_of(url)
     if origin_of(page.url) != origin:
         return False
@@ -29,7 +30,7 @@ async def fill_login(page: Page, url: str) -> bool:
     return filled
 
 
-async def offer_chrome_login(page: Page, url: str, *, clients=()) -> bool:
+async def offer_chrome_login(page: Page, url: str, *, clients=(), chrome_only=False) -> bool:
     """Focus a single login password field so Chrome can offer a saved sign-in."""
     origin = origin_of(url)
     if origin_of(page.url) != origin:
@@ -47,7 +48,7 @@ async def offer_chrome_login(page: Page, url: str, *, clients=()) -> bool:
     if not await field.evaluate("el => Boolean(el.value)"):
         await field.click(timeout=3000)
         client = trusted_client(clients, url)
-        if client and client.get("chrome_password_dropdown") and not credential(origin, "password"):
+        if client and client.get("chrome_password_dropdown") and (chrome_only or not credential(origin, "password")):
             # Chrome owns its popup. Enter may submit if no suggestion is offered.
             if origin_of(page.url) != origin or not await field.evaluate(
                 "el => document.activeElement === el && !el.value"

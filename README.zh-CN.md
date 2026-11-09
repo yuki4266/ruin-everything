@@ -22,6 +22,16 @@
 
 <a name="choose-a-starting-point"></a>
 
+## 在后台处理学术机构登录
+
+运行 `ruin watch` 后，监听器每 500 毫秒检查共享 Chrome 中已有和新开的标签页。它可以在 IEEE Xplore、ACM Digital Library 和 Springer Nature Link 查找并选择 Duke University，跟随出版商跳转到 Duke SSO，由 Chrome 提供已保存的登录信息。已有的信任配置可关闭密码下拉选择。Duo 按浏览器中的正常流程进行。
+
+macOS 上从长期保留的安装环境运行 `ruin watch --install`，服务会随用户登录启动，并在共享 Chrome 恢复后重连。运行 `ruin watch --uninstall` 可移除服务。`ruin watch --site URL` 继续用于检查单份申请的验证状态。
+
+<img src="docs/figures/academic-watch.svg" alt="后台巡检学术标签页并通过 Duke 获取机构访问。" width="100%">
+
+已在 IEEE 实测机构查询、跳转 Duke，以及通过现有 Duke 会话下载出版商 PDF。ACM 和 Springer 的机构查找、新开标签页及重复操作抑制已通过隔离浏览器测试。
+
 ## 选择一个起点
 
 <img src="docs/figures/command-guide.svg" alt="五个终端命令以及何时使用每个命令，从启动 Chrome 到查看现有应用程序的接收。" width="100%">

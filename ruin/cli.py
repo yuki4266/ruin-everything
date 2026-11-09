@@ -23,6 +23,14 @@ async def run(args):
         await setup()
         return
     if args.task == "watch":
+        if args.install or args.uninstall:
+            from ruin.browser.watch_service import configure
+            configure(args.install)
+            return
+        if not args.site:
+            from ruin.browser.academic_watch import watch
+            await watch(args.cdp)
+            return
         from ruin.agent.challenge import inspect_challenge
         print(json.dumps(await inspect_challenge(args.site, args.cdp, args.timeout)))
         return
@@ -90,7 +98,12 @@ def main():
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--interval", type=int, default=900, help="Seconds between session checks")
     parser.add_argument("--signed-in-text", help="Exact visible text unique to the signed-in status page")
+    service = parser.add_mutually_exclusive_group()
+    service.add_argument("--install", action="store_true", help="Start ruin watch at macOS login")
+    service.add_argument("--uninstall", action="store_true", help="Stop and remove the macOS watcher")
     args = parser.parse_args()
+    if (args.install or args.uninstall) and (args.task != "watch" or args.site or args.cdp):
+        parser.error("Watcher installation requires watch without --site or --cdp")
     if args.timeout is None:
         args.timeout = 3600 if args.task == "keep-alive" else 180
     if args.task == "keep-alive" and not (args.site and args.signed_in_text and args.interval > 0):
@@ -99,11 +112,11 @@ def main():
         import time
         if not args.site or not args.requested_at or not 0 <= time.time() - args.requested_at <= 300:
             parser.error("verify-sms requires --site and a request timestamp within the last five minutes")
-    if args.task in {"resume-ashby", "watch"} and not args.site:
+    if args.task == "resume-ashby" and not args.site:
         parser.error(f"{args.task} requires --site")
     if args.task == "verify-email" and not (args.site and args.company):
         parser.error("verify-email requires --site and --company")
-    if not args.site and args.task not in {"identity", "browser", "courses", "list my courses"}:
+    if not args.site and args.task not in {"identity", "browser", "courses", "list my courses", "watch"}:
         parser.error("Browser tasks require --site.")
     if args.timeout <= 0:
         parser.error("--timeout must be greater than zero.")

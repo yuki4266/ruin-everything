@@ -20,6 +20,16 @@
 | A Workday tenant asks you to sign in | [Use the local profile and follow a supported account activation back to the job.](#workday-accounts-and-signed-in-sessions) |
 | You have phone numbers from several countries | [Choose a default in the offline identity editor.](#local-account-registration) |
 
+## Institutional sign-in in the background
+
+Run `ruin watch` to scan open and newly opened shared Chrome tabs every 500 ms. The watcher follows institutional search on IEEE Xplore, the ACM Digital Library and Springer Nature Link. It selects Duke University and follows the publisher’s redirect. At Duke SSO, Chrome can offer a saved login. An existing trusted-auth rule can disable the password dropdown. Duo remains in the normal browser flow.
+
+On macOS, run `ruin watch --install` from a persistent installation to start the user service at login. Use `ruin watch --uninstall` to remove it. The service waits for shared Chrome and reconnects after a disconnect. `ruin watch --site URL` still inspects one application challenge.
+
+<img src="docs/figures/academic-watch.svg" alt="Shared Chrome scans academic tabs and follows Duke institutional access." width="100%">
+
+Live verification covered the IEEE institution lookup, the redirect to Duke, and a publisher PDF delivered with an existing Duke session. Isolated browser tests cover ACM and Springer discovery, newly opened tabs and duplicate suppression.
+
 ## Choose a starting point
 
 <img src="docs/figures/command-guide.svg" alt="Five terminal commands and when to use each, from starting Chrome to watching an existing application for its receipt." width="100%">
