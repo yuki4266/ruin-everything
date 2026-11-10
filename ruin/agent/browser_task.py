@@ -12,6 +12,7 @@ from ruin.auth.vault import origin_of
 from ruin.auth.autofill import fill_login, offer_chrome_login, click_trusted_login
 from ruin.agent.prompts import SYSTEM
 from ruin.browser.dom_sanitizer import snapshot
+from ruin.auth.saved_login import resume_saved_login
 
 
 class Decision(BaseModel):
@@ -41,6 +42,9 @@ async def browser_task(context: BrowserContext, url: str, task: str, model: str,
     clients = getattr(context, "ruin_trusted_oauth_clients", []) if autofill else []
     async with AsyncOpenAI() as client:
         for _ in range(20):
+            auth = await resume_saved_login(page)
+            if auth and auth["state"] != "redirected":
+                raise RuntimeError(auth.get("message", "The login tab closed."))
             action_origin = origin_of(page.url)
             action = await click_trusted_login(page, url, clients, trusted_attempts)
             if action:

@@ -21,6 +21,7 @@ class ActionResult:
     kind: str | None = None
     attempts: int = 0
     reason: str | None = None
+    authentication: dict | None = None
 
 
 async def settle(page, site):
@@ -125,4 +126,9 @@ async def exact_action(context, site, button=None):
         raise RuntimeError("Open exactly one tab at the selected action URL.")
     page = tabs[0]
     target = page.get_by_role("button", name=button, exact=True).filter(visible=True) if button else None
-    return await execute(page, site, target)
+    result = await execute(page, site, target)
+    from ruin.auth.saved_login import resume_saved_login
+    result.authentication = await resume_saved_login(page)
+    if result.authentication is not None:
+        result.authentication["url"] = page.url
+    return result

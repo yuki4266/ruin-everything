@@ -67,6 +67,12 @@ task URL; if the URL is unknown, navigate to a search engine and find the site.
 Do not ask the user to open a page manually. Use returned URLs for subsequent
 operations, including redirects across domains. Site adapters are optional helpers,
 not restrictions on the runtime's scope. Keep passwords out of tool arguments.
+Do not stop at a saved Duke login or Duo device-trust screen. On the selected
+tab, ruin_browser and ruin_action submit already-filled Duke credentials and
+confirm Duo's Yes, trust browser / Is this your device? controls through the
+executor. They wait 15 seconds for automatic continuation before reporting
+remaining code, phone-push or credential input. Use the returned current URL.
+The fixed Chrome profile restores the previous session; sites control expiry.
 """)
 
     @server.tool(annotations=ToolAnnotations(destructiveHint=True, idempotentHint=False))
@@ -87,6 +93,9 @@ not restrictions on the runtime's scope. Keep passwords out of tool arguments.
         selector, e.g. role=button[name="Continue"]. value supplies text, a key, or an option
         value. Clicks and Enter use the Ruin executor. Tabs and existing sessions stay open.
         Keep passwords out of arguments. Site-specific helpers are optional adapters.
+        On Duke SSO and Duo, automatically advance already-filled login fields and
+        device-trust controls, then wait 15 seconds before handing off remaining
+        verification. inspect/read may advance these authorized login screens.
         """
         async with browser_context(PROFILE, args.cdp) as context:
             return await browser_operation(context, operation, site=site, url=url, selector=selector, value=value)
@@ -96,7 +105,9 @@ not restrictions on the runtime's scope. Keep passwords out of tool arguments.
         """Click an authorized form button on any website in local Chrome over CDP.
         Supply its exact open HTTPS URL and exact visible button name.
         Use for every form submission. Automatically handle visual challenges after clicking.
-        Omit button to resume a pending challenge. The action result is not a submission receipt."""
+        Omit button to resume a pending challenge or saved Duke/Duo login.
+        Saved login and device trust advance automatically; remaining verification
+        is reported after 15 seconds. The action result is not a submission receipt."""
         async with browser_context(PROFILE, args.cdp, launch_if_missing=False) as context:
             return await exact_action(context, site, button)
 

@@ -6,9 +6,12 @@ from playwright.async_api import Page, TimeoutError as PlaywrightTimeoutError
 
 async def authenticate(page: Page, origin: str, timeout: int):
     """Open one SSO attempt and wait for the school to return the browser."""
-    print("Complete sign-in in the browser. The course lookup will resume when Canvas opens.",
-          file=sys.stderr)
     await page.goto(origin + "/login/saml", wait_until="domcontentloaded")
+    from ruin.auth.saved_login import resume_saved_login
+    result = await resume_saved_login(page)
+    if not result or result["state"] != "redirected":
+        print("Complete sign-in in the browser. The course lookup will resume when Canvas opens.",
+              file=sys.stderr)
     def returned(url: str) -> bool:
         location = urlsplit(url)
         return (location.scheme, location.netloc) == (

@@ -1,14 +1,30 @@
 import asyncio
+import json
+import os
 import shutil
 import subprocess
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from urllib.parse import urlsplit
 
 from playwright.async_api import async_playwright
 
 LOCAL_CDP = "http://127.0.0.1:9222"
+
+
+def prepare_profile(profile: Path):
+    """Enable session restoration before launching an offline persistent profile."""
+    profile.mkdir(mode=0o700, parents=True, exist_ok=True)
+    preferences = set(profile.glob("*/Preferences")) | {profile / "Default" / "Preferences"}
+    for path in preferences:
+        data = json.loads(path.read_text()) if path.exists() else {}
+        data.setdefault("session", {})["restore_on_startup"] = 1
+        path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        with NamedTemporaryFile(mode="w", dir=path.parent, delete=False) as temp:
+            json.dump(data, temp)
+        os.replace(temp.name, path)
 
 
 def chrome_executable():
@@ -48,11 +64,11 @@ async def browser_context(profile: Path, cdp: str | None = None, channel=None, *
     if url.rstrip("/") in {LOCAL_CDP, "http://localhost:9222"} and not await listening():
         if not launch_if_missing:
             raise RuntimeError("Shared Chrome is offline. Start the project browser and open the original job.")
-        profile.mkdir(mode=0o700, parents=True, exist_ok=True)
+        prepare_profile(profile)
         subprocess.Popen([
             chrome_executable(), f"--user-data-dir={profile.resolve()}",
             "--remote-debugging-address=127.0.0.1", "--remote-debugging-port=9222",
-            "--no-first-run", "--no-default-browser-check", "about:blank",
+            "--no-first-run", "--no-default-browser-check", "--restore-last-session",
         ], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             start_new_session=True)
         for _ in range(100):

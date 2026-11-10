@@ -8,6 +8,7 @@ from playwright.async_api import Error
 from ruin.browser.academic import AcademicFlow, academic_step, host, WATCHED
 from ruin.browser.context import browser_context
 from ruin.config import PROFILE
+from ruin.auth.saved_login import is_duo
 
 
 async def listen(context, report=print):
@@ -48,7 +49,7 @@ async def listen(context, report=print):
             for page in pages:
                 if page in workers:
                     continue
-                if host(page.url) not in WATCHED:
+                if host(page.url) not in WATCHED and not is_duo(page.url):
                     flows.pop(page, None)
                     continue
                 if page not in flows:

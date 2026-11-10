@@ -297,7 +297,7 @@ claude mcp add --scope user --transport stdio ruin-everything -e RUIN_AUTO_UPDAT
 
 初回は `unrecorded` が返ります。これは、この例に該当する受付記録がローカルに見つからなかったという意味です。この読み取り専用の呼び出しは PyPI の公開版で確認済みです。
 
-リポジトリには以下が含まれます[ルーティング命令](AGENTS.md#ruin-everything-application-routing)Codex 用に作成し、からインポートします。[クロード.md](CLAUDE.md)。他のワークスペースに適用するには、アプリケーション ルーティング セクションをユーザーレベルの `~/.codex/AGENTS.md` または `~/.claude/CLAUDE.md` にコピーします。汎用のローカル Chrome ログインフローで PayPal へのログインを試すことはできます（[信頼済みログインの図、パネル C](docs/figures/trusted-auth.svg)）。PayPal Security Challenge 専用アダプターは未実装であり、ローカル Chrome でも通常のサイト認証が表示される場合があります。これはコード確認に基づく文書の明確化であり、実際の PayPal ログイン成功を検証したものではありません。Duo や専用アダプターのない他のフローにも、クライアントの権限と通常の認証が適用されます。
+リポジトリには以下が含まれます[ルーティング命令](AGENTS.md#ruin-everything-application-routing)Codex 用に作成し、からインポートします。[クロード.md](CLAUDE.md)。他のワークスペースに適用するには、アプリケーション ルーティング セクションをユーザーレベルの `~/.codex/AGENTS.md` または `~/.claude/CLAUDE.md` にコピーします。汎用のローカル Chrome ログインフローで PayPal へのログインを試すことはできます（[信頼済みログインの図、パネル C](docs/figures/trusted-auth.svg)）。PayPal Security Challenge 専用アダプターは未実装であり、ローカル Chrome でも通常のサイト認証が表示される場合があります。これはコード確認に基づく文書の明確化であり、実際の PayPal ログイン成功を検証したものではありません。Duo のコードと電話通知は通常の認証を使います。入力済みフォームと端末信頼の自動操作は、下記「永続セッションと Duke の保存済みログイン」を参照してください。
 
 5 つの専用ツールは `site` を使用します。インスペクターはデフォルトで 1 回チェックします。同じタブで `pending` からの変更を監視するには、`wait_seconds` を 1 ～ 300 に設定します。 CLI からは、 `ruin watch --site "$JOB_URL" --timeout 30` を使用します。サポートされている状態が検出されるか、元のタブが失われるか、制限時間に達すると、監視は終了します。
 
@@ -398,3 +398,15 @@ Chrome のテスト用ページで一致判定、権限変更の拒否、試行�
 GitHub 認可では標準ボタンセレクターを使用でき、ボタン名の事前設定は不要です。クライアント ID、コールバック、スコープの照合は必須です。Chrome のテストでドメイン境界、ポート、別テナントの拒否と標準セレクターを検証しました。Glama への実際の登録は未検証です。
 
 設定例には `https://paypal.com` と `https://*.paypal.com` のパスワード選択のみの設定を追加しました（パネル C）。操作リストは空で、ログイン、支払い、外部認可ボタンは事前許可しません。境界テストはルート、多段サブドメイン、偽装サフィックス、HTTP、別ポートを対象とし、実際の PayPal ログインは未検証です。
+
+## 永続セッションと Duke の保存済みログイン
+
+<img src="docs/figures/saved-login.svg" alt="A: persistent Chrome profile. B: filled Duke login and Duo device trust. C: wait 15 seconds before reporting remaining verification." width="100%">
+
+図 A：固定ディレクトリ `~/.ruin-everything/canvas-browser` を使います。起動前に既存設定を保ちながら `session.restore_on_startup = 1` を設定し、`--restore-last-session` で起動します。実行中の Chrome の設定ファイルは書き換えません。`chrome://settings/onStartup` の「前回開いていたページを開く」で変更できます。現在の Chrome は Secure Preferences に保存する場合があります。
+
+図 B：`ruin_browser`（inspect/read を含む）、`ruin_action`、CLI タスクは、選択したタブで入力済みの Duke ログインを実行器経由で進めます。一意の `#Submit` またはログインボタンと、Duke と同一オリジンへの送信が必要です。HTTPS `*.duosecurity.com` の端末信頼ボタンと Duke 内の可視 Duo iframe に対応します。学術ウォッチャーは開始済みの認証フローだけを追跡します。同じ文書を再送信せず、資格情報を出力しません。
+
+図 C：自動入力や認証を 15 秒待ち、自動クリック後も 15 秒待ってから、残ったコード、電話通知、未入力欄を報告します。元のタブを保持します。リダイレクトは認証成功の証明ではありません。信頼期間は大学の設定によるため、30 日間や永続ログインは保証しません。
+
+検証：隔離ブラウザで実際の再起動後のセッション Cookie 復元、遅延入力、Duo 信頼、iframe、オリジン、重複防止、15 秒待機をテストしました。ローカル Chrome の設定変更と再読み込みも確認済みです。実際の Duke/Duo 認証は未検証です。新しいツール説明には MCP の再接続が必要です。 インストール済み Google Chrome の再起動テストも成功しました。全体の回帰テスト 67 件と、最終変更後のアクション再開・再描画の追加確認 2 件が成功しました。

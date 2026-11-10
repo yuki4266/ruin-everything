@@ -37,7 +37,9 @@ class ReceiptMCP(unittest.IsolatedAsyncioTestCase):
                 async with stdio_client(params) as streams, ClientSession(*streams) as client:
                     initialized = await client.initialize()
                     self.assertIn("ALL websites", initialized.instructions)
+                    self.assertIn("saved Duke login", initialized.instructions)
                     tools = (await client.list_tools()).tools
+                    self.assertIn("15 seconds", next(t.description for t in tools if t.name == "ruin_browser"))
                     self.assertEqual({t.name for t in tools}, {"ruin_browser", "ruin_action", "ruin_auto_register", "inspect_application_challenge", "get_ashby_receipt", "watch_ashby_receipt"})
                     generic = await client.call_tool("ruin_browser", {"operation": "navigate", "url": "https://ordinary.test/dashboard"})
                     self.assertFalse(generic.isError, generic.content)

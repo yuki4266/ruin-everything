@@ -5,7 +5,6 @@ from urllib.parse import urlsplit
 
 from ruin.auth.autofill import offer_chrome_login
 from ruin.auth.trusted import trusted_client
-from ruin.browser.actions import click
 
 PUBLISHERS = {
     "ieeexplore.ieee.org", "dl.acm.org", "link.springer.com", "link.springernature.com",
@@ -88,7 +87,7 @@ class AcademicFlow:
         return True
 
 
-async def duke_login(page, flow):
+async def duke_login(page, flow, *, saved_only=False):
     url = page.url
     if not flow.active() or host(url) != DUKE:
         return
@@ -96,13 +95,13 @@ async def duke_login(page, flow):
     try:
         if len(fields) != 1:
             return
-        return await _use_duke_form(page, fields[0], flow, url)
+        return await _use_duke_form(page, fields[0], flow, url, saved_only=saved_only)
     finally:
         for field in fields:
             await field.dispose()
 
 
-async def _use_duke_form(page, field, flow, url):
+async def _use_duke_form(page, field, flow, url, *, saved_only=False):
     eligible = await field.evaluate("""e => location.origin === 'https://shib.oit.duke.edu' &&
         e.form && new URL(e.form.action).origin === location.origin &&
         !e.form.querySelector('[autocomplete~=new-password]') &&
@@ -110,14 +109,14 @@ async def _use_duke_form(page, field, flow, url):
         !e.disabled && !e.readOnly""")
     if not eligible or page.url != url:
         return
-    clients = page.context.ruin_trusted_oauth_clients
+    clients = getattr(page.context, "ruin_trusted_oauth_clients", [])
     policy = trusted_client(clients, url)
     if policy is None:
         # Starting the Duke watcher opts in for this single identity provider.
         clients = [{"origin": f"https://{DUKE}", "chrome_password_dropdown": True}]
-    elif not policy.get("chrome_password_dropdown"):
-        return
     if not await field.evaluate("e => Boolean(e.value)"):
+        if saved_only or (policy is not None and not policy.get("chrome_password_dropdown")):
+            return
         if flow.claim(("chrome",)):
             await page.bring_to_front()
             await offer_chrome_login(page, url, clients=clients,
@@ -130,22 +129,25 @@ async def _use_duke_form(page, field, flow, url):
         const buttons = [...e.form.querySelectorAll('button,input[type=submit]')].filter(b =>
             b.type === 'submit' && b.getClientRects().length && !b.disabled &&
             new URL(b.getAttribute('formaction') || e.form.action, location.href).origin === location.origin &&
-            /^(?:log ?in|sign ?in|login with netid)$/i.test((b.innerText || b.value || '').trim()));
+            (b.id === 'Submit' || /^(?:log ?in|sign ?in|login with netid)$/i.test((b.innerText || b.value || '').trim())));
         return buttons.length === 1 ? buttons[0] : null;
     }""")
     try:
         if submit.as_element() and page.url == url and flow.claim(("login",)):
-            await page.bring_to_front()
-            await click(page, submit.as_element(), timeout=2500)
-            return "login"
+            from ruin.auth.saved_login import click_once
+            if await click_once(page, submit.as_element(), url):
+                return "login"
     finally:
         await submit.dispose()
 
 
 async def academic_step(page, flow):
+    from ruin.auth.saved_login import duo_trust, is_duo
     top = host(page.url)
     if top == DUKE:
-        return await duke_login(page, flow)
+        return await duke_login(page, flow) or (await duo_trust(page) if flow.active() else None)
+    if is_duo(page.url) and flow.active():
+        return await duo_trust(page)
     if top not in PUBLISHERS and not (top in DISCOVERY and flow.active()):
         return
     for frame in page.frames:

@@ -5,6 +5,7 @@ from typing import Literal
 from urllib.parse import urlsplit
 
 from ruin.browser.actions import click
+from ruin.auth.saved_login import resume_saved_login
 
 Operation = Literal["tabs", "navigate", "inspect", "read", "click", "fill", "press", "select"]
 BLANK = {"about:blank", "chrome://newtab/", "chrome://newtab", "chrome://new-tab-page/"}
@@ -73,7 +74,9 @@ async def browser_operation(context, operation: Operation, *, site=None, url=Non
                 raise RuntimeError("The selector must match exactly one visible element.")
         if operation == "click" or (operation == "press" and value == "Enter"):
             result = await click(page, target, enter=operation == "press")
-            return {"url": page.url, "title": await page.title(), "action": asdict(result)}
+            auth = await resume_saved_login(page)
+            return {"url": page.url, "title": await page.title(), "action": asdict(result),
+                    **({"authentication": auth} if auth else {})}
         if operation == "fill":
             await target.fill(value, timeout=5000)
         elif operation == "press":
@@ -81,6 +84,11 @@ async def browser_operation(context, operation: Operation, *, site=None, url=Non
         elif operation == "select":
             await target.select_option(value, timeout=5000)
         elif operation == "read":
+            auth = await resume_saved_login(page)
+            if auth and auth["state"] == "redirected":
+                return {**await page_state(page), "authentication": auth}
             text = await target.inner_text(timeout=5000)
-            return {"url": page.url, "title": await page.title(), "text": text[:24000], "truncated": len(text) > 24000}
-    return await page_state(page)
+            return {"url": page.url, "title": await page.title(), "text": text[:24000], "truncated": len(text) > 24000,
+                    **({"authentication": auth} if auth else {})}
+    auth = await resume_saved_login(page)
+    return {**await page_state(page), **({"authentication": auth} if auth else {})}

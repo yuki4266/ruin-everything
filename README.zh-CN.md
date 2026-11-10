@@ -297,7 +297,7 @@ claude mcp add --scope user --transport stdio ruin-everything -e RUIN_AUTO_UPDAT
 
 首次安装时应返回 `unrecorded`，表示工具已查询本机记录，没有找到这个示例的回执。我们已用 PyPI 发布版验证这次只读调用。
 
-该存储库包括[路由指令](AGENTS.md#ruin-everything-application-routing)用于 Codex 并从以下位置导入它们[克劳德.md](CLAUDE.md)。要将它们应用到其他工作区，请将应用程序路由部分复制到用户级 `~/.codex/AGENTS.md` 或 `~/.claude/CLAUDE.md` 中。可以通过通用的本机 Chrome 登录流程尝试登录 PayPal（[受信任登录示意图 C](docs/figures/trusted-auth.svg)）。目前尚未实现 PayPal Security Challenge 专用适配器；本机 Chrome 仍可能出现正常的站点验证。这是基于代码检查的文档澄清，并不表示已经验证实际 PayPal 登录成功。Duo 及其他没有专用适配器的流程仍须遵守客户端权限和正常验证。
+该存储库包括[路由指令](AGENTS.md#ruin-everything-application-routing)用于 Codex 并从以下位置导入它们[克劳德.md](CLAUDE.md)。要将它们应用到其他工作区，请将应用程序路由部分复制到用户级 `~/.codex/AGENTS.md` 或 `~/.claude/CLAUDE.md` 中。可以通过通用的本机 Chrome 登录流程尝试登录 PayPal（[受信任登录示意图 C](docs/figures/trusted-auth.svg)）。目前尚未实现 PayPal Security Challenge 专用适配器；本机 Chrome 仍可能出现正常的站点验证。这是基于代码检查的文档澄清，并不表示已经验证实际 PayPal 登录成功。Duo 验证码和手机推送仍使用正常的站点验证；下方“持久会话与 Duke 已保存凭据登录”说明已填表单和设备信任的自动推进。
 
 五个专用工具采用 `site`；`ruin_browser` 还支持无需已打开目标页的标签列表和导航。检查员默认检查一次。将 `wait_seconds` 设置为 1–300 以观察同一标签页中 `pending` 的变化。在 CLI 中，使用 `ruin watch --site "$JOB_URL" --timeout 30` 。手表在检测到受支持的状态、丢失原始标签页或达到时间限制后结束。
 
@@ -398,3 +398,15 @@ Chrome 模拟页面已验证匹配、权限变更拒绝、单次尝试及密码�
 GitHub 授权按钮可使用默认标准选择器，无需预填按钮名称；应用 ID、回调和权限校验仍为必需。Chrome 模拟页面已验证域名边界、端口、跨租户拒绝及默认选择器。Glama 实际提交尚未验证。
 
 示例现包含 `https://paypal.com` 和 `https://*.paypal.com` 的密码下拉选择（图 C）。操作列表为空，不预先放行登录、支付或外部授权按钮。边界测试覆盖根域、多级子域、伪装后缀、HTTP 和其他端口；尚未验证真实 PayPal 登录。
+
+## 持久会话与 Duke 已保存凭据登录
+
+<img src="docs/figures/saved-login.svg" alt="A: persistent Chrome profile. B: filled Duke login and Duo device trust. C: wait 15 seconds before reporting remaining verification." width="100%">
+
+图 A：Chrome 使用固定目录 `~/.ruin-everything/canvas-browser`。Ruin 在浏览器未运行时保留现有配置，写入 `session.restore_on_startup = 1` 并用 `--restore-last-session` 启动。连接已运行的 Chrome 时不改写其配置文件；请在 `chrome://settings/onStartup` 选择“继续浏览上次打开的网页”。新版 Chrome 可能将此设置存入 Secure Preferences。
+
+图 B：`ruin_browser`（包括 inspect/read）、`ruin_action` 和 CLI 任务在当前任务标签中自动提交已填好用户名和密码的 Duke 登录表单，经由执行器点击唯一的 `#Submit` 或已识别登录按钮，且表单必须提交到 Duke 同源地址。支持 HTTPS `*.duosecurity.com` 上的设备信任按钮，包括 Duke 内可见的 Duo iframe。学术监听器仅在已开始的机构登录流程中确认信任。同一文档不会重复提交，凭据不输出到工具结果。
+
+图 C：等待自动填充或验证 15 秒，每次自动登录或信任点击后再等待 15 秒。验证码、手机推送或空凭据表单仍未完成时才提示，并保留原标签页。跳转不等于登录成功证明；会话与设备信任期限由学校决定，不保证永久登录或固定 30 天。
+
+验证：隔离浏览器测试覆盖真实重启后的 Session Cookie 恢复、已保存登录、延迟填充、信任按钮、iframe、域名检查、重复点击抑制及完整 15 秒等待。本机 Chrome 已修改并重新加载验证启动设置。当前没有打开的 Duke/Duo 验证页，尚未完成真实端到端验证。重新连接 MCP 可加载新工具说明。 本机安装的 Google Chrome 重启测试也通过；完整回归通过 67 项，最终集成后补测的动作恢复和重新绘制场景均通过。

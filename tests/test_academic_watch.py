@@ -92,7 +92,7 @@ class AcademicWatchTests(unittest.IsolatedAsyncioTestCase):
             await self.page.locator("input[type=password]").fill("fixture")
             self.assertIsNone(await academic_step(self.page, self.flow))
             await self.page.locator("[name=j_username]").fill("fixture")
-            with patch("ruin.browser.academic.click", new_callable=AsyncMock) as submit:
+            with patch("ruin.auth.saved_login.click", new_callable=AsyncMock) as submit:
                 self.assertEqual(await academic_step(self.page, self.flow), "login")
                 self.assertIsNone(await academic_step(self.page, self.flow))
                 submit.assert_awaited_once()
