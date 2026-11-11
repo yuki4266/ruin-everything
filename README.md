@@ -141,7 +141,7 @@ Your connected agent may send page text to its model provider. Site sessions sti
 
 <img src="docs/figures/build-retry.svg" alt="Chromium setup retries at most three times; persistent failure stops the build, while successful tests and distribution checks allow publishing." width="100%">
 
-The latest failed CI run stopped while resolving Ubuntu package mirrors during Chromium dependency installation. The installer now gets at most three attempts, with 15s and 30s waits and a 30-minute step timeout (figure A–B). Tests and packaging checks must still succeed before PyPI publishing (C). Persistent failure blocks publishing and leaves existing releases unchanged. [CI results](https://github.com/yuki4266/ruin-everything/actions/workflows/publish.yml).
+The failed CI run stopped on Ubuntu mirror DNS errors while fetching extra font packages. Hosted Ubuntu already supplied the Chromium shared libraries. CI now installs Chromium directly and validates the runner through the browser regression suite (figure A–C). Browser downloads get at most three attempts, with 15s and 30s waits and a 30-minute step timeout. Successful tests and packaging checks enable PyPI publishing. [CI results](https://github.com/yuki4266/ruin-everything/actions/workflows/publish.yml).
 
 Local tests cover shared sessions, background tabs, login capture and restoration, tenant boundaries, verification routing and receipt storage. The table above distinguishes live observations from simulated browser tests. See the reference for the conditions and limits of each check.
 

@@ -141,7 +141,7 @@ Ruin 会启动或连接 `127.0.0.1:9222` 上的 Chrome，固定使用 `~/.ruin-e
 
 <img src="docs/figures/build-retry.svg" alt="Chromium 安装最多尝试三次；持续失败停止构建，测试和分发包检查成功后才允许发布。" width="100%">
 
-最近一次 CI 失败发生在 Chromium 依赖安装阶段：Ubuntu 软件源域名无法解析。现在安装最多尝试三次，重试前分别等待 15 秒和 30 秒，整个步骤限时 30 分钟（图 A–B）。测试和打包检查仍须全部通过才会发布到 PyPI（C）；持续失败会阻止发布，已有版本保持不变。[CI 结果](https://github.com/yuki4266/ruin-everything/actions/workflows/publish.yml)。
+失败的 CI 在下载额外字体包时遇到 Ubuntu 软件源 DNS 错误，runner 已具备 Chromium 所需运行库。现在 CI 直接安装 Chromium，并通过完整浏览器回归测试验证运行环境（图 A–C）。浏览器下载最多尝试三次，重试前分别等待 15 秒和 30 秒，整个步骤限时 30 分钟。测试和打包检查通过后发布到 PyPI。[CI 结果](https://github.com/yuki4266/ruin-everything/actions/workflows/publish.yml)。
 
 本地测试覆盖共享会话、后台标签页、登录捕获与恢复、租户隔离、验证路由和回执存储。上表明确区分实测与模拟测试，各项验证条件和边界见参考文档。
 
