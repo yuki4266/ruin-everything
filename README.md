@@ -137,9 +137,11 @@ Your connected agent may send page text to its model provider. Site sessions sti
 
 <img src="docs/figures/checks.svg" alt="Local browser tests verify runtime behavior; separate live checks cover specific website workflows." width="100%">
 
-**Current check:** all 103 regression tests passed on this revision. This documentation update does not claim a new live run of the websites listed above.
+**Current check:** all 103 local regression tests passed; source/wheel builds and strict Twine metadata checks passed. The retry script is also checked for first-attempt success, recovery on attempts two and three, and persistent failure. No new live website run is claimed.
 
-This README update puts the current capabilities first, replaces the implementation diary with a short setup path, and keeps the detailed notes in the [runtime reference](docs/runtime-reference.md). English, Simplified Chinese, Japanese and Spanish share the same feature claims and setup.
+<img src="docs/figures/build-retry.svg" alt="Chromium setup retries at most three times; persistent failure stops the build, while successful tests and distribution checks allow publishing." width="100%">
+
+The latest failed CI run stopped while resolving Ubuntu package mirrors during Chromium dependency installation. The installer now gets at most three attempts, with 15s and 30s waits and a 30-minute step timeout (figure A–B). Tests and packaging checks must still succeed before PyPI publishing (C). Persistent failure blocks publishing and leaves existing releases unchanged. [CI results](https://github.com/yuki4266/ruin-everything/actions/workflows/publish.yml).
 
 Local tests cover shared sessions, background tabs, login capture and restoration, tenant boundaries, verification routing and receipt storage. The table above distinguishes live observations from simulated browser tests. See the reference for the conditions and limits of each check.
 

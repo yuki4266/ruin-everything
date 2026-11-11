@@ -137,9 +137,11 @@ El agente conectado puede enviar texto de las páginas a su proveedor de modelos
 
 <img src="docs/figures/checks.svg" alt="Las pruebas locales comprueban el comportamiento del entorno; las observaciones reales cubren flujos específicos de sitios." width="100%">
 
-**Comprobación actual: las 103 pruebas de regresión pasaron.** Esta actualización de documentación no afirma haber repetido los flujos reales de los sitios de la tabla.
+**Comprobación actual:** pasaron las 103 pruebas de regresión locales, la compilación de fuente y wheel y la validación estricta de Twine. También se comprobaron el éxito inicial, la recuperación en el segundo y tercer intento y el fallo persistente. No se repitieron los flujos de sitios reales.
 
-Esta actualización del README destaca las funciones actuales, sustituye el diario de implementación por una guía breve y conserva los detalles en la [referencia técnica](docs/runtime-reference.md). Las ediciones inglesa, china simplificada, japonesa y española comparten las mismas funciones y configuración.
+<img src="docs/figures/build-retry.svg" alt="La instalación de Chromium permite tres intentos; un fallo persistente detiene la compilación y solo las comprobaciones exitosas permiten publicar." width="100%">
+
+El último fallo de CI ocurrió al resolver los dominios de los repositorios de Ubuntu durante la instalación de dependencias de Chromium. Ahora se permiten hasta tres intentos, con esperas de 15 y 30 segundos y un límite de 30 minutos para el paso (figura A–B). Las pruebas y las comprobaciones del paquete deben pasar antes de publicar en PyPI (C). Un fallo persistente bloquea la publicación y deja intactas las versiones existentes. [Resultados de CI](https://github.com/yuki4266/ruin-everything/actions/workflows/publish.yml).
 
 Las pruebas locales cubren sesiones compartidas, pestañas en segundo plano, captura y restauración de accesos, separación entre organizaciones, rutas de verificación y almacenamiento de comprobantes. La tabla distingue observaciones reales de pruebas simuladas. La referencia describe las condiciones y límites de cada comprobación.
 

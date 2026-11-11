@@ -33,7 +33,22 @@ jobs:
               version = base + "." + os.environ["GITHUB_RUN_NUMBER"]
               project.write_text(source.replace(f'version = "{base}"', f'version = "{version}"', 1))
       - run: python -m pip install build twine '.[agent,mcp]'
-      - run: python -m playwright install --with-deps chromium
+      - name: Install Chromium and system dependencies
+        timeout-minutes: 30
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            if python -m playwright install --with-deps chromium; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Chromium dependency installation failed after 3 attempts."
+              exit 1
+            fi
+            delay=$((attempt * 15))
+            echo "::warning::Chromium dependency installation failed (attempt $attempt/3); retrying in ${delay}s."
+            sleep "$delay"
+          done
       - run: python -m unittest discover -s tests -v
       - run: python -m build && python -m twine check --strict dist/*
       - uses: actions/upload-artifact@v4
