@@ -1,14 +1,19 @@
 """General browser operations in the existing local Chrome context."""
 
+import asyncio
+import mimetypes
 from dataclasses import asdict
+from pathlib import Path
 from typing import Literal
 from urllib.parse import urlsplit
+
+from playwright.async_api import Error
 
 from ruin.browser.actions import click
 from ruin.auth.saved_login import resume_saved_login
 from .background import new_agent_page, prepare_page, remember_page, tab_marker
 
-Operation = Literal["tabs", "navigate", "inspect", "read", "click", "fill", "press", "select"]
+Operation = Literal["tabs", "navigate", "inspect", "read", "click", "fill", "press", "select", "upload", "set_files"]
 
 
 async def resume_login(page):
@@ -49,18 +54,66 @@ def exact_page(context, site):
     return pages[0]
 
 
-async def browser_operation(context, operation: Operation, *, site=None, url=None, selector=None, value=None):
-    result = await _browser_operation(context, operation, site=site, url=url, selector=selector, value=value)
+async def upload_file(page, site, selector, file_path):
+    if not file_path:
+        raise ValueError("Upload requires an absolute file_path.")
+    path = Path(file_path)
+    if not path.is_absolute() or not path.is_file():
+        raise ValueError("file_path must be an absolute path to an existing regular file.")
+
+    targets = []
+    for frame in page.frames:
+        locator = frame.locator(selector or 'input[type="file"]')
+        count = await locator.count()
+        if count > 1 or (count and targets):
+            raise ValueError("Multiple upload targets matched. Specify a unique selector.")
+        if count:
+            targets.append(locator)
+    if not targets:
+        raise ValueError("No upload target matched in the selected page or its frames.")
+    target = targets[0]
+    is_input = await target.evaluate("e => e.matches('input[type=file]')")
+    if page.url != site:
+        raise RuntimeError("The selected tab changed before the upload.")
+
+    if is_input:
+        if await target.is_disabled():
+            raise ValueError("The file input is disabled.")
+        try:
+            await target.set_input_files(path, timeout=5000)
+        except Error as exc:
+            # Older CDP backends may lack the path-based method entirely.
+            message = str(exc)
+            if "DOM.setFileInputFiles" not in message or "wasn't found" not in message:
+                raise
+            await target.set_input_files({
+                "name": path.name,
+                "mimeType": mimetypes.guess_type(path.name)[0] or "application/octet-stream",
+                "buffer": await asyncio.to_thread(path.read_bytes),
+            }, timeout=5000)
+        state = "file_selected"
+    else:
+        await target.drop({"files": [path]}, timeout=5000)
+        state = "drop_dispatched"
+    return {"url": page.url, "filename": path.name, "state": state}
+
+
+async def browser_operation(context, operation: Operation, *, site=None, url=None, selector=None, value=None, file_path=None):
+    result = await _browser_operation(context, operation, site=site, url=url, selector=selector, value=value, file_path=file_path)
     pages = [p for p in context.pages if p.url == result.get("url")]
     if len(pages) == 1:
         await remember_page(pages[0], previous_url=site if operation != "navigate" else None)
     return result
 
 
-async def _browser_operation(context, operation: Operation, *, site=None, url=None, selector=None, value=None):
+async def _browser_operation(context, operation: Operation, *, site=None, url=None, selector=None, value=None, file_path=None):
     """Keep tabs open across calls; use the same context for every destination."""
     if operation == "tabs":
         return {"tabs": [{"url": p.url, "title": await p.title(), **await tab_marker(p)} for p in context.pages]}
+    if operation in {"upload", "set_files"}:
+        page = exact_page(context, site)
+        await prepare_page(page)
+        return await upload_file(page, site, selector, file_path)
     if operation == "navigate":
         web_url(url)
         if site:

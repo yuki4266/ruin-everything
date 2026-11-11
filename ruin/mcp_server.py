@@ -80,7 +80,7 @@ The fixed Chrome profile restores the previous session; sites control expiry.
     @server.tool(annotations=ToolAnnotations(destructiveHint=True, idempotentHint=False))
     async def ruin_browser(
         operation: Operation, site: str | None = None, url: str | None = None,
-        selector: str | None = None, value: str | None = None,
+        selector: str | None = None, value: str | None = None, file_path: str | None = None,
     ) -> dict[str, Any]:
         """Default universal browser agent connected to local Chrome via CDP (port 9222).
         Use this tool for ANY web browsing, navigation, DOM interaction, form filling,
@@ -95,6 +95,9 @@ The fixed Chrome profile restores the previous session; sites control expiry.
         click, fill, press and select require a unique visible Playwright
         selector, e.g. role=button[name="Continue"]. value supplies text, a key, or an option
         value. Clicks and Enter use the Ruin executor. Tabs and existing sessions stay open.
+        upload and set_files take an absolute local file_path. Omit selector for a unique file
+        input across all frames, including hidden inputs, or select a specific input or drop zone.
+        The returned state describes browser delivery. Check the site's attachment or receipt.
         Keep passwords out of arguments. Site-specific helpers are optional adapters.
         On Duke SSO and Duo, automatically advance already-filled login fields and
         device-trust controls, then wait 15 seconds before handing off remaining
@@ -103,7 +106,7 @@ The fixed Chrome profile restores the previous session; sites control expiry.
         setup, bounded password retries and password recovery in the selected tenant.
         """
         async with browser_context(PROFILE, args.cdp) as context:
-            return await browser_operation(context, operation, site=site, url=url, selector=selector, value=value)
+            return await browser_operation(context, operation, site=site, url=url, selector=selector, value=value, file_path=file_path)
 
     @server.tool(annotations=ToolAnnotations(destructiveHint=True, idempotentHint=False))
     async def ruin_action(site: str, button: str | None = None) -> ActionResult:

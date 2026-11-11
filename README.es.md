@@ -38,6 +38,12 @@ El agente llega a una pantalla de acceso. Aparece un código en el correo. Tras 
 
 La navegación general usa `ruin_browser`; los sitios de abajo son ejemplos de automatización adicional. El agente planifica la tarea y Ruin ejecuta las acciones en el navegador.
 
+### Adjuntar un archivo local
+
+Llama a `ruin_browser(operation="upload")` o a su alias `set_files` con la URL exacta de la pestaña en `site` y la ruta absoluta en `file_path`. En el panel A, puedes omitir `selector` si hay un único campo de archivo entre la página y todos sus marcos. Si hay varios, indica el campo deseado. El panel B muestra también cómo seleccionar una zona de arrastre. Las pruebas de navegador verifican ambas vías, incluido un campo oculto en un marco anidado.
+
+<img src="docs/figures/upload.svg" alt="El archivo local llega al campo o a la zona de arrastre seleccionados. El sitio muestra el adjunto antes del envío." width="100%">
+
 <a id="quickstart"></a>
 <a id="use-a-shared-local-chrome-window"></a>
 

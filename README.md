@@ -38,6 +38,12 @@ The agent reaches a login page. A code lands in your inbox. A challenge appears 
 
 General browsing works through `ruin_browser`; the named sites below are examples of extra automation. The agent plans the task; Ruin runs its browser actions.
 
+### Attach a local file
+
+Pass the exact tab URL as `site` and an absolute `file_path` to `ruin_browser(operation="upload")` or its alias `set_files`. As panel A shows, you can omit `selector` when exactly one file input exists across the page and its frames. For a form with multiple fields, select the intended input. Panel B shows the explicit drop-area route. Browser tests verify both paths, including a hidden input in a nested frame.
+
+<img src="docs/figures/upload.svg" alt="A local file reaches one selected input or drop area. The site displays the attachment before submission." width="100%">
+
 <a id="quickstart"></a>
 <a id="use-a-shared-local-chrome-window"></a>
 

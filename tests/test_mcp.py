@@ -51,6 +51,15 @@ class ReceiptMCP(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(agent.url, "https://ordinary.test/next")
                     self.assertEqual(len(context.pages), 2)
                     self.assertEqual(page.url, site)
+                    pdf = Path(temp) / "sample.pdf"
+                    pdf.write_bytes(b"%PDF-1.7")
+                    await agent.set_content('<input type="file" hidden>')
+                    upload = await client.call_tool("ruin_browser", {
+                        "operation": "set_files", "site": agent.url, "file_path": str(pdf),
+                    })
+                    self.assertFalse(upload.isError, upload.content)
+                    self.assertEqual(upload.structuredContent["state"], "file_selected")
+                    self.assertEqual(await agent.locator("input").evaluate("e => e.files[0].name"), pdf.name)
                     registration = await client.call_tool("ruin_auto_register", {"site": site})
                     self.assertEqual(registration.structuredContent["state"], "no_match")
                     inspect = "inspect_application_challenge"

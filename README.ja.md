@@ -38,6 +38,12 @@ Ruin Everything は、**ブラウザーエージェントのためのローカ�
 
 一般的なブラウザー操作の入口は `ruin_browser`。以下のサイトは追加対応の例です。エージェントが作業を計画し、Ruin がブラウザー操作を実行します。
 
+### ローカルファイルの添付
+
+`ruin_browser(operation="upload")` または別名の `set_files` に、現在のタブの完全な URL を `site`、ファイルの絶対パスを `file_path` として渡します。図 A のように、ページと全フレームにファイル入力欄が一つだけあれば `selector` は省略できます。複数ある場合は対象を指定します。図 B にはドロップ領域を指定する場合も示しています。ブラウザーテストで両方の経路と入れ子フレーム内の非表示入力欄を検証しています。
+
+<img src="docs/figures/upload.svg" alt="ローカルファイルを入力欄またはドロップ領域に渡し、送信前にサイト上の添付名を確認します。" width="100%">
+
 <a id="quickstart"></a>
 <a id="use-a-shared-local-chrome-window"></a>
 

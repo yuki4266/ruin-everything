@@ -38,6 +38,12 @@ Ruin Everything 是 **浏览器 Agent 的本地 Chrome 运行时**。用人话�
 
 通用网页操作统一走 `ruin_browser`；下面列的网站有额外适配。Agent 负责安排任务，Ruin 负责执行浏览器动作。
 
+### 上传本地文件
+
+调用 `ruin_browser(operation="upload")` 或别名 `set_files` 时，以 `site` 指定当前标签页的完整网址，并通过 `file_path` 传入绝对路径。图 A 中，页面及其所有嵌套框架只有一个文件输入框时，可省略 `selector`。有多个时须指定目标。图 B 展示显式指定拖放区的操作。浏览器测试覆盖了这两条路径，包括嵌套框架中的隐藏输入框。
+
+<img src="docs/figures/upload.svg" alt="本地文件交给指定的文件输入框或拖放区，提交前核对网站显示的附件。" width="100%">
+
 <a id="quickstart"></a>
 <a id="use-a-shared-local-chrome-window"></a>
 

@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from playwright.async_api import async_playwright
+from playwright.async_api import Error, Locator, async_playwright
 
 from ruin.browser.universal import browser_operation
 
@@ -26,6 +26,8 @@ class UniversalBrowserTests(unittest.IsolatedAsyncioTestCase):
             <a href="https://another.test/home">Other site</a>
         '''))
         self.page = await self.context.new_page()
+        self.pdf = Path(temp) / "sample résumé.pdf"
+        self.pdf.write_bytes(b"%PDF-1.7\nfixture")
 
     async def test_background_navigation_preserves_blank_tab_and_session(self):
         await self.context.add_cookies([{"name": "session", "value": "fixture", "url": "https://ordinary.test"}])
@@ -91,3 +93,58 @@ class UniversalBrowserTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(ValueError):
                 await browser_operation(self.context, "navigate", url=url)
         self.assertEqual(self.page.url, "about:blank")
+
+    async def test_upload_hidden_nested_frame_and_events(self):
+        await self.page.goto("https://ordinary.test/upload")
+        await self.page.set_content('<iframe src="https://another.test/form"></iframe>')
+        child = self.page.frames[1]
+        await child.set_content('<iframe srcdoc="<input type=file hidden>"></iframe>')
+        nested = child.child_frames[0]
+        field = nested.locator("input")
+        await field.evaluate("""e => {
+            window.events = []
+            for (const type of ['input','change']) e.addEventListener(type, () => events.push(type))
+        }""")
+        result = await browser_operation(self.context, "upload", site=self.page.url, file_path=str(self.pdf))
+        self.assertEqual(result, {"state": "file_selected", "url": self.page.url, "filename": self.pdf.name})
+        self.assertEqual(await nested.evaluate("events"), ["input", "change"])
+        self.assertEqual(await field.evaluate("e => e.files[0].text()"), self.pdf.read_text())
+
+    async def test_upload_target_validation_and_explicit_drop(self):
+        await self.page.set_content("""
+            <input type=file><iframe srcdoc='<input type=file>'></iframe>
+            <div id="zone" ondragover="event.preventDefault()"
+                 ondrop="event.preventDefault();window.dropped = event.dataTransfer.files[0]">Drop here</div>
+        """)
+        opts = dict(site=self.page.url, file_path=str(self.pdf))
+        with self.assertRaisesRegex(ValueError, "Multiple upload targets"):
+            await browser_operation(self.context, "upload", **opts)
+        for selector in ("#missing", "input:disabled"):
+            with self.assertRaisesRegex(ValueError, "No upload target"):
+                await browser_operation(self.context, "upload", selector=selector, **opts)
+        result = await browser_operation(self.context, "set_files", selector="#zone", **opts)
+        self.assertEqual(result["state"], "drop_dispatched")
+        self.assertEqual(await self.page.evaluate("dropped.name"), self.pdf.name)
+        self.assertEqual(await self.page.evaluate("dropped.text()"), self.pdf.read_text())
+        self.assertEqual(await self.page.locator("input").evaluate("e => e.files.length"), 0)
+
+    async def test_file_input_compatibility_and_permissions(self):
+        await self.page.set_content('<input type=file>')
+        opts = dict(site=self.page.url, file_path=str(self.pdf))
+        native = Locator.set_input_files
+        async def unsupported(locator, files, **kwargs):
+            if isinstance(files, Path):
+                raise Error("Protocol error: 'DOM.setFileInputFiles' wasn't found")
+            return await native(locator, files, **kwargs)
+        with patch.object(Locator, "set_input_files", unsupported):
+            await browser_operation(self.context, "upload", **opts)
+        field = self.page.locator("input")
+        self.assertEqual(await field.evaluate("e => e.files[0].type"), "application/pdf")
+        self.assertEqual(await field.evaluate("e => e.files[0].text()"), self.pdf.read_text())
+        with patch.object(Locator, "set_input_files", side_effect=Error("Permission denied")) as denied:
+            with self.assertRaisesRegex(Error, "Permission denied"):
+                await browser_operation(self.context, "upload", **opts)
+            self.assertEqual(denied.await_count, 1)
+        for path in ("sample.pdf", str(self.pdf.parent), str(self.pdf.with_suffix(".missing")), None):
+            with self.assertRaises(ValueError):
+                await browser_operation(self.context, "upload", site=self.page.url, file_path=path)
