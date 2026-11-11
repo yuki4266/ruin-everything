@@ -114,6 +114,12 @@ La compatibilidad corresponde a flujos concretos. Algunos retos visuales necesit
 
 Para enviar un formulario autorizado, usa `ruin_action` con la URL actual exacta y el texto visible del botón. Comprueba si aparece una verificación tras el clic. **Superar un reto es un paso; el comprobante del sitio demuestra el envío.**
 
+### Introducir un código en varias casillas
+
+El panel A muestra cómo Ruin identifica el SMS o el correo de Outlook compatible con la solicitud. El panel B muestra cómo pega el código y completa las casillas que faltan. La verificación telefónica de Ctrip se comprobó en el sitio real. Ambas vías de entrada se probaron con react-otp-input 3.1.1.
+
+<img src="docs/figures/split-otp.svg" alt="Ruin pega el código o completa las casillas individualmente y comprueba su valor conjunto en la pestaña original." width="100%">
+
 ## Seis herramientas. Un navegador compartido.
 
 <img src="docs/figures/challenge-routing.svg" alt="La URL exacta del puesto permite identificar el proveedor de verificación y conservar el formulario original." width="100%">

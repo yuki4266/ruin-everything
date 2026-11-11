@@ -63,7 +63,7 @@ async def run(args):
             if len(tabs) != 1:
                 raise RuntimeError("Open exactly one tab at the selected SMS verification URL.")
             if not await verify_sms(tabs[0], args.site, args.requested_at):
-                raise RuntimeError("No single visible SMS code field was found.")
+                raise RuntimeError("Could not verify entry in the SMS code fields. Check the original tab.")
             print("Filled the code field in the original tab.")
             return
         if args.task == "browser":

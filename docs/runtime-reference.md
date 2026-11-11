@@ -172,7 +172,11 @@ On supported English Workday tenant forms, the CLI browser task tries the local 
 
 The adapter selects Sign In inside the open Workday dialog, even when the page header also offers Sign In. For a six-digit email challenge, it checks for one fresh Outlook message with a link to the same tenant and one labeled code, enters the code in the original tab, then waits for visible activation confirmation. The Jain Global dialog controls were inspected in shared Chrome. The six-digit activation path was verified with a simulated mailbox.
 
-For a code sent to an existing tab, use the request time recorded when the site sent the SMS. Optionally add `sms_senders` to the local identity file, mapping an exact hostname to its dedicated sender string. Plain six-digit codes must come from that sender. Domain-bound messages work without a sender entry. Both paths require read access to the Mac Messages database.
+For a code sent to an existing tab, use the request time recorded when the site sent the SMS. Optionally add `sms_senders` to the local identity file, mapping an exact hostname to its dedicated sender string. Ruin recognizes domain-bound messages, plain six-digit codes from a configured sender, and the Ctrip Recruiting SMS template on `careers.ctrip.com`. It reads incoming Messages rows after the request time, including attributed text decoded with pytypedstream. Messages access is required.
+
+The split-input figure shows the two input paths. The original tab receives a paste event for one group of code cells. If needed, Ruin focuses the differing cells and sends input events, then checks the joined value. Supported Greenhouse and Workday Outlook flows use the same writer. The Ctrip phone check was observed live. Paste and individual updates were also verified against react-otp-input 3.1.1. [Component documentation](https://github.com/devfolioco/react-otp-input) · [Messages archive reader](https://github.com/dgelessus/python-typedstream).
+
+<img src="figures/split-otp.svg" alt="A matching code reaches one verification form by paste or individual cell updates." width="100%">
 
 ```sh
 ruin verify-sms --site "$VERIFICATION_URL" --requested-at "$REQUEST_UNIX_SECONDS"

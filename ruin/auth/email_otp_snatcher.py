@@ -13,6 +13,7 @@ from playwright.async_api import Page
 
 from ruin.browser.background import prepare_page, new_agent_page
 from ruin.browser.actions import click
+from ruin.auth.otp_fields import OTP_INPUTS, fill_otp
 from ruin.rules_loader import BUNDLED, load_rules, validate
 
 OUTLOOK = "https://outlook.office.com/mail/"
@@ -115,7 +116,7 @@ async def verification_prompt_visible(app: Page, rules) -> bool:
     group = app.get_by_role("group", name=re.compile("verification code was sent", re.I))
     return await group.is_visible() or (
         await app.get_by_text(PROMPT).first.is_visible()
-        and await app.locator(rules["greenhouse"]["code_field"]).count() > 0
+        and await app.locator(rules["greenhouse"]["code_field"]).or_(app.locator(OTP_INPUTS)).count() > 0
     )
 
 
@@ -170,20 +171,16 @@ async def verify_application(context, url: str, company: str, timeout: int, dire
                         await click(app, resend)
                     code = await receive(mail, baseline, company, started, rules,
                                          required_job=key[2] if resume_existing and not attempt else None)
-                    if job_key(app.url) != key:
+                    verification_url = app.url
+                    if job_key(verification_url) != key:
                         raise RuntimeError("The original job tab changed.")
                     scoped = await group.is_visible()
-                    fields = group.get_by_role("textbox") if scoped else app.locator(rules["greenhouse"]["code_field"])
-                    handles = await fields.element_handles()
-                    if len(handles) == 1:
-                        await handles[0].fill(code)
-                    elif len(handles) == len(code) and (scoped or all(
-                        [await h.get_attribute("maxlength") == "1" for h in handles]
-                    )):
-                        for handle, char in zip(handles, code):
-                            await handle.fill(char)
+                    if scoped:
+                        fields = group.get_by_role("textbox").or_(group.get_by_role("spinbutton"))
                     else:
-                        raise RuntimeError("Unrecognized code fields. The application is still open.")
+                        fields = app.locator(rules["greenhouse"]["code_field"]).or_(app.locator(OTP_INPUTS))
+                    if not await fill_otp(fields, code, verification_url, labeled_group=scoped):
+                        raise RuntimeError("Could not verify code entry. Check the original application tab.")
                     if job_key(app.url) != key:
                         raise RuntimeError("The original job tab changed after filling.")
                     receipt = app.get_by_text(RECEIPT).first

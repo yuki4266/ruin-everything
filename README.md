@@ -114,6 +114,12 @@ These are specific supported flows. Puzzle handling can require a local Ollama v
 
 For authorized form submissions, use `ruin_action` with the exact current URL and visible button label. It checks for verification after the click. **A cleared challenge is a step forward; the site's receipt is the evidence of submission.**
 
+### Enter a code across several boxes
+
+Panel A shows how Ruin matches an incoming SMS or supported Outlook message. Panel B shows how it pastes the code into a split form and fills any remaining cells. The Ctrip phone check was verified live. Both input paths were tested with react-otp-input 3.1.1.
+
+<img src="docs/figures/split-otp.svg" alt="A matched code is pasted or entered cell by cell and checked in the original tab." width="100%">
+
 ## Six tools. One shared browser.
 
 <img src="docs/figures/challenge-routing.svg" alt="The exact job URL routes an observed challenge to its provider while preserving the original form." width="100%">

@@ -10,6 +10,7 @@ from playwright.async_api import TimeoutError as BrowserTimeout
 from ruin.browser.background import prepare_page, new_agent_page
 from ruin.browser.actions import click
 from ruin.auth.auto_registrar import SIGNUP, signup
+from ruin.auth.otp_fields import OTP_INPUTS, fill_otp
 from ruin.auth.email_otp_snatcher import OUTLOOK, mailbox_lock, rows
 from ruin.auth.vault import origin_of
 from ruin.config import PROFILE
@@ -23,7 +24,7 @@ ACTIVATE = re.compile(r"activate|activation|verification code|verify.{0,20}(?:em
 
 
 EMAIL_CODE = re.compile(r"(?:verification|activation|security) code(?: is)?[\s:–-]*(\d{6})(?!\d)", re.I)
-CODE_FIELD = 'input[autocomplete=one-time-code]:visible,input[data-automation-id=verificationCode]:visible'
+CODE_FIELD = OTP_INPUTS + ', input[data-automation-id=verificationCode]:visible'
 CONFIRMED = re.compile(r"(?:email|account).{0,35}(?:has been |successfully |is now )(?:activated|verified)", re.I)
 
 
@@ -81,9 +82,11 @@ async def activation_message(mail, site, started, rules, accept_code):
 
 
 async def verify_email_code(page, site, value):
-    if origin_of(page.url) != origin_of(site):
+    verification_url = page.url
+    if origin_of(verification_url) != origin_of(site):
         raise RuntimeError("The Workday verification destination changed.")
-    field = await page.locator(CODE_FIELD).element_handle(timeout=5000)
+    fields = page.locator(CODE_FIELD)
+    field = await fields.first.element_handle(timeout=5000)
     group = await field.evaluate_handle("e => e.closest('form, [role=dialog]')")
     if group.as_element() is None:
         raise RuntimeError("The Workday email verification form changed.")
@@ -93,7 +96,8 @@ async def verify_email_code(page, site, value):
     if len(buttons) != 1:
         raise RuntimeError("No unique email verification action in the Workday form.")
     await guard_account_button(buttons[0], site)
-    await field.fill(value)
+    if not await fill_otp(fields, value, verification_url):
+        raise RuntimeError("Could not verify code entry in the Workday form.")
     await click(page, buttons[0])
 
 
@@ -216,7 +220,7 @@ async def workday_account(page, site, profile, timeout=60, allow_create=True):
             async with asyncio.timeout(timeout):
                 await mail.goto(OUTLOOK, wait_until="domcontentloaded")
                 kind, value = await activation_message(mail, site, started, await load_rules(),
-                                                       await code_field.count() == 1)
+                                                       await code_field.count() in (1, 6))
                 if origin_of(page.url) != origin_of(site):
                     raise RuntimeError("The original Workday tab changed.")
                 if kind == "link":

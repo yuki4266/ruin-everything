@@ -131,6 +131,7 @@ The fixed Chrome profile restores the previous session; sites control expiry.
         Credentials come from the local profile."""
         from playwright.async_api import TimeoutError as BrowserTimeout
         from ruin.auth.auto_registrar import signup, fill_contact_phone, verify_sms
+        from ruin.auth.otp_fields import OTP_INPUTS, OTP_PROMPT
         from ruin.auth.feishu import feishu_slider
         from ruin.auth.yidun import moka_slider
         from ruin.auth.workday import workday_account
@@ -167,7 +168,12 @@ The fixed Chrome profile restores the previous session; sites control expiry.
             requested = await signup(tabs[0], site, profile)
             if requested is not None:
                 try:
-                    await tabs[0].locator('input[autocomplete=one-time-code]:visible').first.wait_for(timeout=3000)
+                    page = tabs[0]
+                    dialog = page.locator('dialog, [role=dialog]').filter(has_text=OTP_PROMPT)
+                    group = page.get_by_role('group', name=OTP_PROMPT)
+                    await page.locator(OTP_INPUTS).or_(group.locator('input:visible')).or_(
+                        dialog.locator('input:visible')
+                    ).first.wait_for(timeout=3000)
                 except BrowserTimeout:
                     return Registration(state="submitted")
                 return Registration(state="submitted", sms_filled=await verify_sms(tabs[0], site, requested))

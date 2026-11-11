@@ -96,33 +96,76 @@ async def signup(page, url, profile):
     return requested
 
 
+def message_body(text, archive):
+    """Read the attributed string's text run, without deserializing archive objects."""
+    if text or not archive:
+        return text or ""
+    from typedstream import stream
+
+    if len(archive) > 256_000:
+        return ""
+    try:
+        with stream.TypedStreamReader.from_data(archive) as reader:
+            attributed = False
+            for event in reader:
+                if not isinstance(event, stream.SingleClass):
+                    continue
+                if event.name == b"NSAttributedString":
+                    attributed = True
+                if attributed and event.name == b"NSString":
+                    break
+            else:
+                return ""
+            for item in reader:
+                if isinstance(item, stream.EndObject):
+                    break
+                if isinstance(item, stream.BeginTypedValues) and item.encodings == [b"+"]:
+                    raw = next(reader, None)
+                    return raw.decode("utf-8") if isinstance(raw, bytes) else ""
+    except (stream.InvalidTypedStreamError, UnicodeError, EOFError, IndexError, ValueError):
+        pass
+    return ""
+
+
 def sms_code(database, host, requested, sender=None):
-    """Read a fresh domain-bound SMS using the @host #code format."""
+    """Select the newest matching incoming message since this site's request."""
     since = int((requested - 978307200) * 1_000_000_000)
-    pattern = re.compile(r"(?:^|\n)@" + re.escape(host) + r" #(\d{4,8})\s*$", re.I)
+    domain = re.compile(r"(?:^|\n)@" + re.escape(host) + r" #([0-9]{4,8})\s*$", re.I)
     with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)) as db:
-        rows = db.execute("""SELECT text FROM message WHERE is_from_me=0 AND date >= ?
-                             AND text IS NOT NULL ORDER BY date DESC LIMIT 100""", (since,))
-        for (body,) in rows:
-            match = pattern.search(body)
+        columns = {row[1] for row in db.execute("PRAGMA table_info(message)")}
+        archive = "m.attributedBody" if "attributedBody" in columns else "NULL"
+        handle = "h.id" if sender else "NULL"
+        join = "LEFT JOIN handle h ON h.ROWID=m.handle_id" if sender else ""
+        rows = db.execute(f"""SELECT m.text, {archive}, {handle} FROM message m {join}
+                             WHERE m.is_from_me=0 AND m.date>=?
+                             ORDER BY m.date DESC, m.ROWID DESC LIMIT 100""", (since,))
+        for text, data, handle_id in rows:
+            body = message_body(text, data)
+            match = domain.search(body)
             if match:
                 return match[1]
-        if sender:
-            row = db.execute("""SELECT message.text FROM message JOIN handle ON handle.ROWID=message.handle_id
-                                WHERE handle.id=? AND message.is_from_me=0 AND message.date>=?
-                                ORDER BY message.date DESC LIMIT 1""", (sender, since)).fetchone()
-            if row and row[0] and re.search(r"\b(?:code|OTP)\b", row[0], re.I):
-                digits = re.findall(r"(?<!\d)\d{6}(?!\d)", row[0])
-                if len(digits) == 1 and not re.search(r"(?:^|\n)@\S+", row[0]):
+            if re.search(r"(?:^|\n)@\S+", body):
+                continue
+            if sender and handle_id == sender and re.search(r"\b(?:code|OTP)\b|验证码", body, re.I):
+                digits = re.findall(r"(?<!\d)[0-9]{6}(?!\d)", body)
+                if len(digits) == 1:
                     return digits[0]
+            if host == "careers.ctrip.com" and (not sender or sender == handle_id):
+                match = re.match(r"^【携程】携程招聘\s*验证码[：:]\s*([0-9]{6})(?!\d)", body)
+                if match:
+                    return match[1]
     return None
 
 
 async def verify_sms(page, url, requested):
-    field = page.locator('input[autocomplete=one-time-code]:visible')
-    if await field.count() != 1:
+    from .otp_fields import fill_otp, sms_fields
+
+    verification_url = page.url
+    if origin_of(verification_url) != origin_of(url):
+        raise RuntimeError("The verification origin changed.")
+    fields, labeled = await sms_fields(page)
+    if not await fields.count():
         return False
-    handle = await field.element_handle()
     database = Path.home() / "Library/Messages/chat.db"
     host = urlsplit(url).hostname
     senders = identity().get("sms_senders", {})
@@ -132,14 +175,13 @@ async def verify_sms(page, url, requested):
     if sender and list(senders.values()).count(sender) != 1:
         raise ValueError("A plain-code SMS sender must identify exactly one configured host.")
     for _ in range(30):
-        if origin_of(page.url) != origin_of(url):
+        if page.url != verification_url:
             raise RuntimeError("The verification page changed.")
         try:
             code = await asyncio.to_thread(sms_code, database, host, requested, sender)
         except sqlite3.Error:
             raise RuntimeError("Messages is unavailable. Complete verification in the open tab.") from None
         if code:
-            await handle.fill(code)
-            return True
+            return await fill_otp(fields, code, verification_url, labeled_group=labeled)
         await asyncio.sleep(1)
     raise RuntimeError("No matching SMS arrived. Complete verification in the open tab.")
