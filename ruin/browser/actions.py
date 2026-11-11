@@ -55,7 +55,8 @@ async def settle(page, site):
                 attempts = attempt
                 acted = await solve(page, widget, site)
                 reason = (
-                    "Widget still visible after gesture." if acted else "Could not locate a unique target."
+                    "Widget still visible after gesture." if acted else
+                    f"No reliable gesture for {widget.kind}; the task may be unsupported, changed, or uncertain."
                 )
                 await asyncio.sleep(1.5)
             except (Error, TimeoutError, OSError, ValueError, RuntimeError, KeyError) as exc:

@@ -13,6 +13,17 @@
 
 [Set up Chrome](#use-a-shared-local-chrome-window) · [Connect an MCP client](#connect-an-agent-over-mcp) · [See what has been tested](#verification) · [Try your first MCP call](#first-mcp-call) · [Contribute](#community)
 
+## Nested hCaptcha challenges
+
+Panel A shows provider-specific detection before generic slider heuristics: visible hCaptcha grids use indexed `.task-image` handles, canvas tasks use image-relative points or two-dimensional drags, and an unchecked checkbox uses its control center. Hidden ancestor frames are excluded. Unsupported or uncertain tasks stay pending with a specific reason; they no longer report a misleading uniqueness failure.
+
+Panel B shows coordinate conversion through every iframe content origin, including borders, padding, scrolling and positive axis-aligned CSS scale. Input uses Playwright's Chromium mouse events in top-level viewport pixels, then the widget's `.button-submit`. Panel C separates challenge continuation from the site's application receipt; the executor does not replay a pending form submission.
+
+<img src="docs/figures/hcaptcha.svg" alt="Nested iCIMS and hCaptcha frames, indexed grid and canvas routes, coordinate conversion through frame content origins, and the boundary between widget continuation and an application receipt." width="100%">
+
+Verification: seven new isolated Chromium tests cover nested cross-origin grids, hidden duplicates and ancestors, checkbox input, two-dimensional drag, scaled canvas clicks, and uncertain/unsupported tasks. Seven existing post-action tests also pass. On the original Planview 5149 tab, a canvas drag had been misclassified as a horizontal slider; the corrected executor completed an agent-reviewed drag and the site redirected to iCIMS login. The local Ollama model remains the default; this live run does not establish unattended model accuracy. Login rejected the available credential, so no resume upload or application receipt is claimed. This checkout is updated; reconnect an installed MCP server to load it. No PyPI release is claimed.
+
+
 ## Universal browser automation
 
 Use `ruin_browser` as the default entry point for any website. Panel A shows the shared local runtime; panel B shows tab selection. `navigate` reuses an exact destination tab, otherwise a single blank tab, otherwise opens a new tab. Give `site` to select a current tab explicitly. If the task names a site without a URL, navigate to a search engine and locate it without waiting for the user to open a page.

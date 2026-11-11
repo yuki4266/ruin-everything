@@ -52,8 +52,21 @@ class Puzzle:
 
 async def detect(page, stack: AsyncExitStack):
     fallback = None
-    for frame in page.frames:
+    # An open challenge wins over its still-mounted checkbox and form widgets.
+    frames = sorted(page.frames, key=lambda f: 'frame=challenge' not in f.url)
+    for frame in frames:
         if frame.parent_frame:
+            ancestor = frame.parent_frame
+            hidden = False
+            while ancestor.parent_frame:
+                outer = await ancestor.frame_element()
+                stack.push_async_callback(outer.dispose)
+                if not await outer.is_visible():
+                    hidden = True
+                    break
+                ancestor = ancestor.parent_frame
+            if hidden:
+                continue
             element = await frame.frame_element()
             stack.push_async_callback(element.dispose)
             if not await element.is_visible() or not await element.evaluate("""e => {
@@ -315,7 +328,11 @@ async def solve_grid(page, widget, site):
         if cells:
             cell = await cells.get_property(str(n - 1))
             try:
-                await cell.as_element().click(timeout=2000)
+                if widget.kind == "hcaptcha_grid":
+                    if not await viewport_click(page, cell.as_element(), site):
+                        return False
+                else:
+                    await cell.as_element().click(timeout=2000)
             finally:
                 await cell.dispose()
         else:
@@ -329,17 +346,134 @@ async def solve_grid(page, widget, site):
                 timeout=2000,
             )
     if page.url == site:
+        if widget.kind == "hcaptcha_grid":
+            return await viewport_click(page, parts["verify"], site)
         await parts["verify"].click(timeout=2000)
         return True
     return False
 
 
+async def viewport_click(page, element, site):
+    """Playwright mouse uses CDP Input events in top-level CSS viewport pixels."""
+    if page.url != site or not await element.is_visible():
+        return False
+    await element.scroll_into_view_if_needed(timeout=2000)
+    box = await viewport_box(element)
+    if not box or page.url != site:
+        return False
+    await viewport_point(page, box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    return True
+
+
+async def viewport_point(page, x, y):
+    # Let Chromium update its OOPIF hit-test data after scrolling/screenshotting
+    # before pressing. Otherwise the first press can be delivered to the parent.
+    await page.mouse.move(x, y)
+    await asyncio.sleep(0.1)
+    await page.mouse.click(x, y, delay=50)
+
+
+async def viewport_box(element):
+    """Map local CSS bounds through all iframe content origins into the viewport.
+
+    Chromium's cross-process bounding boxes can omit iframe borders. Compute
+    each content origin explicitly, including scrolling, borders and CSS scale.
+    """
+    box = await element.evaluate("e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}}")
+    frame = await element.owner_frame()
+    while frame and frame.parent_frame:
+        outer = await frame.frame_element()
+        try:
+            metrics = await outer.evaluate("""e=>{
+                const r=e.getBoundingClientRect(), s=getComputedStyle(e);
+                const sx=r.width/e.offsetWidth, sy=r.height/e.offsetHeight;
+                return {x:r.x+(e.clientLeft+parseFloat(s.paddingLeft))*sx,
+                        y:r.y+(e.clientTop+parseFloat(s.paddingTop))*sy,sx,sy};
+            }""")
+        finally:
+            await outer.dispose()
+        box = {"x": metrics["x"] + box["x"] * metrics["sx"],
+               "y": metrics["y"] + box["y"] * metrics["sy"],
+               "width": box["width"] * metrics["sx"], "height": box["height"] * metrics["sy"]}
+        frame = frame.parent_frame
+    return box if all(math.isfinite(v) for v in box.values()) and box["width"] > 0 and box["height"] > 0 else None
+
+
+async def solve_hcaptcha_drag(page, widget, site):
+    board = widget.parts["board"]
+    image = await board.screenshot(timeout=2500)
+    prompt = (await widget.parts["scope"].inner_text()).strip()[:450]
+    keys = ("from_x", "from_y", "to_x", "to_y")
+    schema = {"type": "object", "properties": {k: {"type": "number"} for k in keys},
+              "required": list(keys)}
+    answer = await asyncio.to_thread(
+        visual_answer, image,
+        f"The puzzle asks: {prompt}. Identify the correct movable item and its destination. "
+        "Return their center coordinates as fractions of image width and height in "
+        "from_x, from_y, to_x, to_y. All zeros if uncertain.", schema,
+    )
+    if any(type(answer.get(k)) not in (int, float) or not 0 < answer[k] < 1 for k in keys):
+        return False
+    if page.url != site or image != await board.screenshot(timeout=2500):
+        return False
+    box = await viewport_box(board)
+    if not box:
+        return False
+    x, y = box["x"] + answer["from_x"] * box["width"], box["y"] + answer["from_y"] * box["height"]
+    tx, ty = box["x"] + answer["to_x"] * box["width"], box["y"] + answer["to_y"] * box["height"]
+    await page.mouse.move(x, y)
+    await asyncio.sleep(0.1)
+    await page.mouse.down()
+    try:
+        for step in range(1, 25):
+            if page.url != site:
+                return False
+            await page.mouse.move(x + (tx-x)*step/24, y + (ty-y)*step/24)
+            await asyncio.sleep(0.02)
+    finally:
+        await page.mouse.up()
+    return await viewport_click(page, widget.parts["verify"], site)
+
+
+async def solve_hcaptcha_points(page, widget, site):
+    board = widget.parts["board"]
+    image = await board.screenshot(timeout=2500)
+    prompt = (await widget.parts["scope"].inner_text()).strip()[:450]
+    schema = {"type": "object", "properties": {"points": {"type": "array", "items": {
+        "type": "object", "properties": {"x": {"type": "number"}, "y": {"type": "number"}},
+        "required": ["x", "y"]}}}, "required": ["points"]}
+    answer = await asyncio.to_thread(visual_answer, image,
+        f"The puzzle asks: {prompt}. Return the centers to click as points with x and y "
+        "fractions of image width and height. Return an empty array if uncertain.", schema)
+    points = answer.get("points")
+    if (not isinstance(points, list) or not 1 <= len(points) <= 16 or
+        any(not isinstance(p, dict) or any(type(p.get(k)) not in (int, float) or not 0 < p[k] < 1
+                                           for k in ("x", "y")) for p in points)):
+        return False
+    if page.url != site or image != await board.screenshot(timeout=2500):
+        return False
+    for point in points:
+        if page.url != site:
+            return False
+        box = await viewport_box(board)
+        if not box:
+            return False
+        await viewport_point(page, box["x"] + point["x"] * box["width"], box["y"] + point["y"] * box["height"])
+    return await viewport_click(page, widget.parts["verify"], site)
+
+
 async def solve(page, widget, site):
+    if widget.kind == "hcaptcha_checkbox":
+        return await viewport_click(page, widget.parts["checkbox"], site)
+    if widget.kind == "hcaptcha_drag":
+        return await solve_hcaptcha_drag(page, widget, site)
+    if widget.kind == "hcaptcha_points":
+        return await solve_hcaptcha_points(page, widget, site)
     if widget.kind == "rotation":
         from ruin.auth.feishu import rotate
 
         return await rotate(page, widget.frame.locator(".vc-captcha-verify.whirl:visible"), site)
-    if widget.kind == "grid":
+    if widget.kind in {"grid", "hcaptcha_grid"}:
         return await solve_grid(page, widget, site)
     if widget.parts.get("knob") or widget.kind == "canvas_drag":
         return await drag(page, widget, site)

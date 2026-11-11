@@ -25,6 +25,33 @@
         const hit = e.getRootNode().elementFromPoint(r.x + r.width/2, r.y + r.height/2);
         return hit && (e === hit || e.contains(hit));
     };
+    // Provider markup takes precedence over generic slider heuristics. hCaptcha
+    // also renders two-dimensional drag tasks in a canvas, not a slider rail.
+    if (/(^|\.)hcaptcha\.com$/.test(location.hostname)) {
+        const mode = new URLSearchParams(location.hash.slice(1)).get('frame');
+        if (mode === 'checkbox') {
+            const checkbox = document.querySelector('#checkbox, [role=checkbox]');
+            if (checkbox && visible(checkbox) && checkbox.getAttribute('aria-checked') !== 'true')
+                return {kind:'hcaptcha_checkbox', scope:document.body, checkbox};
+            return null;
+        }
+        if (mode === 'challenge') {
+            const scope = document.body;
+            const verify = [...scope.querySelectorAll('.button-submit')].filter(visible);
+            const cells = [...scope.querySelectorAll('.task-image')].filter(visible);
+            if (!verify.length && !cells.length && !scope.querySelector('.challenge-container')) return null;
+            if (verify.length !== 1) return {kind:'hcaptcha_pending', scope};
+            if ([9,16].includes(cells.length))
+                return {kind:'hcaptcha_grid', scope, cells, verify:verify[0]};
+            const boards = [...scope.querySelectorAll('.challenge-container canvas')].filter(visible);
+            if (boards.length === 1 && /drag/i.test(scope.innerText))
+                return {kind:'hcaptcha_drag', scope, board:boards[0], verify:verify[0]};
+            if (boards.length === 1 && /click|select/i.test(scope.innerText))
+                return {kind:'hcaptcha_points', scope, board:boards[0], verify:verify[0]};
+            return {kind:'hcaptcha_pending', scope};
+        }
+        return null;
+    }
     let fallback = null;
     const roots = [document];
     for (const root of roots) {

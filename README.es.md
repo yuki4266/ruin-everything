@@ -13,6 +13,17 @@
 
 [Configurar Chrome](#use-a-shared-local-chrome-window) · [Conectar un cliente MCP](#connect-an-agent-over-mcp) · [Ver lo que se ha probado](#verification) · [Prueba tu primera llamada MCP](#first-mcp-call) · [Cómo contribuir](#community)
 
+## Desafíos hCaptcha anidados
+
+El panel A muestra la detección de hCaptcha antes de las reglas genéricas de deslizadores: índices explícitos de `.task-image` para cuadrículas, puntos o arrastres bidimensionales para canvas y el centro del control para casillas sin marcar. Se excluyen los marcos con ancestros ocultos. Las tareas desconocidas o inciertas quedan pendientes con un motivo específico.
+
+El panel B convierte las coordenadas a través del origen de contenido de cada iframe, incluidos bordes, relleno, desplazamiento y escala CSS positiva alineada con los ejes. Los eventos de ratón Chromium de Playwright usan píxeles del viewport superior y después pulsan `.button-submit`. El panel C distingue la continuación del desafío del recibo de solicitud; no se repite un envío pendiente.
+
+<img src="docs/figures/hcaptcha.svg" alt="Marcos iCIMS y hCaptcha anidados, rutas de cuadrícula y canvas, conversión por orígenes de contenido y distinción entre verificación y recibo de solicitud." width="100%">
+
+Verificación: pasan siete pruebas Chromium nuevas y siete pruebas existentes posteriores a la acción. En la pestaña original de Planview 5149, un arrastre bidimensional se clasificaba como deslizador horizontal. El ejecutor corregido completó un arrastre con coordenadas revisadas por el asistente y el sitio pasó al inicio de sesión de iCIMS. Ollama local sigue siendo el modelo visual predeterminado; esta prueba no demuestra precisión autónoma del modelo. El sitio rechazó la credencial disponible, por lo que no se afirma haber cargado el CV ni recibido una confirmación de solicitud. Los cambios están en este repositorio; reconecte el servidor MCP instalado para cargarlos. No se anuncia una versión nueva en PyPI.
+
+
 ## Automatización universal del navegador
 
 Usa `ruin_browser` como entrada predeterminada para cualquier sitio. El panel A muestra el entorno compartido y el B la selección de pestaña. `navigate` reutiliza una pestaña con la URL de destino; en su defecto, una única pestaña vacía; si no existe ninguna, abre otra. `site` permite elegir la pestaña actual. Si solo conoces el nombre del sitio, navega a un buscador y continúa sin esperar que el usuario abra la página.
