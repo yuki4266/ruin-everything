@@ -13,6 +13,18 @@
 
 [设置Chrome](#use-a-shared-local-chrome-window) · [连接 MCP 客户端](#connect-an-agent-over-mcp) · [查看已测试的内容](#verification) · [试用第一个 MCP 工具](#first-mcp-call) · [参与贡献](#community)
 
+## Local Auth Vault：本地凭证与会话持久化
+
+图 A：默认本地 Chrome 连接会自动启动独立的单实例监听进程；CLI 退出后仍继续运行。通过 Playwright 的 CDP 新文档注入和绑定，覆盖已有页面、新文档与嵌套跨域 iframe。提交、回车或点击登录按钮时，将非空密码与账号按 iframe 的精确 HTTPS hostname 原子写入 `~/.ruin/auth_vault.json`，权限为 `0600`。这是本地明文凭证文件，凭证值不进入工具输出，也不依赖 Chrome 的保存密码提示。
+
+图 B：浏览器操作、action 和运行中的模型任务优先查询精确域名，再查询已保存的可注册主域名记录，使用随包提供的 Public Suffix List，绝不搜索兄弟租户。单一合格登录表单通过现有 Ruin 执行器回填提交，保留后台不抢焦点行为。修改中的用户草稿、新密码表单及跨域提交被跳过；同一租户／凭证十五分钟内只自动尝试一次。运行中的模型任务最多等待手动登录 180 秒，密码表单消失后继续原任务；监听器本身不会创建或重新启动求职申请流程。
+
+图 C：`Storage.getCookies` 将包含 Session、HttpOnly 和分区 Cookie 的完整 Cookie 列表备份到 `~/.ruin/cookies_snapshot.json`，权限同为 `0600`。导航／捕获事件和五秒轮询同时保存 `localStorage` 及按标签隔离的 `sessionStorage`。新 Chrome 实例启动后恢复缺失且未过期的 Cookie、空的 Web Storage，保留浏览器现有值；sessionStorage 按原 target 或唯一完整页面 URL 匹配，歧义时跳过。恢复 localStorage 使用请求被拦截的后台临时标签。普通 CLI 重连不重放旧快照。范围不含 IndexedDB、缓存和通行密钥，服务端过期策略仍然有效。Chrome 断开后监听器自动重连；系统重启后由下一次 Ruin 连接启动。`RUIN_LOCAL_AUTH_VAULT=0` 关闭该客户端的自动启动；自定义 CDP 端口不会自动启动默认配置的监听器。
+
+<img src="docs/figures/local-auth-vault.svg" alt="嵌套页面提交将凭证写入本地保险库，精确域名匹配后由执行器登录，Cookie 和 Web Storage 快照恢复下次浏览器会话。" width="100%">
+
+验证：十二项本地测试通过，涵盖真实 Chromium、嵌套跨域表单、CLI 断开、监听器重启、浏览器重启、租户隔离、文件权限、有限重试、标签页存储隔离与等待任务续接；91 项已有回归测试通过，并复测导航竞态和后台标签行为。本机共享 Chrome 已启动监听器，但未找到此前的 Planview 5149 标签，因此不声称已上传简历或提交申请。本次为仓库更新，未发布新版 PyPI 包。实现参考 [Playwright 认证与 sessionStorage 文档](https://playwright.dev/python/docs/auth)。
+
 ## 默认后台静默执行
 
 图 A：任务页通过 CDP 焦点仿真和 active 生命周期保持交互，不将 Chrome 提升到前台。登录、验证码、邮箱和身份编辑流程中的显式 `bring_to_front` 调用已移除。新标签页使用 `Target.createTarget` 的 `background: true`，输入和视口截图在选定页面完成。焦点仿真保证渲染器可交互，验证是否通过仍由网站判断。

@@ -13,6 +13,18 @@
 
 [Chromeのセットアップ](#use-a-shared-local-chrome-window) · [MCP クライアントを接続する](#connect-an-agent-over-mcp) · [何がテストされたかを確認する](#verification) · [MCP ツールを試す](#first-mcp-call) · [貢献する](#community)
 
+## Local Auth Vault
+
+図 A：既定のローカル Chrome 接続は独立した単一リスナーを自動起動し、CLI 終了後も監視します。Playwright の CDP 初期スクリプトとバインディングで、既存ページ・新規文書・入れ子のクロスオリジン iframe を対象にします。送信、Enter、ログインボタンから非空のパスワードとユーザー名を正確な HTTPS ホスト名ごとに `~/.ruin/auth_vault.json` へ原子的に保存します。権限は `0600`、ローカル平文保存で、ツール出力に値を含めず Chrome の保存確認も不要です。
+
+図 B：ブラウザー操作、action、実行中のモデルタスクは正確なホスト名、次に保存済み登録可能ドメインを検索します。同梱 Public Suffix List を使い、兄弟テナントを検索しません。既存実行器で単一のログインフォームを入力・送信し、前面を奪いません。編集中の入力、新パスワード、別オリジンへの送信は対象外です。同じテナント／認証情報は十五分に一度だけ試行します。実行中タスクは手動ログインを最大 180 秒待って再開しますが、リスナー単体では応募作業を開始しません。
+
+図 C：全 Cookie（Session、HttpOnly、パーティション付き）と localStorage、タブ別 sessionStorage をナビゲーション時と五秒周期で `~/.ruin/cookies_snapshot.json` に保存します。権限は `0600`。新しい Chrome 起動時に欠落した有効 Cookie と空の Web Storage を復元し、現在の値を保持します。sessionStorage は元 target または一意の完全 URL に対応付け、曖昧なら復元しません。localStorage 復元は通信を遮断した一時バックグラウンドタブを使います。CLI の再接続では古い状態を復元しません。IndexedDB、キャッシュ、パスキーは対象外で、サーバーの期限は変更できません。Chrome に再接続し、OS 再起動後は次の Ruin 接続で起動します。`RUIN_LOCAL_AUTH_VAULT=0` は当該クライアントの自動起動を無効にします。カスタム CDP ポートでは既定プロファイルのリスナーを自動起動しません。
+
+<img src="docs/figures/local-auth-vault.svg" alt="入れ子のフォームからローカル保管庫へ保存し、正確なホスト名で再ログインし、Cookie と Web Storage を次の Chrome セッションへ復元します。" width="100%">
+
+検証：十二件の新規テストが成功し、Chromium、入れ子 iframe、CLI 切断、リスナー／ブラウザー再起動、権限、テナント・タブ分離、再試行制限、タスク再開を確認しました。既存の 91 件の回帰テストも成功し、ナビゲーション競合とバックグラウンド動作も再検証しました。共有 Chrome のリスナーは起動済みですが、Planview 5149 の元タブは見つからず、履歴書アップロードや応募完了は未確認です。PyPI リリースではありません。[Playwright の認証資料](https://playwright.dev/python/docs/auth)を参照しています。
+
 ## 既定のバックグラウンド実行
 
 図 A：タスクページは CDP のフォーカス仮想化と active ライフサイクルを使い、Chrome を前面に出さずに操作できます。ログイン、認証、メール、プロフィール編集の明示的な `bring_to_front` 呼び出しを削除しました。新規タブは `Target.createTarget` の `background: true` で作成します。入力と画面取得は選択したページで行い、認証の成否はサイトが判断します。

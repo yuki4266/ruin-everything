@@ -8,13 +8,13 @@ version = "0.2.0"
 description = "A universal local Chrome runtime for browser agents. Browse, navigate, inspect, interact, fill forms and extract page content across websites over CDP and MCP."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["playwright>=1.60,<2", "ddddocr>=1.6.1,<1.7", "numpy>=1.24", "filelock>=3.13", "packaging>=23", "regex>=2024.5.15", "phonenumbers>=8.13,<10", "mcp>=1.12,<2", "python-dotenv>=1,<2"]
+dependencies = ["playwright>=1.60,<2", "ddddocr>=1.6.1,<1.7", "numpy>=1.24", "filelock>=3.13", "packaging>=23", "regex>=2024.5.15", "phonenumbers>=8.13,<10", "mcp>=1.12,<2", "python-dotenv>=1,<2", "tldextract>=5.1,<6"]
 
 [project.urls]
 Repository = "https://github.com/yuki4266/ruin-everything"
 
 [tool.setuptools.package-data]
-ruin = ["rules/sites.json", "auth/identity_setup.html", "browser/detect_puzzle.js"]
+ruin = ["rules/sites.json", "auth/identity_setup.html", "auth/capture_login.js", "browser/detect_puzzle.js"]
 
 [project.optional-dependencies]
 # Retained for existing client configurations.

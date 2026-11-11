@@ -13,7 +13,8 @@ Operation = Literal["tabs", "navigate", "inspect", "read", "click", "fill", "pre
 
 async def resume_login(page):
     from ruin.auth.ats_accounts import resume_ats_account
-    return await resume_saved_login(page) or await resume_ats_account(page)
+    from ruin.auth.vault_login import resume_vault_login
+    return await resume_vault_login(page) or await resume_saved_login(page) or await resume_ats_account(page)
 
 
 async def page_state(page):

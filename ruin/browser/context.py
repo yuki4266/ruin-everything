@@ -95,4 +95,7 @@ async def browser_context(profile: Path, cdp: str | None = None, channel=None, *
         context = browser.contexts[0]
         context.ruin_trusted_oauth_clients = clients
         context.ruin_agent_tabs = AgentTabs(profile.parent / "agent-tabs.json")
+        if url.rstrip('/') in {LOCAL_CDP, 'http://localhost:9222'} and os.getenv('RUIN_LOCAL_AUTH_VAULT', '1') != '0':
+            from ruin.auth.vault_runtime import ensure_service
+            await ensure_service(url)
         yield context

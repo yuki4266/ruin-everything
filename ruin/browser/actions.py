@@ -132,7 +132,8 @@ async def exact_action(context, site, button=None):
     result = await execute(page, site, target)
     from ruin.auth.saved_login import resume_saved_login
     from ruin.auth.ats_accounts import resume_ats_account
-    result.authentication = await resume_saved_login(page)
+    from ruin.auth.vault_login import resume_vault_login
+    result.authentication = await resume_vault_login(page) or await resume_saved_login(page)
     if result.authentication is None:
         result.authentication = await resume_ats_account(page)
     if result.authentication is not None:

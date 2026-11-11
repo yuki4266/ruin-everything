@@ -15,6 +15,7 @@ from ruin.auth.autofill import fill_login, offer_chrome_login, click_trusted_log
 from ruin.agent.prompts import SYSTEM
 from ruin.browser.dom_sanitizer import snapshot
 from ruin.auth.saved_login import resume_saved_login
+from ruin.auth.vault_login import resume_vault_login, wait_for_manual_login, has_password_login
 
 
 class Decision(BaseModel):
@@ -46,6 +47,12 @@ async def browser_task(context: BrowserContext, url: str, task: str, model: str,
     clients = getattr(context, "ruin_trusted_oauth_clients", []) if autofill else []
     async with AsyncOpenAI() as client:
         for _ in range(20):
+            vault_login = await resume_vault_login(page)
+            if vault_login:
+                await wait_for_manual_login(page)
+                url = page.url
+                location = urlsplit(url)
+                continue
             auth = await resume_saved_login(page)
             if auth and auth["state"] != "redirected":
                 raise RuntimeError(auth.get("message", "The login tab closed."))
@@ -66,12 +73,20 @@ async def browser_task(context: BrowserContext, url: str, task: str, model: str,
                         url = page.url
                         continue
                 else:
+                    if await has_password_login(page):
+                        await wait_for_manual_login(page)
+                        url, location = page.url, urlsplit(page.url)
+                        continue
                     raise RuntimeError(account.get("reason", account["state"]))
             if (current.scheme, current.netloc) != (location.scheme, location.netloc):
                 raise RuntimeError("The page left the selected site. Complete sign-in before running the task.")
             if workday_actions < 2:
                 workday = await workday_account(page, url, profile, allow_create=workday_actions == 0)
                 if isinstance(workday, dict) and workday["state"] != "account_step_completed":
+                    if await has_password_login(page):
+                        await wait_for_manual_login(page)
+                        url, location = page.url, urlsplit(page.url)
+                        continue
                     raise RuntimeError(workday.get("reason", workday["state"]))
                 if workday:
                     workday_actions += 1
@@ -100,12 +115,20 @@ async def browser_task(context: BrowserContext, url: str, task: str, model: str,
                         'input[type=password]:visible, input[autocomplete=one-time-code]:visible'
                     ).first.wait_for(state="hidden", timeout=180000)
                     continue
+            waiting = False
             for frame in page.frames:
                 protected = "input[type=password]:visible"
                 if frame != page.main_frame or not sms_filled:
                     protected += ", input[autocomplete=one-time-code]:visible"
                 if await frame.locator(protected).count():
-                    raise RuntimeError("Sign in using this browser before running the task.")
+                    print("Waiting for login in the original tab; this task will resume automatically.", file=sys.stderr)
+                    await wait_for_manual_login(page)
+                    url = page.url
+                    location = urlsplit(url)
+                    waiting = True
+                    break
+            if waiting:
+                continue
             await fill_contact_phone(page, url, profile)
             labels, targets = await snapshot(page)
             payload = {"task": task, "title": await page.title(), "actions": labels}
