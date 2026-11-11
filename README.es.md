@@ -1,314 +1,65 @@
-<p align="right"><a href="README.md">English</a> &nbsp;·&nbsp; <a href="README.zh-CN.md">简体中文</a> &nbsp;·&nbsp; <a href="README.ja.md">日本語</a> &nbsp;·&nbsp; <strong>Español</strong></p>
+<p align="right"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ja.md">日本語</a> · <strong>Español</strong></p>
 
-# <img src="docs/figures/tab-wave.webp" alt="Ruin Everything: un recibo navega por una ola de pestañas del navegador de color azul y lavanda" width="100%">
+# Ruin Everything
+
+### Dale el navegador a tu agente. Recupera tu tiempo.
+
+**Tu agente hace clic. Ruin mantiene el trabajo en marcha.**
+
+Ruin Everything es un **entorno local de Chrome para agentes de navegador**. Tu agente aprovecha las sesiones, cookies y extensiones del perfil compartido, trabaja en pestañas en segundo plano y continúa los pasos de acceso y verificación compatibles. Abre sitios, rellena formularios, lee páginas y devuelve pruebas de lo que ocurrió.
+
+<img src="docs/figures/core-workflow.svg" alt="A: el agente maneja Chrome compartido mediante Ruin en segundo plano. B: reutiliza accesos locales y procesa verificaciones compatibles. C: la confirmación del sitio aporta pruebas; los comprobantes de Ashby se pueden guardar." width="100%">
 
 <p align="center">
   <a href="https://github.com/yuki4266/ruin-everything/stargazers"><img src="docs/figures/badges/stars.svg" alt="Estrellas en GitHub"></a>
-  <a href="#use-a-shared-local-chrome-window"><img src="docs/figures/badges/python.svg" alt="Requiere Python 3.11 o posterior"></a>
-  <a href="#connect-an-agent-over-mcp"><img src="docs/figures/badges/mcp.svg" alt="MCP por stdio"></a>
-  <a href="LICENSE"><img src="docs/figures/badges/license.svg" alt="licencia MIT"></a>
+  <a href="#quickstart"><img src="docs/figures/badges/python.svg" alt="Python 3.11 o posterior"></a>
+  <a href="#connect-an-agent-over-mcp"><img src="docs/figures/badges/mcp.svg" alt="MCP mediante stdio"></a>
+  <a href="LICENSE"><img src="docs/figures/badges/license.svg" alt="Licencia MIT"></a>
 </p>
 
-**El entorno local de Chrome predeterminado para cualquier sitio web.** Ruin conecta los agentes a Chrome en `127.0.0.1:9222` para navegar, interactuar con el DOM, rellenar formularios, extraer contenido y completar flujos de varios pasos. Reutiliza la sesión, las cookies y las extensiones existentes. Los adaptadores de candidaturas y acceso institucional son ejemplos opcionales.
+[Empezar](#quickstart) · [Funciones principales](#core-features) · [Casos de uso](#real-workflows) · [Verificación](#verification) · [Referencia técnica en inglés](docs/runtime-reference.md)
 
-[Configurar Chrome](#use-a-shared-local-chrome-window) · [Conectar un cliente MCP](#connect-an-agent-over-mcp) · [Ver lo que se ha probado](#verification) · [Prueba tu primera llamada MCP](#first-mcp-call) · [Cómo contribuir](#community)
+## Menos supervisión. Más trabajo terminado.
 
-## Local Auth Vault
+El agente llega a una pantalla de acceso. Aparece un código en el correo. Tras pulsar Enviar, sale otra verificación. Luego termina la conversación y nadie sabe si la solicitud llegó.
 
-Panel A: la conexión predeterminada de Chrome local inicia un único proceso independiente que sigue escuchando después de salir del CLI. Playwright instala scripts iniciales y un enlace CDP en páginas existentes, documentos nuevos e iframes anidados de otros orígenes. En envío, Enter o clic de inicio de sesión, guarda usuario y contraseña no vacía por hostname HTTPS exacto en `~/.ruin/auth_vault.json`, con escritura atómica y permisos `0600`. Son credenciales locales en texto claro; sus valores no aparecen en las herramientas ni requieren el aviso de guardar contraseña de Chrome.
+**Ruin se ocupa de los pasos del navegador que interrumpen la tarea.** El panel A muestra el navegador compartido; el B, el acceso y la verificación; el C, un resultado que puedes comprobar.
 
-Panel B: las operaciones del navegador, action y tareas activas consultan primero el hostname exacto y después un registro guardado del dominio registrable, usando la Public Suffix List incluida. Nunca buscan registros de otros subdominios hermanos. Rellenan un formulario elegible y envían mediante el ejecutor existente, sin activar Chrome. Conservan borradores modificados y omiten formularios de contraseña nueva o envío a otro origen. Cada combinación de tenant y credencial tiene un intento por quince minutos. Una tarea activa espera el inicio manual hasta 180 segundos y continúa al desaparecer el formulario; el proceso de escucha no inicia una candidatura por sí solo.
+<a id="core-features"></a>
 
-Panel C: `Storage.getCookies` guarda todas las cookies, incluidas las de sesión, HttpOnly y particionadas, junto con localStorage y sessionStorage separado por pestaña, en `~/.ruin/cookies_snapshot.json`, con permisos `0600`. Lo hace tras navegación/captura y cada cinco segundos. Una nueva instancia de Chrome restaura cookies válidas ausentes y Web Storage vacío sin reemplazar valores actuales. sessionStorage requiere el target original o una URL completa única; omite coincidencias ambiguas. localStorage se restaura mediante una pestaña temporal en segundo plano con solicitudes interceptadas. Reconectar el CLI no restaura instantáneas antiguas. No exporta IndexedDB, cachés ni passkeys, ni prolonga la validez del servidor. Reconecta cuando vuelve Chrome; después de reiniciar el sistema se inicia en la siguiente conexión de Ruin. `RUIN_LOCAL_AUTH_VAULT=0` desactiva el inicio automático en ese cliente. Los puertos CDP personalizados no inician automáticamente el proceso del perfil predeterminado.
-
-<img src="docs/figures/local-auth-vault.svg" alt="Un formulario anidado guarda credenciales locales, una búsqueda por host inicia sesión mediante el ejecutor y las instantáneas de cookies y Web Storage restauran la siguiente sesión." width="100%">
-
-Verificación: pasan doce pruebas nuevas sobre Chromium real, iframes anidados, desconexión CLI, reinicio del proceso y de Chrome, permisos, separación de tenants y pestañas, intentos limitados y continuación de tareas. También pasan las 91 pruebas de regresión existentes y se verifican las carreras de navegación y el comportamiento en segundo plano. El proceso está iniciado en Chrome compartido; no se encontró la pestaña anterior de Planview 5149 y no se afirma haber cargado el CV ni enviado la candidatura. Es una actualización del repositorio, no de PyPI. Se sigue la [guía de autenticación de Playwright](https://playwright.dev/python/docs/auth).
-
-## Ejecución en segundo plano por defecto
-
-Panel A: las páginas de tarea usan emulación de foco CDP y un ciclo de vida activo sin traer Chrome al frente. Se eliminaron las llamadas explícitas a `bring_to_front` en acceso, desafíos, correo e identidad. Las pestañas nuevas usan `Target.createTarget` con `background: true`. La entrada y las capturas se realizan en la página elegida; el sitio sigue decidiendo el resultado de la verificación.
-
-Panel B: la navegación reutiliza el destino exacto o una pestaña Agent cuya URL no haya cambiado. En otro caso crea una pestaña de fondo en el mismo contexto, conservando las del usuario, incluidas las vacías. `site` permite seleccionar una pestaña existente. El archivo privado `agent-tabs.json`, junto al perfil, guarda target ID, propósito y hash de URL; `tabs` devuelve `agent_owned` y `purpose`. La reconexión reutiliza el mismo destino. Una navegación manual a otra URL impide su reutilización automática. El correo y las comprobaciones temporales usan pestañas separadas. `ruin identity` también abre el editor en segundo plano; selecciónelo manualmente para editar.
-
-Panel C: macOS inicia Chrome con `open -g -n`, conservando el perfil fijo y la restauración de sesión. Se añaden `--disable-background-timer-throttling`, `--disable-backgrounding-occluded-windows`, `--disable-renderer-backgrounding` y `--disable-ipc-flooding-protection`. No se reinicia Chrome: los argumentos se aplican en el próximo inicio. El runtime actualizado prepara las páginas con `Emulation.setFocusEmulationEnabled({enabled: true})` y `Page.setWebLifecycleState({state: "active"})`. Reconecte un servidor MCP ya abierto para cargar el código.
-
-<img src="docs/figures/background.svg" alt="Selección de pestañas de fondo, registro privado, emulación del renderizador e inicio de macOS sin cambiar la aplicación en primer plano." width="100%">
-
-Verificación: pasan las 91 pruebas de regresión, incluidas cinco nuevas de segundo plano, cinco de navegador universal, siete de hCaptcha anidado y la integración MCP por stdio. En Chrome local se comprobaron clics de confianza, animación, capturas y reutilización del mismo destino tras reconectar. Las URL originales y la aplicación frontal de macOS no cambiaron durante entrada, reconexión y limpieza. Se probó la construcción del comando de inicio; no se reinició Chrome ni se verificó otro Space de macOS.
-
-## Contraseña ATS local y recuperación de cuenta
-
-Panel A: ejecute `ruin ats-setup` una vez para crear una contraseña fija de 24 caracteres y activar `ATS_AUTO_RECOVER` en `~/.ruin/.env`, con permisos `0600`. Se conserva un `ATS_DEFAULT_PASSWORD` válido. Las variables de entorno tienen prioridad; `RUIN_ATS_ENV_FILE` permite elegir otro archivo privado. La contraseña no aparece en argumentos ni resultados. El correo y la preferencia de registro automático siguen en el perfil local. Las contraseñas de otras cuentas no cambian.
-
-Panel B: en el tenant seleccionado de iCIMS o Workday, los campos y encabezados distinguen inicio de sesión y nueva contraseña, incluido el formulario iCIMS incrustado. Ante un error explícito, se usa primero el registro visible; una cuenta existente vuelve al inicio de sesión. Se prueba una vez la contraseña ATS y, si sigue rechazada, se usa el control visible de recuperación. Las credenciales ya rellenadas por Chrome pueden probarse primero si todavía no hay rechazo. Cada fase se limita por tenant y correo durante quince minutos, incluso tras reconectar CDP. No se inventan rutas de registro. Los formularios de credenciales deben enviar al mismo origen HTTPS mediante el ejecutor Ruin.
-
-La continuación se integra en `ruin_browser`, `ruin_action`, `ruin_auto_register` y las tareas del agente. También puede ejecutarse con `ruin ats-account --site 'EXACT_CURRENT_HTTPS_URL'`. Panel C: `reset_email_requested` solo confirma que el sitio aceptó la solicitud; no confirma entrega, autenticación ni candidatura. La verificación puede quedar en `email_verification_pending`; un formulario visible de nueva contraseña usa el secreto local. La candidatura requiere su propio recibo. Se conserva la activación de Workday existente.
-
-<img src="docs/figures/ats-recovery.svg" alt="Configuración ATS privada, registro y un reintento por tenant, y distinción entre recuperación por correo y recibo de candidatura." width="100%">
-
-Verificación: pasan once pruebas nuevas de configuración/navegador y cinco pruebas Workday existentes. En Planview 5149 se observó un formulario de inicio de sesión, la contraseña configurada fue rechazada y el sitio aceptó la recuperación. Outlook y Correo no deseado todavía no muestran el mensaje correspondiente; no se afirma haber cambiado la contraseña, cargado el CV ni enviado la candidatura. Consulte la [ayuda de candidatos de iCIMS](https://team.icims.com/jobseekerhelp). Es una actualización del repositorio, no una nueva versión en PyPI.
-
-
-## Desafíos hCaptcha anidados
-
-El panel A muestra la detección de hCaptcha antes de las reglas genéricas de deslizadores: índices explícitos de `.task-image` para cuadrículas, puntos o arrastres bidimensionales para canvas y el centro del control para casillas sin marcar. Se excluyen los marcos con ancestros ocultos. Las tareas desconocidas o inciertas quedan pendientes con un motivo específico.
-
-El panel B convierte las coordenadas a través del origen de contenido de cada iframe, incluidos bordes, relleno, desplazamiento y escala CSS positiva alineada con los ejes. Los eventos de ratón Chromium de Playwright usan píxeles del viewport superior y después pulsan `.button-submit`. El panel C distingue la continuación del desafío del recibo de solicitud; no se repite un envío pendiente.
-
-<img src="docs/figures/hcaptcha.svg" alt="Marcos iCIMS y hCaptcha anidados, rutas de cuadrícula y canvas, conversión por orígenes de contenido y distinción entre verificación y recibo de solicitud." width="100%">
-
-Verificación: pasan siete pruebas Chromium nuevas y siete pruebas existentes posteriores a la acción. En la pestaña original de Planview 5149, un arrastre bidimensional se clasificaba como deslizador horizontal. El ejecutor corregido completó un arrastre con coordenadas revisadas por el asistente y el sitio pasó al inicio de sesión de iCIMS. Ollama local sigue siendo el modelo visual predeterminado; esta prueba no demuestra precisión autónoma del modelo. El sitio rechazó la credencial disponible, por lo que no se afirma haber cargado el CV ni recibido una confirmación de solicitud. Los cambios están en este repositorio; reconecte el servidor MCP instalado para cargarlos. No se anuncia una versión nueva en PyPI.
-
-
-## Automatización universal del navegador
-
-Usa `ruin_browser` como entrada predeterminada para cualquier sitio. El panel A muestra el entorno compartido y el B la selección de pestaña. `navigate` reutiliza una pestaña con la URL de destino; en su defecto, una pestaña Agent con URL sin cambios; si no existe ninguna, abre otra en segundo plano. `site` permite elegir la pestaña actual. Si solo conoces el nombre del sitio, navega a un buscador y continúa sin esperar que el usuario abra la página.
-
-```json
-{"operation":"navigate","url":"https://example.org"}
-```
-
-El panel C muestra cómo continuar: usa la URL devuelta como `site` para `inspect`, `read`, `click`, `fill`, `press` o `select`. La inspección devuelve texto visible y selectores sin leer los valores de los campos. Las modificaciones requieren un único elemento visible; `value` contiene texto, una tecla o el valor de una opción. Los clics y Enter pasan por el ejecutor Ruin existente. `tabs` enumera las URL actuales. Las pestañas se conservan, también tras cambiar de dominio. El texto se limita a 24.000 caracteres y los controles a 300; usa `read` con un selector más preciso para obtener detalles.
-
-<img src="docs/figures/universal-browser.svg" alt="Ruin conecta el agente a Chrome compartido, elige una pestaña de destino o de Agent y devuelve la URL actual, el texto visible y los controles." width="100%">
-
-Verificación: pasan cinco pruebas aisladas de navegador y la integración MCP por stdio. Cubren la conservación de pestañas vacías del usuario, cookies de sesión, formularios, cambios de dominio, pestañas ambiguas y conservación de otras páginas. Es una actualización del repositorio: reconecta MCP desde esta copia o la fuente Git para cargar la herramienta. No se ha publicado una nueva versión en PyPI.
-
-
-| En tu navegador | Qué puede hacer Ruin |
+| Función principal | Qué ganas |
 | --- | --- |
-| Greenhouse pide un código por correo para una candidatura | [Localice el mensaje nuevo en Outlook y rellene el código.](#verify-a-greenhouse-application-with-outlook-web) |
-| Cerró la pestaña de Ashby después de enviar la candidatura | [Consulte el justificante guardado con la URL exacta de la oferta.](#receipt-storage-and-retries) |
-| Workday pide iniciar sesión | [Use su perfil local y regrese a la oferta después de activar la cuenta en un sitio compatible.](#workday-accounts-and-signed-in-sessions) |
-| Tiene números de teléfono de varios países | [Elija el número predeterminado en el editor local.](#local-account-registration) |
+| **Tu Chrome, listo para trabajar** | Navegar, hacer clic, escribir, seleccionar y extraer texto entre sitios. Conserva el perfil, las cookies y las extensiones entre sesiones del agente. |
+| **Un agente que te deja trabajar** | Las pestañas se abren en segundo plano y siguen siendo interactivas, sin cambiar tu aplicación en primer plano ni reemplazar pestañas ajenas a la tarea. |
+| **Reutiliza tus accesos** | El almacén local registra accesos manuales con contraseña y puede rellenar un formulario coincidente después. Las copias de cookies y Web Storage ayudan a restaurar el estado al reiniciar Chrome. El sitio decide cuándo caduca. |
+| **Continúa tras la verificación** | Los flujos compatibles manejan códigos recientes de correo, SMS y retos visuales en la pestaña original. Si el reto sigue pendiente, el resultado lo indica. |
+| **Menos registros repetidos** | Un perfil local rellena formularios compatibles de registro y contacto. La recuperación opcional de Workday/iCIMS maneja errores reconocidos y solicitudes de restablecimiento de contraseña. |
+| **Pruebas que puedes consultar después** | El observador de Ashby guarda la confirmación de envío por URL del puesto. Puedes recuperar el comprobante incluso con Chrome cerrado. |
 
-<a name="choose-a-starting-point"></a>
+La navegación general usa `ruin_browser`; los sitios de abajo son ejemplos de automatización adicional. El agente planifica la tarea y Ruin ejecuta las acciones en el navegador.
 
-## Acceso institucional en segundo plano
+<a id="quickstart"></a>
+<a id="use-a-shared-local-chrome-window"></a>
 
-Ejecute `ruin watch` para comprobar las pestañas abiertas y nuevas de Chrome cada 500 ms. El proceso busca Duke University en IEEE Xplore, ACM Digital Library y Springer Nature Link y sigue la redirección de la editorial. Chrome puede ofrecer las credenciales guardadas en Duke SSO. Una regla de confianza existente puede desactivar el menú de contraseñas. Duo continúa en el navegador.
+## Tu primera tarea en tres pasos
 
-En macOS, ejecute `ruin watch --install` desde una instalación persistente para iniciar el servicio al entrar en su cuenta. El servicio vuelve a conectarse cuando Chrome está disponible. Para quitarlo, ejecute `ruin watch --uninstall`. El comando `ruin watch --site URL` sigue comprobando una solicitud concreta.
+<img src="docs/figures/local-chrome.svg" alt="Conexiones independientes comparten un perfil local de Chrome y conservan la pestaña original de la tarea." width="100%">
 
-<img src="docs/figures/academic-watch.svg" alt="Chrome comprueba pestañas académicas y sigue el acceso institucional de Duke." width="100%">
+### 1. Inicia el navegador compartido
 
-La prueba en IEEE verificó la búsqueda de la institución, la redirección a Duke y la descarga del PDF editorial con una sesión de Duke existente. Las pruebas en un navegador aislado cubren ACM, Springer, pestañas nuevas y la prevención de acciones repetidas.
-
-## Elige un punto de partida
-
-<img src="docs/figures/command-guide.svg" alt="Cinco comandos de terminal y cuándo usar cada uno, desde iniciar Chrome hasta observar una aplicación existente para su recepción." width="100%">
-
-Para una nueva tarea, inicie el navegador compartido y abra el sitio de destino. Para una solicitud interrumpida, elija el observador específico del sitio y pase la URL del trabajo original. Las tareas de clic genéricas abren una nueva pestaña.
-
-<img src="docs/figures/architecture.svg" alt="Los clientes independientes se vuelven a conectar a la pestaña original en Chrome compartido." width="100%">
-
-<a name="use-a-shared-local-chrome-window"></a>
-
-## Utilice una ventana Chrome local compartida
-
-<img src="docs/figures/local-chrome.svg" alt="Dos conexiones de corredor independientes se conectan a un perfil Chrome local y mantienen abierta la misma pestaña de la aplicación." width="100%">
-
-Instale desde el directorio del repositorio con Python 3.11+ y Google Chrome:
+Necesitas **Python 3.11+, Google Chrome y [uv](https://docs.astral.sh/uv/getting-started/installation/)**. Estos pasos usan el código actual de GitHub para incluir las funciones descritas aquí.
 
 ```sh
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -e .
-ruin browser
+uvx --from 'ruin-everything @ git+https://github.com/yuki4266/ruin-everything.git@main' ruin browser
 ```
 
-Ejecute `ruin browser` para iniciar o volver a conectarse al navegador de proyectos. Cada tarea CLI utiliza Python Playwright sobre CDP. El punto final predeterminado es `http://127.0.0.1:9222`. El ejecutor inicia Chrome con un perfil dedicado en `~/.ruin-everything/canvas-browser` cuando este puerto está libre. La conexión CDP conserva la configuración de contexto del navegador existente, incluido su comportamiento de descarga. Chrome permanece abierto después de que sale el comando. Otros clientes locales pueden conectarse al mismo punto final y ubicar la pestaña del trabajo por su URL completa. Otorgue a un cliente la propiedad del envío de cada solicitud.
+Ruin inicia Chrome o se conecta a él en `127.0.0.1:9222`. El perfil persistente es `~/.ruin-everything/canvas-browser`. Inicia sesión en los sitios que necesitas **dentro de ese perfil**; no se importan los accesos de otro perfil de Chrome. El navegador y sus pestañas permanecen abiertos al terminar el comando.
 
-<img src="docs/figures/tab-lifetime.svg" alt="Dos comandos se conectan al mismo proceso Chrome. Una ejecución posterior puede recuperar una pestaña activa; cerrarlo puede descartar el estado del formulario no guardado." width="100%">
+<a id="connect-an-agent-over-mcp"></a>
 
-Abra Outlook Web en este perfil y complete cualquier inicio de sesión requerido en Microsoft antes de solicitar un código de correo electrónico nuevo. Cerrar la pestaña de trabajo, salir de Chrome o que una sesión del sitio expire aún puede interrumpir una aplicación. Un borrador en un navegador específico de chat se debe recuperar por separado.
+### 2. Conecta tu agente
 
-<a name="run-a-browser-click-task"></a>
-
-## Ejecutar una tarea de clic del navegador
-
-<img src="docs/figures/actions.svg" alt="El modelo recibe una tarea, un título y etiquetas de control. Devuelve un ID de acción al navegador. La siguiente observación crea una nueva instantánea." width="100%">
-
-Instale las dependencias opcionales con `python -m pip install -e '.[agent]'` y configure `OPENAI_API_KEY`. Proporcione al modelo una página de inicio HTTPS y una tarea específica:
-
-```sh
-ruin "Open the help page" --site https://example.org --channel chrome
-```
-
-El ejecutor envía la tarea, el título de la página y las etiquetas de acción visibles al modelo seleccionado. Hace clic directamente en el control elegido y observa la página nuevamente. Una tarea puede utilizar una pestaña y hasta 20 pasos.
-
-<img src="docs/figures/action-example.svg" alt="A un botón ilustrativo del Centro de ayuda se le asigna el ID 1 en una instantánea. El modelo puede solicitar un clic por ese ID." width="100%">
-
-Por ejemplo, si un botón visible tiene la etiqueta **Open guide**, el modelo puede seleccionar su ID actual. Una URL modificada o una ID que falta en la instantánea detiene ese paso. Una decisión de modelo bloqueada deja la página abierta para inspección.
-
-<a name="local-credential-filling"></a>
-
-### Llenado de credenciales locales
-
-<img src="docs/figures/autofill.svg" alt="En el origen HTTPS seleccionado, el conjunto de claves puede completar las credenciales y Chrome puede ofrecer inicios de sesión guardados en el formulario original." width="100%">
-
-Agregue `--autofill` para usar el conjunto de claves del sistema y el formulario de inicio de sesión de Chrome. Para un formulario con un campo de contraseña visible que se envía al origen HTTPS seleccionado, el ejecutor hace clic en el campo vacío para que Chrome pueda ofrecer las credenciales guardadas en **ese perfil del navegador**. Complete el inicio de sesión en la pestaña abierta. El ejecutor espera hasta tres minutos hasta que desaparezcan los campos de credenciales y luego reanuda la tarea. Deja la selección de cuentas y el envío de formularios en la interfaz de usuario de inicio de sesión. Un dispositivo Chrome verifica la continuación de la misma pestaña con una política de script restrictiva.
-
-<a name="local-account-registration"></a>
-
-#### Registro de cuenta local
-
-<img src="docs/figures/signup.svg" alt="Se verifica que el formulario seleccionado tenga una acción de registro explícita. Un formulario coincidente utiliza el perfil local y un campo de código posterior puede utilizar un SMS nuevo vinculado al dominio." width="100%">
-
-Ejecute `ruin identity` para elegir regiones del teléfono por nombre, guardar varios números, seleccionar un valor predeterminado y revelar la contraseña mientras edita. El editor fuera de línea utiliza el control de selección nativo del navegador y la biblioteca de números de teléfono para códigos de marcación y formato internacional. [números de teléfono de Python](https://github.com/daviddrysdale/python-phonenumbers)
-
-Para la configuración manual de una tarea del navegador con `--site`, cree `~/.ruin/identity.json` con permisos solo de propietario (`chmod 600`). Configure `auto_signup` en `true` y proporcione valores de cadena para `first_name`, `last_name`, `email`, `phone` y `default_password`. Este archivo almacena la contraseña en texto sin formato. El ejecutor local verifica el origen HTTPS seleccionado antes de cada decisión del modelo hasta que envía un registro. Reconoce un botón de envío **Create Account**, **Create an Account**, **Register** o **Sign Up** visible en un formulario POST del mismo origen, completa los campos reconocidos y marca las casillas denominadas Términos de servicio, Términos de uso y Política de privacidad. En un formulario normal del mismo origen, también puede completar un campo de teléfono de contacto editable y vacío. Un campo de registro coincidente visible al que le falta un valor de perfil deja la pestaña abierta para su finalización.
-
-Para un campo de código de un solo uso posterior, el ejecutor verifica macOS Messages durante hasta 30 segundos para detectar un texto entrante recibido desde el envío y que termina en `@hostname #code`. Se requiere acceso de lectura a la base de datos de Mensajes. Los resultados de la verificación y recepción del MCP incluyen un campo `signup_policy` que informa la configuración local. Los dispositivos Chrome y SQLite ejercitan el envío de formularios, entradas telefónicas normales, acciones entre orígenes, antigüedad del mensaje, dirección y coincidencia de dominio.
-
-<a name="workday-accounts-and-signed-in-sessions"></a>
-
-#### Puzle de rotación en Feishu Jobs
-
-Con el puzle abierto, activa `auto_signup` en el perfil local y pasa la URL completa de la página de acceso a `ruin_auto_register`. Como muestra la figura, la herramienta compara los bordes de los dos anillos y arrastra el control una vez. En el sitio de empleo de Learnings, el sistema aceptó el movimiento y el botón de reenvío mostró una cuenta atrás de 30 segundos. La herramienta devuelve `sms_requested` al ver la cuenta atrás y `slider_pending` si el resultado sigue pendiente.
-
-<img src="docs/figures/feishu-slider.svg" alt="La pestaña de acceso muestra dos anillos. Tras alinearlos, el botón de reenvío indica cuánto falta para pedir otro SMS." width="100%">
-
-#### Acceso por SMS en el portal de ZhongAn en Moka
-
-Cuando aparezca el puzle de NetEase Yidun en una oferta del portal universitario de ZhongAn, activa `auto_signup` en el perfil local y pasa a `ruin_auto_register` la URL completa con el fragmento `#/job/…`. Como muestra la figura, la herramienta busca el hueco por el contorno de la pieza y la arrastra en la pestaña original. En la prueba en el sitio de ZhongAn apareció la cuenta atrás para pedir otro SMS. La herramienta devuelve `sms_requested` al verla y `slider_pending` si el resultado está pendiente.
-
-<img src="docs/figures/yidun-slider.svg" alt="La pieza se desplaza hasta el hueco y el botón de reenvío muestra una cuenta atrás." width="100%">
-
-### Verificación después de enviar un formulario
-
-Para un envío autorizado usa `ruin_action(site, button)` o `ruin action --site URL --button LABEL`. Indica la URL exacta y el nombre visible del botón. Tras un solo clic, Ruin empieza a examinar la pestaña y sus marcos visibles a los 1,5 segundos y vigila hasta los seis segundos por si el reto aparece tarde. Con la URL sola reanuda un reto abierto. El recibo del sitio confirma el envío.
-
-La figura muestra cómo ddddocr y OpenCV localizan el hueco. El ejecutor convierte las coordenadas a la escala visible, descuenta el desplazamiento inicial y corrige la pieza antes de soltarla. Las pruebas de navegador cubren un marco de otro origen con aparición tardía, escala y desplazamiento, capas de canvas, una vista previa con avatar y cuadrículas. Las cuadrículas de imágenes y los puzles de una capa usan Ollama local (modelo predeterminado: `ollama pull qwen3-vl:2b-instruct`). Si el reto persiste tras tres intentos, devuelve `challenge_pending`. En ZhongAn se verificaron el recibo oficial y el estado de revisión inicial en el historial.
-
-<img src="docs/figures/post-action.svg" alt="Un solo clic inicia la inspección del reto. El recibo del sitio confirma el resultado." width="100%">
-
-
-#### Cuentas Workday y sesiones iniciadas
-
-<img src="docs/figures/account-session.svg" alt="La sucursal de Workday verifica el inicio de sesión antes de la creación de la cuenta y la activación de Outlook. La rama de sesión comprueba periódicamente una pestaña de estado independiente." width="100%">
-
-En los formularios de inquilino Workday en inglés compatibles, la tarea del navegador CLI prueba primero el correo electrónico y la contraseña locales. Un mensaje explícito de cuenta faltante abre el registro. Un error de inicio de sesión genérico deja abierto el trabajo original. Después del registro, Ruin comprueba el buzón de correo Outlook en el que se ha iniciado sesión en busca de un nuevo mensaje de activación, sigue un enlace de activación directo en el host del inquilino exacto, espera una confirmación visible y regresa a la URL del trabajo. El adaptador admite formularios POST nativos y diálogos Workday basados ​​en scripts con un control de envío reconocido. Los accesorios locales de Chrome cubren cuentas existentes, registro, activación y regreso al trabajo. Los diseños de los inquilinos de producción y los enlaces de correo electrónico ajustados pueden diferir.
-
-Si la cabecera también muestra Sign In, Ruin utiliza el control del cuadro de diálogo de Workday. Para verificar el correo con seis dígitos, busca un mensaje nuevo de Outlook con un enlace al mismo sitio de la empresa y un único código identificado como tal. Introduce el código en la pestaña original y espera la confirmación de activación. Los controles de Jain Global se inspeccionaron en Chrome y el flujo de seis dígitos se probó con un buzón simulado.
-
-Para un código enviado a una pestaña existente, utilice el tiempo de solicitud registrado cuando el sitio envió el SMS. Opcionalmente, agregue `sms_senders` al archivo de identidad local, asignando un nombre de host exacto a su cadena de remitente dedicada. Los códigos simples de seis dígitos deben provenir de ese remitente. Los mensajes vinculados a un dominio funcionan sin una entrada de remitente. Ambas rutas requieren acceso de lectura a la base de datos de mensajes de Mac.
-
-```sh
-ruin verify-sms --site "$VERIFICATION_URL" --requested-at "$REQUEST_UNIX_SECONDS"
-ruin keep-alive --site "$STATUS_URL" --signed-in-text "Account overview" --interval 900 --timeout 86400
-```
-
-Keep-alive abre una pestaña separada para la página de estado HTTPS seleccionada. Utilice una página de solo lectura con texto exclusivo para la vista de inicio de sesión. El proceso verifica ese texto después de cada visita, se detiene en redirecciones o texto faltante y cierra su propia pestaña cuando finaliza. Ejecute el comando durante el tiempo deseado. Los sitios controlan la duración de sus propias sesiones. Las comprobaciones simuladas de Chrome cubren solicitudes GET repetidas y la preservación de la pestaña original.
-
-
-
-Para proporcionar credenciales para el llenado local, utilice las entradas siguientes. La entrada TOTP opcional contiene la semilla Base32 del sitio.
-
-```sh
-keyring set ruin:https://example.org username
-keyring set ruin:https://example.org password
-keyring set ruin:https://example.org totp
-```
-
-<a name="verify-a-greenhouse-application-with-outlook-web"></a>
-
-## Verificar una candidatura en Greenhouse con Outlook Web
-
-<img src="docs/figures/email-verification.svg" alt="Dos carriles rastrean una solicitud. La bandeja de entrada proporciona un código coincidente a la pestaña del trabajo original, que envía y verifica si hay un recibo." width="100%">
-
-En macOS o Linux, conéctese a una sesión Chrome local habilitada para depuración que ya haya iniciado sesión en Outlook Web y la pestaña de trabajo Greenhouse original abierta. Reemplace la URL de ejemplo y el empleador con el trabajo exacto y el nombre utilizado en su correo electrónico. Inicie el observador antes de que la aplicación solicite un código. El flujo de trabajo de la aplicación existente aún posee el envío inicial.
-
-```sh
-ruin verify-email --cdp http://127.0.0.1:9222 \
-  --site https://job-boards.greenhouse.io/example/jobs/12345 \
-  --company "Example Employer" --timeout 180
-```
-
-El observador toma una instantánea de las filas visibles de la bandeja de entrada de Outlook y espera una fila nueva o actualizada cuya marca de tiempo sigue a la ventana de solicitud. Verifica el empleador, el texto del asunto y el remitente de Greenhouse, lee el código del mensaje abierto y lo envía en la pestaña del trabajo original. Un bloqueo local serializa los procesos de vigilancia. Mantenga inactivas otras aplicaciones para el mismo empleador durante la verificación.
-
-<img src="docs/figures/mail-window.svg" alt="Ejemplo de línea de tiempo de la bandeja de entrada: una fila antigua precede al inicio del observador; Se puede inspeccionar una nueva fila única que coincida. Dos nuevos candidatos detienen la carrera." width="100%">
-
-En el diagrama de la bandeja de entrada, ya existe un mensaje de las 09:59 cuando el observador comienza a las 10:00. El observador compara al candidato de las 10:01 con el empleador y el texto de verificación en la fila, luego verifica al remitente en el mensaje abierto. Si dos nuevos candidatos coinciden, se detiene antes de seleccionar cualquiera de ellos. Estos tiempos ilustran el orden; el observador utiliza las marcas de tiempo grabadas de la ejecución en vivo.
-
-<a name="recover-an-open-challenge"></a>
-
-### Recuperar un desafío abierto
-
-<img src="docs/figures/email-recovery.svg" alt="Las opciones de recuperación dependen del formulario: reenviar una vez, proporcionar la hora de solicitud original o inspeccionar la pestaña original si el resultado es incierto." width="100%">
-
-Si un desafío ya está abierto al inicio y ofrece un control de reenvío, solicita un código nuevo allí. Realiza como máximo un reenvío por ejecución.
-
-<img src="docs/figures/job-match.svg" alt="Dos trabajos pueden compartir un asunto de correo. La recuperación sin reenvío requiere el ID del trabajo en el cuerpo. Una identificación faltante o diferente deja la pestaña abierta." width="100%">
-
-<img src="docs/figures/embed-identity.svg" alt="Un ejemplo de URL para insertar separa el parámetro del empleador del ID del trabajo. El observador comprueba que haya exactamente una pestaña coincidente abierta." width="100%">
-
-Para una inserción directa de Greenhouse, pase la URL completa entre comillas (incluidos `for` y `token`). Si un desafío existente no tiene control de reenvío, proporcione `--requested-at UNIX_SECONDS` desde la solicitud original de ese trabajo. Para esta ruta de recuperación, el cuerpo del mensaje también debe identificar el ID del trabajo. Un sujeto compartido por dos roles en el mismo empleador no puede establecer a qué formulario pertenece el código. Allí se debe manejar una pestaña en el navegador aislado de otro chat.
-
-El prototipo admite formularios Greenhouse de nivel superior en inglés y diseños Outlook que exponen identificadores de mensajes, marcas de tiempo, direcciones de remitente y un cuerpo de mensaje. La falta de pruebas o una coincidencia ambigua detiene la verificación. Sólo un recibo visible cuenta como éxito. También puede ocurrir un tiempo de espera * después del envío de *; verifique la pestaña original antes de volver a intentarlo. Los contenidos y códigos de los mensajes permanecen fuera del bucle del modelo. La integración ha sido probada con accesorios del navegador; la compatibilidad con un formulario de empleador en vivo y un inquilino Outlook aún no está verificada.
-
-<a name="resume-an-authorized-ashby-application"></a>
-
-## Reanudar una candidatura en Ashby autorizada
-
-<img src="docs/figures/ashby-receipt.svg" alt="Ejemplo del estado Ashby utilizado como evidencia: el encabezado Success visible y el texto de envío oficial en la misma URL del trabajo." width="100%">
-
-Utilice este flujo de trabajo cuando una solicitud revisada ya haya alcanzado la verificación. El controlador de la aplicación original posee la autorización para ese trabajo y completa el desafío en vivo en la misma pestaña. Inicie el observador de recibos junto con ese controlador, utilizando la URL exacta de la aplicación:
-
-```sh
-ruin resume-ashby --cdp http://127.0.0.1:9222 \
-  --site 'https://jobs.ashbyhq.com/EMPLOYER/JOB-UUID/application' --timeout 300
-```
-
-<img src="docs/figures/ashby-roles.svg" alt="El controlador original maneja el desafío en la pestaña existente; el observador de recibos observa esa pestaña y emite cambios de estado." width="100%">
-
-La CLI se adjunta a una pestaña coincidente y emite cambios de estado JSON en caso de error estándar. En `challenge_visible`, el controlador autorizado utiliza el widget actual. Un controlador que utilice la API Python puede proporcionar su propio controlador aprobado directamente:
-
-```python
-receipt = await resume_ashby(context, application_url, timeout=300,
-                             directory=receipt_directory, on_event=report_status,
-                             on_challenge=complete_authorized_challenge)
-```
-
-Importe `resume_ashby` desde `ruin.agent.ashby`. El controlador recibe la página Playwright original una vez por ejecución. La CLI independiente observa el navegador; requiere un controlador de aplicación o una persona para interactuar con el widget. Un desafío completado puede enviar automáticamente el formulario. Deje en vuelo cualquier envío existente y observe su resultado. Un botón Submit habilitado por sí solo no es prueba suficiente para enviar otra solicitud.
-
-<a name="receipt-storage-and-retries"></a>
-
-### Almacenamiento de recibos y reintentos
-
-<img src="docs/figures/resume.svg" alt="Al volver a intentar una solicitud grabada se devuelve el recibo guardado. Una solicitud no registrada permanece pendiente hasta que el observador ve el éxito oficial." width="100%">
-
-El observador registra el éxito sólo cuando el mismo trabajo muestra el estado visible de Ashby **Success** con **Your application was successfully submitted**. Devuelve el recibo como JSON en la salida estándar y almacena una fila por trabajo en `~/.ruin-everything/ashby-receipts.sqlite3`. Un reintento devuelve ese recibo almacenado. Un tiempo de espera, un trabajo modificado o una pestaña ambigua producen un error sin marcar el trabajo enviado. Un rastreador de aplicaciones externo debe importar solo un acuse de recibo devuelto.
-
-<img src="docs/figures/uncertain-result.svg" alt="Después de un tiempo de espera, inspeccione la pestaña pendiente o busque evidencia guardada. Un recibo perdido deja el resultado desconocido." width="100%">
-
-Por ejemplo, un desafío puede desaparecer mientras el sitio aún está procesando la solicitud. Si el observador se agota, verifique la pestaña original antes de realizar otra acción. Si esa pestaña luego muestra el recibo oficial, vuelva a ejecutar el observador con la misma URL para capturarlo.
-
-El recibo ilustrado es un ejemplo. El patrón de recibo proviene de una aplicación Baseten completa. El comando reutilizable se probó con páginas Ashby simuladas en Chrome, incluido un recibo oculto, un trabajo modificado, pestañas duplicadas y un reintento después de cerrar la pestaña.
-
-<a name="connect-an-agent-over-mcp"></a>
-
-## Conecte un agente a través de MCP
-
-<img src="docs/figures/mcp-receipts.svg" alt="Un agente consulta el diario Ashby local por URL del trabajo. Puede devolver pruebas guardadas sin conexión o mirar la pestaña original para obtener un nuevo recibo." width="100%">
-
-Las versiones etiquetadas incluyen el servidor MCP. Un cliente compatible con el registro puede iniciarlo con `uvx ruin-everything@0.2.0`. [Versiones en GitHub](https://github.com/yuki4266/ruin-everything/releases)
-
-Proporcione al cliente la URL exacta del trabajo y describa lo que ve. Si la pregunta es si se aprobó una solicitud Ashby, el cliente verifica primero el diario de recibos. Si el formulario está esperando verificación, el cliente inspecciona la pestaña abierta.
-
-<img src="docs/figures/challenge-routing.svg" alt="Para una URL de trabajo exacta, el inspector identifica un mensaje de código de correo electrónico Greenhouse o un marco reCAPTCHA Ashby y devuelve el estado observado." width="100%">
-
-| Herramienta | Cuándo usarla | Resultado |
-| --- | --- | --- |
-| `ruin_browser` | Entrada predeterminada para navegar, interactuar y extraer contenido de cualquier sitio. | URL actual, estado visible o resultado de la acción en Chrome compartido. |
-| `ruin_action` | URL exacta y nombre visible del botón de un formulario autorizado. | Procesa el reto tras el clic. Con la URL sola, reanuda el reto. |
-| `ruin_auto_register` | El formulario de registro o contacto seleccionado está abierto en su URL HTTPS exacta. | Acción de perfil local y política de registro actual. Un formulario enviado aún puede requerir verificación. |
-| `inspect_application_challenge` | Greenhouse solicita un código de correo electrónico de ocho caracteres, un conector informa `[one-time authentication code withheld]` o Ashby muestra una cuadrícula reCAPTCHA. Úselo también para localizar un formulario compatible perdido. | El proveedor y el estado visible. Una pestaña faltante o duplicada obtiene su propio resultado. El formulario permanece abierto. |
-| `get_ashby_receipt` | En el momento del traspaso, incluso con Chrome cerrado | Un recibo guardado o `unrecorded`. Un registro perdido deja el resultado desconocido. |
-| `watch_ashby_receipt` | El formulario original está abierto y el resultado es incierto. | Un recibo existente o evidencia nueva del mismo trabajo. Un tiempo de espera es un error de herramienta. El observador deja el formulario abierto. |
-
-Instalar [ultravioleta](https://docs.astral.sh/uv/getting-started/installation/) una vez. En un cliente MCP con configuración JSON, este ejemplo ejecuta la última versión [Lanzamiento de PyPI](https://pypi.org/project/ruin-everything/). El cliente debe poder encontrar `uvx` en su RUTA. También funciona una ruta absoluta a `uvx`.
+Añade esta configuración al cliente MCP y reinicia la conexión. El cliente debe poder ejecutar `uvx`.
 
 ```json
 {
@@ -316,8 +67,8 @@ Instalar [ultravioleta](https://docs.astral.sh/uv/getting-started/installation/)
     "ruin-everything": {
       "command": "uvx",
       "args": [
-        "--isolated", "--refresh",
-        "--from", "ruin-everything[mcp]",
+        "--isolated", "--refresh", "--from",
+        "ruin-everything @ git+https://github.com/yuki4266/ruin-everything.git@main",
         "ruin-mcp"
       ],
       "env": { "RUIN_AUTO_UPDATE": "0" }
@@ -326,135 +77,88 @@ Instalar [ultravioleta](https://docs.astral.sh/uv/getting-started/installation/)
 }
 ```
 
-Para rastrear la rama GitHub directamente, configure `--from` en `ruin-everything[mcp] @ git+https://github.com/yuki4266/ruin-everything.git@main`. Ambas configuraciones inician el ejecutable `ruin-mcp` real. Una prueba de humo de dos versiones verificó la actualización tanto en Git como en la ruta del paquete. Una instalación editable existente aún puede iniciarla directamente.
-
-Para registrar el servidor para su cuenta de usuario, ejecute el comando para su cliente. Abra una nueva sesión para seleccionar la lista de herramientas.
-
-```sh
-codex mcp add ruin-everything --env RUIN_AUTO_UPDATE=0 -- uvx --isolated --refresh --from 'ruin-everything[mcp]' ruin-mcp
-claude mcp add --scope user --transport stdio ruin-everything -e RUIN_AUTO_UPDATE=0 -- uvx --isolated --refresh --from 'ruin-everything[mcp]' ruin-mcp
-```
+Para usar el paquete publicado, sustituye la fuente Git por `ruin-everything`. Las actualizaciones de Git se cargan al iniciar de nuevo el servidor; las funciones de PyPI dependen de la versión publicada. [Detalles de instalación y actualización](docs/runtime-reference.md#how-updates-reach-your-machine).
 
 <a id="first-mcp-call"></a>
 
-### Prueba tu primera llamada MCP
+### 3. Dale una tarea
 
-Tras conectar el cliente, prueba esta petición con la URL ficticia del ejemplo. Funciona con Chrome cerrado y no requiere una candidatura ni un perfil personal.
+> Use Ruin to open https://example.org and tell me the page title and visible links.
 
-> Llama a `get_ashby_receipt` con `https://jobs.ashbyhq.com/example/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/application` y dime qué estado devuelve.
+El punto de entrada es `ruin_browser(operation="navigate", url="https://example.org")`. Las llamadas siguientes usan la URL actual devuelta. El servidor MCP de Ruin no necesita una clave API; el agente usa su propia conexión al modelo. La CLI independiente y opcional dirigida por un modelo requiere las dependencias agent y `OPENAI_API_KEY`.
 
-En una instalación nueva se espera `unrecorded`. El servidor ha consultado el registro local y no ha encontrado un comprobante para este ejemplo. Verificamos esta consulta de solo lectura con la versión de PyPI.
+Para los asistentes de registro y cuenta, usa una instalación persistente del repositorio y ejecuta `ruin identity`. Selecciona la pestaña del editor abierta en segundo plano para añadir tus datos y decidir si activas el registro automático. `ruin ats-setup` activa por separado la recuperación de contraseñas ATS. [Configuración](docs/runtime-reference.md#local-account-registration).
 
-El repositorio incluye [instrucciones de enrutamiento](AGENTS.md#ruin-everything-application-routing) para Codex y los importa desde [CLAUDE.md](CLAUDE.md). Para aplicarlos en otros espacios de trabajo, copie la sección de enrutamiento de aplicaciones en su `~/.codex/AGENTS.md` o `~/.claude/CLAUDE.md` de nivel de usuario. Se puede intentar iniciar sesión en PayPal mediante el flujo genérico de Chrome local ([figura de acceso de confianza, panel C](docs/figures/trusted-auth.svg)). No hay un adaptador específico para PayPal Security Challenge; la verificación normal del sitio puede aparecer incluso en Chrome local. Esta aclaración documental se basa en la inspección del código, no en un inicio de sesión real verificado en PayPal. Los códigos y las notificaciones al teléfono de Duo siguen la verificación normal; la sección de sesiones persistentes explica el avance de formularios rellenados y la confianza del dispositivo.
+<a id="real-workflows"></a>
+<a id="institutional-sign-in-in-the-background"></a>
 
-Las cinco herramientas especializadas aceptan `site`. El inspector comprueba una vez de forma predeterminada. Configure `wait_seconds` en 1–300 para observar esa misma pestaña en busca de un cambio desde `pending`. Desde la CLI, utilice `ruin watch --site "$JOB_URL" --timeout 30`. La vigilancia finaliza después de detectar un estado compatible, perder la pestaña original o alcanzar el límite de tiempo.
+## Dónde te ahorra trabajo
 
-En una simulación local de Chrome, una nueva sesión de CLI de Codex a la que se le dio solo la URL de Greenhouse y el síntoma de código de ocho caracteres seleccionó `inspect_application_challenge` como su primera llamada de herramienta y devolvió `email_verification`. El formulario simulado permaneció vacío.
+<img src="docs/figures/post-action.svg" alt="Tras una acción en la pestaña original se inspeccionan retos visuales y se intentan los pasos compatibles; el comprobante del sitio acredita el envío." width="100%">
 
-El monitor de recibos Ashby acepta `timeout_seconds` (predeterminado 15, rango 1–300). Un recibo devuelto contiene `state`, `site`, `observed_at` y la confirmación del sitio `message`. El controlador de la aplicación posee la interacción del formulario. Después de un tiempo de espera, verifique la misma URL nuevamente antes de considerar otro envío.
+| Quieres… | Ayuda adicional de Ruin | Verificación hasta ahora |
+| --- | --- | --- |
+| **Pasar un reto visual de selección de personal** | Procesar el rompecabezas compatible de ZhongAn/Moka o el control de rotación de Feishu Jobs. | Se observaron contadores reales de reenvío de SMS en ambos; ZhongAn también mostró su página de éxito y el historial de solicitud. |
+| **Completar la verificación por correo de Greenhouse** | Buscar un mensaje nuevo de Outlook que coincida con el empleador y la petición, e introducir el código en la pestaña original. | Pruebas simuladas en navegador; compatibilidad real con empleadores y cuentas de Outlook aún sin verificar. |
+| **Recuperar una cuenta de Workday o iCIMS** | Usar datos locales, registro y activación compatibles, y recuperación opcional con intentos limitados. | Pruebas simuladas e inspección de un diálogo real de Workday. Los diseños varían entre organizaciones. |
+| **Saber si una solicitud de Ashby se envió** | Esperar la confirmación oficial y guardar un comprobante para ese puesto. | Pruebas locales de comprobantes e integración del navegador. Sin registro, el resultado es desconocido. |
+| **Acceder a un artículo a través de Duke** | Seguir los flujos institucionales compatibles de IEEE, ACM y Springer; continuar formularios Duke ya rellenados y pantallas de confianza de dispositivo Duo. | Búsqueda IEEE, redirección a Duke y acceso a PDF reales; ACM y Springer cubiertos con pruebas simuladas. |
 
-El servidor utiliza el SDK oficial de MCP Python sobre stdio. Un cliente de automatización del navegador como Playwright MCP se puede ejecutar junto con él conectándolo al mismo Chrome local con `--cdp-endpoint http://127.0.0.1:9222`. La prueba de integración espera a que Chrome anuncie su puerto de depuración local y luego conecta dos clientes SDK sucesivos a la página del empleador simulada. [SDK de MCP Python](https://github.com/modelcontextprotocol/python-sdk) · [Opciones de conexión del MCP Playwright](https://github.com/microsoft/playwright-mcp#configuration)
+La compatibilidad corresponde a flujos concretos. Algunos retos visuales necesitan un modelo de visión local de Ollama; leer SMS requiere acceso a macOS Messages; los flujos de correo necesitan Outlook Web con sesión iniciada. Las aprobaciones por teléfono y otras comprobaciones pueden requerir tu intervención. [Requisitos y comandos](docs/runtime-reference.md).
 
-<a name="how-updates-reach-your-machine"></a>
+Para enviar un formulario autorizado, usa `ruin_action` con la URL actual exacta y el texto visible del botón. Comprueba si aparece una verificación tras el clic. **Superar un reto es un paso; el comprobante del sitio demuestra el envío.**
 
-## Cómo llegan las actualizaciones a tu máquina
+## Seis herramientas. Un navegador compartido.
 
-<img src="docs/figures/updates.svg" alt="Tres programas de actualización: uvx resuelve el paquete al iniciar MCP, las instalaciones directas verifican cada seis horas al inicio y las reglas del sitio se actualizan al inicio de cada flujo de trabajo." width="100%">
+<img src="docs/figures/challenge-routing.svg" alt="La URL exacta del puesto permite identificar el proveedor de verificación y conservar el formulario original." width="100%">
 
-| Qué se actualiza | Cuándo se actualiza |
+| Herramienta | Para qué sirve |
 | --- | --- |
-| Paquete MCP a través de uvx | En el próximo inicio del servidor, uv resuelve la última versión disponible desde la fuente configurada. Un servidor de ejecución prolongada mantiene su código cargado hasta que se reinicia. La instalación inicial y la actualización en línea requieren acceso a la red. |
-| Instalación directa | El inicio de CLI y MCP programa una comprobación en segundo plano como máximo una vez cada seis horas por instalación. Si la rama `main` sigue a `origin/main` y el árbol de trabajo está limpio, se actualiza mediante avance rápido. Una instalación normal de pip busca una versión más reciente de PyPI. Las herramientas uv instaladas utilizan su propio comando de actualización. Configure `RUIN_AUTO_UPDATE=0` para administrar las versiones usted mismo. |
-| Reglas del sitio | Cada nueva verificación Greenhouse u observación Ashby en vivo descarga el [archivo de selectores](ruin/rules/sites.json) del proyecto con un tiempo de espera de red de dos segundos. Un flujo de trabajo mantiene su instantánea inicial hasta su finalización. Las actualizaciones sin conexión o no válidas recurren al último caché válido en `~/.ruin/sites.json` y luego a los valores predeterminados empaquetados. Configure `RUIN_RULE_UPDATES=0` para usar la copia incluida. |
+| `ruin_browser` | Listar pestañas, navegar, inspeccionar, leer, hacer clic, rellenar, pulsar teclas y seleccionar opciones. |
+| `ruin_action` | Enviar un formulario autorizado y manejar verificaciones posteriores compatibles; omitir el botón para continuar. |
+| `ruin_auto_register` | Continuar pasos compatibles de registro, cuenta o acceso por SMS con el perfil local. |
+| `inspect_application_challenge` | Identificar un reto de Greenhouse/Ashby o localizar una pestaña de solicitud compatible. |
+| `get_ashby_receipt` | Consultar pruebas de envío guardadas sin abrir Chrome. |
+| `watch_ashby_receipt` | Esperar la confirmación en la pestaña original de Ashby y guardarla. |
 
-El archivo de reglas describe los elementos del recibo Ashby, las entradas de verificación Greenhouse y el patrón de código de correo electrónico, y las filas y cuerpos de los mensajes Outlook. Los adaptadores instalados imponen orígenes confiables, identidad del remitente, coincidencia de trabajos y redacción de recibos. Un cambio en esas comprobaciones requiere una liberación del código.
+[Instrucciones para agentes](AGENTS.md) · [CLI y comportamiento detallado](docs/runtime-reference.md) · [Configuración de acceso de confianza](docs/trusted-auth.md)
 
-Para mantenedores, configure uno [PyPI Trusted Publisher](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/) para el proyecto `ruin-everything`, propietario `yuki4266`, repositorio `ruin-everything`, flujo de trabajo `publish.yml` y entorno `pypi`. Un envío a main crea la versión en `pyproject.toml` con el número de ejecución del flujo de trabajo como un cuarto componente de la versión. Para una versión etiquetada, configure la versión del proyecto y presione la etiqueta correspondiente (por ejemplo, `0.2.0` y `v0.2.0`). Ambas rutas ejecutan las pruebas del navegador, crean y verifican la rueda y la distribución del código fuente, luego publican utilizando la identidad OIDC de GitHub. [Liberar flujo de trabajo](.github/workflows/publish.yml) · [actualizaciones de herramientas uv](https://docs.astral.sh/uv/concepts/tools/)
+## Tu equipo. Tu estado del navegador.
 
-<a name="example-read-courses-after-school-sign-in"></a>
+<img src="docs/figures/local-auth-vault.svg" alt="El acceso manual se guarda en un archivo local privado; los accesos coincidentes usan el ejecutor; las cookies y Web Storage permiten restaurar otra sesión de Chrome." width="100%">
 
-## Ejemplo: leer cursos después del inicio de sesión escolar
+La ejecución del navegador y el manejo de credenciales son locales. **El almacén automático guarda contraseñas en texto plano** en `~/.ruin/auth_vault.json`, con permisos exclusivos del propietario (`0600`); no aparecen en los resultados de herramientas del agente. Las cookies y Web Storage también se guardan localmente. `RUIN_LOCAL_AUTH_VAULT=0` desactiva el inicio automático del proceso de escucha para ese cliente. [Comportamiento y límites del almacén](docs/runtime-reference.md#local-auth-vault).
 
-<img src="docs/figures/session.svg" alt="Una sesión activa devuelve la lista de cursos directamente. Si Canvas redirige, complete el inicio de sesión de Duke para reanudar la misma búsqueda." width="100%">
+El agente conectado puede enviar texto de las páginas a su proveedor de modelos. Las sesiones caducan y algunas verificaciones necesitan una persona. Ruin conserva el estado y retoma los pasos compatibles; no promete acceso permanente ni éxito en todos los sitios.
 
-El adaptador Duke Canvas demuestra cómo se reanuda una tarea después de un inicio de sesión interactivo. Ejecute la búsqueda en el perfil compartido:
+<a id="verification"></a>
+
+## Qué se ha comprobado
+
+<img src="docs/figures/checks.svg" alt="Las pruebas locales comprueban el comportamiento del entorno; las observaciones reales cubren flujos específicos de sitios." width="100%">
+
+**Comprobación actual: las 103 pruebas de regresión pasaron.** Esta actualización de documentación no afirma haber repetido los flujos reales de los sitios de la tabla.
+
+Esta actualización del README destaca las funciones actuales, sustituye el diario de implementación por una guía breve y conserva los detalles en la [referencia técnica](docs/runtime-reference.md). Las ediciones inglesa, china simplificada, japonesa y española comparten las mismas funciones y configuración.
+
+Las pruebas locales cubren sesiones compartidas, pestañas en segundo plano, captura y restauración de accesos, separación entre organizaciones, rutas de verificación y almacenamiento de comprobantes. La tabla distingue observaciones reales de pruebas simuladas. La referencia describe las condiciones y límites de cada comprobación.
+
+Ejecuta la suite de regresión desde el repositorio de desarrollo:
 
 ```sh
-ruin courses
+python -m pip install -e '.[agent]'
+python -m playwright install chromium
+RUIN_AUTO_UPDATE=0 RUIN_RULE_UPDATES=0 python -m unittest discover -s tests -v
 ```
 
-El resultado contiene nombres de cursos y enlaces. Utilice `--json` para salida estructurada:
-
-<img src="docs/figures/course-output.svg" alt="Salida JSON ilustrativa con un nombre de curso de ejemplo y un enlace abreviado." width="100%">
-
-Para seleccionar explícitamente un punto final de depuración local existente, ejecute:
-
-```sh
-ruin courses --cdp http://127.0.0.1:9222 --json
-```
-
-La rama de inicio de sesión espera hasta 180 segundos para que la escuela regrese el navegador a Canvas. Configure `--timeout 300` para una espera más larga. La aprobación de Duo se realiza en la ruta de inicio de sesión de la escuela. [Recuperación del dispositivo Duke](https://oit.duke.edu/help/articles/kb0036398/)
-
-<a name="verification"></a>
-
-## Verificación
-
-<img src="docs/figures/checks.svg" alt="Las pruebas locales ejercitan la reutilización de sesiones, controlan etiquetas y clics dirigidos al modelo. Las comprobaciones en vivo cubren el descubrimiento de cursos y una búsqueda repetida." width="100%">
-
-Las pruebas de actualización cubren comprobaciones de inicio superpuestas, cambios entre instantáneas de reglas, descargas no válidas y respaldo sin conexión. Las comprobaciones en tiempo de ejecución verificaron una pestaña Chrome compartida entre conexiones CDP independientes. Para pruebas del navegador, instale la compilación Playwright Chromium o use Chrome instalado. Ejecute `python -m unittest discover -s tests -v`. Instale los extras del agente para incluir la prueba del modelo simulado. Para Chrome instalado, anteponga el comando `RUIN_TEST_CHANNEL=chrome`.
-
-Una ejecución de Duke en vivo devolvió enlaces de cursos después de iniciar sesión. Una segunda carrera con el mismo perfil también arrojó la lista después de visitar la ruta de inicio de sesión de la escuela. No se midió el número de mensajes del Duo. El bucle de clic general se ha ejercitado con una respuesta de modelo simulada.
-
-Los diagramas dibujados a mano son SVG editables. Usan líneas Rough.js y letras Kalam. [Fuentes de figuras](docs/figures) · [áspero.js](https://roughjs.com/) · [Licencia de fuente Kalam](docs/figures/Kalam-LICENSE.txt)
-
-[plan de desarrollo](PLAN.md) · [Pautas de contribución y cifras.](AGENTS.md) · [licencia MIT](LICENSE)
+Las ilustraciones son SVG originales y editables hechos con Rough.js y Kalam. [Fuentes de las figuras](docs/figures) · [Contribuir](CONTRIBUTING.md) · [Plan de desarrollo](PLAN.md) · [Licencia MIT](LICENSE)
 
 <a id="community"></a>
 
-## Contribuye a Ruin Everything
+## Ponlo a trabajar. Cuéntanos dónde se atasca.
 
-<img src="docs/figures/community.svg" alt="Dónde informar de un fallo, compartir un flujo de trabajo o proponer cambios en GitHub." width="100%">
+<img src="docs/figures/community.svg" alt="Informa de un fallo reproducible, comparte un flujo que funciona o contribuye con una mejora en GitHub." width="100%">
 
-¿Has probado Ruin con tu cliente MCP? [Comparte tu configuración y el resultado de una llamada](https://github.com/yuki4266/ruin-everything/discussions/categories/show-and-tell) para que otra persona pueda reproducirla. Si te atascas durante la instalación, [pregunta en el foro de ayuda](https://github.com/yuki4266/ruin-everything/discussions/categories/q-a).
+[Informar de un fallo](https://github.com/yuki4266/ruin-everything/issues/new?template=bug.yml) · [Compartir un flujo](https://github.com/yuki4266/ruin-everything/discussions/categories/show-and-tell) · [Proponer una función](https://github.com/yuki4266/ruin-everything/discussions/categories/ideas)
 
-[Informar de un fallo](https://github.com/yuki4266/ruin-everything/issues/new?template=bug.yml) · [Proponer una idea](https://github.com/yuki4266/ruin-everything/discussions/categories/ideas) · [Aportar una traducción, prueba o corrección](CONTRIBUTING.md)
-
-### Personas que contribuyen
-
-Gracias a quienes prueban flujos de trabajo, responden preguntas y envían mejoras. Estos avatares corresponden a las contribuciones registradas mediante commits en GitHub.
-
-<a href="https://github.com/yuki4266/ruin-everything/graphs/contributors"><img src="https://contrib.rocks/image?repo=yuki4266/ruin-everything" alt="Ver las contribuciones por commit en GitHub"></a>
-
-## Historial de estrellas
-
-<a href="https://www.star-history.com/?repos=yuki4266%2Fruin-everything&amp;type=date"><img src="docs/figures/repository-activity.svg" alt="Gráfico radial con las estrellas, las bifurcaciones, las personas que han contribuido y la actividad de los últimos siete días." width="100%"></a>
-
-Selecciona la imagen para consultar el historial de estrellas actualizado.
-
-⭐ [Si Ruin te ayudó a retomar una tarea en el navegador, dale una estrella en GitHub.](https://github.com/yuki4266/ruin-everything)
-
-### Configuración de inicio de sesión de confianza
-
-<img src="docs/figures/trusted-auth.svg" alt="La tarea seleccionada comprueba reglas exactas antes de un clic; las teclas de contraseñas de Chrome requieren una opción adicional." width="100%">
-
-El panel A muestra `trusted_oauth_clients` en `~/.ruin-everything/trusted-auth.json`. Con `--autofill`, la tarea puede pulsar una vez por regla los botones configurados de acceso, SSO, Stay signed in o Trust this browser. Se comprueban el origen HTTPS, la ruta y la regla del botón. El panel D añade `https://*.greenhouse.io`, `https://*.myworkdayjobs.com` y `https://*.duke.edu` para subdominios de varios niveles. Las entradas exactas tienen prioridad; las credenciales y acciones siguen vinculadas al origen de la tarea. El [ejemplo](docs/trusted-auth.example.json) incluye Glama, Greenhouse, Workday y Duke SSO sin activar reglas de botones no verificadas.
-
-El panel B exige también el ID del cliente GitHub OAuth, la URL de retorno y los permisos exactos. El texto de la tarea no amplía los permisos. El panel C permite enfocar el campo y enviar ArrowDown y Enter cuando keyring no tiene contraseña. Sin sugerencias, Enter puede enviar el formulario; no garantiza el autocompletado ni una sesión permanente.
-
-Las pruebas con páginas simuladas en Chrome verifican coincidencias, rechazo de cambios de permisos, intentos únicos y exclusiones de campos. Las sugerencias nativas y las páginas de autorización de producción siguen sin verificar. Consulta la [referencia](docs/trusted-auth.md). Se mantienen los requisitos de permisos del navegador.
-
-La autorización de GitHub puede usar el selector estándar sin configurar la etiqueta; el ID del cliente, la URL de retorno y los permisos siguen siendo obligatorios. Las pruebas de Chrome verifican límites de dominio, puertos, rechazo entre tenants y el selector predeterminado. El envío real a Glama sigue sin verificar.
-
-El ejemplo incluye la selección de contraseña para `https://paypal.com` y `https://*.paypal.com` (panel C). Las listas de acciones vacías no preautorizan botones de acceso, pago ni autorización externa. Las pruebas cubren el dominio raíz, subdominios anidados, sufijos engañosos, HTTP y otros puertos; no verifican un acceso real a PayPal.
-
-## Sesiones persistentes y acceso guardado de Duke
-
-<img src="docs/figures/saved-login.svg" alt="A: persistent Chrome profile. B: filled Duke login and Duo device trust. C: wait 15 seconds before reporting remaining verification." width="100%">
-
-Panel A: Chrome usa el directorio fijo `~/.ruin-everything/canvas-browser`. Antes de iniciar un perfil cerrado, Ruin conserva sus preferencias, establece `session.restore_on_startup = 1` y añade `--restore-last-session`. No reescribe los archivos de un Chrome abierto. En `chrome://settings/onStartup`, seleccione continuar donde lo dejó; Chrome puede guardar esta opción en Secure Preferences.
-
-Panel B: `ruin_browser` (incluidos inspect/read), `ruin_action` y la tarea CLI envían los campos de Duke ya rellenados mediante el ejecutor. Exigen un botón único `#Submit` o de acceso reconocido y envío al mismo origen de Duke. Admiten confianza del dispositivo en HTTPS `*.duosecurity.com`, también dentro de un iframe visible de Duke. El observador académico solo sigue un flujo institucional iniciado. No repite el envío del mismo documento ni devuelve credenciales.
-
-Panel C: espera 15 segundos para el autocompletado o la verificación y otros 15 después de cada acción automática. Solo entonces informa de códigos, notificaciones al teléfono o campos pendientes, conservando la pestaña. Una redirección no demuestra autenticación. La universidad controla la duración de la sesión y de la confianza; no se garantizan 30 días ni acceso permanente.
-
-Verificación: pruebas aisladas cubren cookies de sesión después de reiniciar realmente el navegador, autocompletado tardío, confianza, iframes, orígenes, envíos duplicados y la espera completa de 15 segundos. La preferencia del Chrome local se cambió y verificó tras recargar. Falta validar un flujo real de Duke/Duo. Reconecte MCP para cargar las nuevas descripciones. También pasó la prueba de reinicio con Google Chrome instalado: 67 pruebas de regresión y dos comprobaciones posteriores de reanudación y redibujado tras el cambio final.
+**Si Ruin te ahorró otra ronda de supervisión del navegador, [dale una estrella](https://github.com/yuki4266/ruin-everything).**
