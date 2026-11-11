@@ -10,6 +10,7 @@ from tempfile import NamedTemporaryFile
 from urllib.parse import urlsplit
 
 from playwright.async_api import async_playwright
+from .background import AgentTabs, BACKGROUND_FLAGS
 
 LOCAL_CDP = "http://127.0.0.1:9222"
 
@@ -52,6 +53,20 @@ async def listening():
     return True
 
 
+def launch_command(profile):
+    executable = chrome_executable()
+    arguments = [f"--user-data-dir={profile.resolve()}",
+                 "--remote-debugging-address=127.0.0.1", "--remote-debugging-port=9222",
+                 "--no-first-run", "--no-default-browser-check", "--restore-last-session",
+                 *BACKGROUND_FLAGS]
+    if sys.platform == "darwin":
+        app = next((p for p in Path(executable).parents if p.suffix == ".app"), None)
+        if app is None:
+            raise RuntimeError("A macOS Chrome app bundle is required for background launch.")
+        return ["/usr/bin/open", "-g", "-n", "-a", str(app), "--args", *arguments]
+    return [executable, *arguments]
+
+
 @asynccontextmanager
 async def browser_context(profile: Path, cdp: str | None = None, channel=None, *, launch_if_missing=True):
     from ruin.auth.trusted import load_trusted_oauth_clients
@@ -65,11 +80,7 @@ async def browser_context(profile: Path, cdp: str | None = None, channel=None, *
         if not launch_if_missing:
             raise RuntimeError("Shared Chrome is offline. Start the project browser and open the original job.")
         prepare_profile(profile)
-        subprocess.Popen([
-            chrome_executable(), f"--user-data-dir={profile.resolve()}",
-            "--remote-debugging-address=127.0.0.1", "--remote-debugging-port=9222",
-            "--no-first-run", "--no-default-browser-check", "--restore-last-session",
-        ], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        subprocess.Popen(launch_command(profile), stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             start_new_session=True)
         for _ in range(100):
             if await listening():
@@ -83,4 +94,5 @@ async def browser_context(profile: Path, cdp: str | None = None, channel=None, *
             raise RuntimeError("Chrome has no accessible browser context.")
         context = browser.contexts[0]
         context.ruin_trusted_oauth_clients = clients
+        context.ruin_agent_tabs = AgentTabs(profile.parent / "agent-tabs.json")
         yield context

@@ -4,6 +4,7 @@ import re
 
 from playwright.async_api import Error
 
+from ruin.browser.background import prepare_page
 from ruin.browser.academic import AcademicFlow, DUKE, duke_login, host
 from ruin.browser.actions import click
 
@@ -29,7 +30,7 @@ async def click_once(page, element, url, *, kind="login"):
     }""", marker):
         return False
     try:
-        await page.bring_to_front()
+        await prepare_page(page)
         await click(page, element, timeout=2500)
     except RuntimeError as exc:
         # The executor's lock rejects before clicking, so a later call may retry.

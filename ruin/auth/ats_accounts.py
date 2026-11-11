@@ -6,6 +6,7 @@ import time
 from urllib.parse import urlsplit
 from playwright.async_api import Error, Locator
 
+from ruin.browser.background import prepare_page
 from ruin.browser.actions import click
 from ruin.auth.vault import origin_of
 
@@ -68,7 +69,7 @@ async def guarded_submit(page, target):
     }""")
     if not allowed:
         raise RuntimeError("The ATS credential form must submit to the same HTTPS origin using POST.")
-    await page.bring_to_front()
+    await prepare_page(page)
     return await click(page, target, timeout=15000)
 
 

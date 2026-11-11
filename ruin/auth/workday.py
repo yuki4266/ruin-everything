@@ -7,6 +7,7 @@ from urllib.parse import urlsplit
 
 from playwright.async_api import TimeoutError as BrowserTimeout
 
+from ruin.browser.background import prepare_page, new_agent_page
 from ruin.browser.actions import click
 from ruin.auth.auto_registrar import SIGNUP, signup
 from ruin.auth.email_otp_snatcher import OUTLOOK, mailbox_lock, rows
@@ -140,7 +141,7 @@ async def workday_account(page, site, profile, timeout=60, allow_create=True):
         raise RuntimeError("Multiple Workday account dialogs are open.")
     if not await passwords.count():
         return False
-    await page.bring_to_front()
+    await prepare_page(page)
     headings = ' '.join(await scope.locator('h1,h2,[role=heading]').all_inner_texts())
     if profile.get("ats_auto_recover") and await passwords.count() == 2 and re.search(r'reset|new password', headings, re.I):
         submit = await account_control(scope, re.compile(r'^(?:(?:reset|change|save) password|submit)$', re.I))
@@ -210,7 +211,7 @@ async def workday_account(page, site, profile, timeout=60, allow_create=True):
         prompt = page.get_by_text(re.compile(r"check your (?:inbox|email)|activation email|verify your email", re.I)).first
         code_field = page.locator(CODE_FIELD)
         await prompt.or_(code_field).first.wait_for(timeout=15000)
-        mail = await page.context.new_page()
+        mail = await new_agent_page(page.context, purpose="activation-mail")
         try:
             async with asyncio.timeout(timeout):
                 await mail.goto(OUTLOOK, wait_until="domcontentloaded")

@@ -8,6 +8,7 @@ from urllib.parse import urlsplit
 from filelock import FileLock, Timeout as LockBusy
 from playwright.async_api import Error, TimeoutError as BrowserTimeout
 
+from ruin.browser.background import prepare_page
 from ruin.config import PROFILE
 
 VERIFY_URL = "https://rmc.bytedance.com/verifycenter/captcha/v2"
@@ -88,7 +89,7 @@ async def rotate(page, widget, site):
     if target is None:
         return False
     button = widget.locator(".captcha-slider-btn")
-    await page.bring_to_front()
+    await prepare_page(page)
     await button.hover(timeout=2000)
     knob = await button.bounding_box(timeout=2000)
     track = await widget.locator(".captcha-slider-box").bounding_box(timeout=2000)

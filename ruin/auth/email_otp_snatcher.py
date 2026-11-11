@@ -11,6 +11,7 @@ from urllib.parse import parse_qs, urlsplit
 import regex
 from playwright.async_api import Page
 
+from ruin.browser.background import prepare_page, new_agent_page
 from ruin.browser.actions import click
 from ruin.rules_loader import BUNDLED, load_rules, validate
 
@@ -139,14 +140,14 @@ async def verify_application(context, url: str, company: str, timeout: int, dire
                                "job's submission event, or complete verification in its tab.")
         if requested_at is not None and not 0 < requested_at <= time.time():
             raise ValueError("Use a past request timestamp from this application.")
-        mail = await context.new_page()
+        mail = await new_agent_page(context, purpose="verification-mail")
         try:
             async with asyncio.timeout(timeout):
                 await mail.goto(OUTLOOK, wait_until="domcontentloaded")
                 await mail.locator(rules["outlook"]["rows"]).first.wait_for(timeout=15000)
                 baseline = {(r["id"], r["received"]) for r in await rows(mail, rules)}
                 started = time.time()
-                await app.bring_to_front()
+                await prepare_page(app)
                 if job_key(app.url) != key:
                     raise RuntimeError("The original job tab changed.")
                 if resume_existing:

@@ -13,6 +13,7 @@ from PIL import Image, ImageDraw
 from playwright.async_api import Error
 
 from .puzzle_vision import visual_answer
+from .background import prepare_page
 
 DETECT = files(__package__).joinpath("detect_puzzle.js").read_text()
 # Canvas readback preserves transparent margins and the original pixel dimensions.
@@ -174,7 +175,7 @@ async def drag(page, widget, site):
     parts = widget.parts
     knob = parts.get("knob") or parts["board"]
     track = parts.get("track") or knob
-    await page.bring_to_front()
+    await prepare_page(page)
     await knob.hover(timeout=2000)
     button, rail = await asyncio.gather(knob.bounding_box(), track.bounding_box())
     if not button or not rail:

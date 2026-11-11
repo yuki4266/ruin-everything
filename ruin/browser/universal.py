@@ -6,9 +6,9 @@ from urllib.parse import urlsplit
 
 from ruin.browser.actions import click
 from ruin.auth.saved_login import resume_saved_login
+from .background import new_agent_page, prepare_page, remember_page, tab_marker
 
 Operation = Literal["tabs", "navigate", "inspect", "read", "click", "fill", "press", "select"]
-BLANK = {"about:blank", "chrome://newtab/", "chrome://newtab", "chrome://new-tab-page/"}
 
 
 async def resume_login(page):
@@ -18,6 +18,7 @@ async def resume_login(page):
 
 async def page_state(page):
     """Describe visible controls without reading input values or serialized form HTML."""
+    await prepare_page(page)
     text = await page.locator("body").inner_text(timeout=5000)
     controls = await page.locator('body :is(a,button,input,select,textarea,[role])').evaluate_all('''elements =>
         elements.flatMap((e, i) => {
@@ -48,26 +49,35 @@ def exact_page(context, site):
 
 
 async def browser_operation(context, operation: Operation, *, site=None, url=None, selector=None, value=None):
+    result = await _browser_operation(context, operation, site=site, url=url, selector=selector, value=value)
+    pages = [p for p in context.pages if p.url == result.get("url")]
+    if len(pages) == 1:
+        await remember_page(pages[0], previous_url=site if operation != "navigate" else None)
+    return result
+
+
+async def _browser_operation(context, operation: Operation, *, site=None, url=None, selector=None, value=None):
     """Keep tabs open across calls; use the same context for every destination."""
     if operation == "tabs":
-        return {"tabs": [{"url": p.url, "title": await p.title()} for p in context.pages]}
+        return {"tabs": [{"url": p.url, "title": await p.title(), **await tab_marker(p)} for p in context.pages]}
     if operation == "navigate":
         web_url(url)
         if site:
             page = exact_page(context, site)
         else:
             existing = [p for p in context.pages if p.url == url]
-            blank = [p for p in context.pages if p.url in BLANK]
             if existing:
                 page = exact_page(context, url)
             else:
-                page = blank[0] if len(blank) == 1 else await context.new_page()
+                page = await new_agent_page(context, purpose="browser", reuse=True)
+        await prepare_page(page)
         if page.url != url:
             await page.goto(url, wait_until="domcontentloaded", timeout=30000)
     else:
         if operation not in {"inspect", "read", "click", "fill", "press", "select"}:
             raise ValueError("Unknown browser operation.")
         page = exact_page(context, site)
+        await prepare_page(page)
         if operation in {"click", "fill", "press", "select"} and not selector:
             raise ValueError("This operation requires a Playwright selector for one visible element.")
         if operation in {"fill", "press", "select"} and value is None:

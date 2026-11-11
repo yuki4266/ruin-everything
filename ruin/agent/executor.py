@@ -1,12 +1,13 @@
 from urllib.parse import urlsplit
 from playwright.async_api import BrowserContext
 
+from ruin.browser.background import new_agent_page
 from ruin.auth.interceptor import authenticate
 from ruin.config import CANVAS
 
 
 async def courses(context: BrowserContext, origin=CANVAS, timeout=180):
-    page = await context.new_page()
+    page = await new_agent_page(context, purpose="courses")
     try:
         target = origin + "/courses"
         for attempt in range(2):

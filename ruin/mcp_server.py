@@ -86,8 +86,9 @@ The fixed Chrome profile restores the previous session; sites control expiry.
         Use this tool for ANY web browsing, navigation, DOM interaction, form filling,
         scraping, or multi-step web workflow across ALL websites.
         tabs lists open pages. navigate uses url as destination, optionally site as the
-        exact current tab URL; otherwise reuse the destination tab, a single blank tab,
-        or create a tab. Navigate proactively from blank tabs, using search when needed.
+        exact current tab URL; otherwise reuse the destination tab or a marked agent tab,
+        or create a background tab. User blank tabs remain untouched. No OS activation.
+        Navigate proactively, using search when needed.
         Other operations require site equal to the current URL returned by the last call.
         inspect returns visible text and control selectors without reading input values;
         read extracts visible text (selector defaults to body).

@@ -7,7 +7,7 @@ const root=doc.documentElement;
 for (const [k,v] of Object.entries({width:720,height:670,viewBox:'0 0 720 670',role:'img','aria-labelledby':'title desc'})) root.setAttribute(k,v);
 function el(tag,attrs={},text){const n=doc.createElementNS(root.namespaceURI,tag);for(const [k,v] of Object.entries(attrs)) n.setAttribute(k,v);if(text)n.appendChild(doc.createTextNode(text));root.appendChild(n);return n;}
 el('title',{id:'title'},'One local browser for every website');
-el('desc',{id:'desc'},'An agent uses Ruin and Python Playwright to navigate shared Chrome. Blank tabs are reused proactively; subsequent actions use the returned current URL. Existing sessions and unrelated tabs remain.');
+el('desc',{id:'desc'},'An agent uses Ruin and Python Playwright to navigate shared Chrome. Marked agent tabs are reused in the background; subsequent actions use the returned current URL. Existing sessions and unrelated tabs remain.');
 const font=fs.readFileSync('docs/figures/autofill.svg','utf8').match(/@font-face\{[^}]+\}/)[0];
 el('style',{},font+'text{font-family:Arial,sans-serif;fill:#302b38;font-size:18px}.h{font-family:Kalam;font-size:27px}.s{font-size:16px}');
 el('rect',{width:720,height:670,fill:'#fffaf0'});
@@ -22,7 +22,7 @@ box(233,66,205,110,'#e8dcfa');text(248,97,'ruin_browser');text(248,127,'Python P
 arrow(443,120,488,120);text(445,105,'act','s');
 box(493,66,203,110,'#e8dcfa');text(508,97,'Local Chrome');text(508,127,'Existing session');text(508,154,'Cookies + extensions','s');
 text(24,220,'B / Start from what is already open','h');
-box(24,241,672,99,'#fbe6b2');text(42,272,'Exact destination tab exists → reuse that tab');text(42,300,'Otherwise: one blank tab → navigate it');text(42,325,'Otherwise: create a tab; leave other pages open','s');
+box(24,241,672,99,'#fbe6b2');text(42,272,'Exact destination tab exists → reuse that tab');text(42,300,'Otherwise: unchanged agent tab → reuse it');text(42,325,'Otherwise: create a background tab; preserve user tabs','s');
 text(24,382,'C / Observe, then continue','h');
 box(24,401,307,124,'#e8dcfa');text(42,435,'Current website');text(42,465,'Navigate · click · fill');text(42,493,'Read · press · select');
 arrow(336,466,382,466);text(337,449,'state','s');

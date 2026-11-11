@@ -27,20 +27,23 @@ class UniversalBrowserTests(unittest.IsolatedAsyncioTestCase):
         '''))
         self.page = await self.context.new_page()
 
-    async def test_blank_navigation_reuses_context_and_session(self):
+    async def test_background_navigation_preserves_blank_tab_and_session(self):
         await self.context.add_cookies([{"name": "session", "value": "fixture", "url": "https://ordinary.test"}])
         result = await browser_operation(self.context, "navigate", url="https://ordinary.test/dashboard")
-        self.assertEqual(self.context.pages, [self.page])
+        self.assertEqual(self.page.url, "about:blank")
+        self.assertEqual(len(self.context.pages), 2)
+        self.page = self.context.pages[-1]
         self.assertEqual(result["url"], self.page.url)
         self.assertIn("Dashboard", result["text"])
         self.assertNotIn("fixture-secret", str(result))
         self.assertTrue(result["controls"])
         self.assertIn("session=fixture", await self.page.evaluate("document.cookie"))
         await browser_operation(self.context, "navigate", url=self.page.url)
-        self.assertEqual(len(self.context.pages), 1)
+        self.assertEqual(len(self.context.pages), 2)
 
     async def test_general_form_and_cross_domain_navigation(self):
         result = await browser_operation(self.context, "navigate", url="http://ordinary.test/form")
+        self.page = self.context.pages[-1]
         site = result["url"]
         field = next(c for c in result["controls"] if c["tag"] == "input" and c["label"] == "Query")
         await browser_operation(self.context, "fill", site=site, selector=field["selector"], value="Example")
@@ -58,6 +61,7 @@ class UniversalBrowserTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_ambiguity_and_stale_urls_do_not_change_other_tabs(self):
         await browser_operation(self.context, "navigate", url="https://ordinary.test/")
+        self.page = self.context.pages[-1]
         duplicate = await self.context.new_page()
         await duplicate.goto(self.page.url)
         for operation in ["inspect", "navigate"]:

@@ -13,6 +13,18 @@
 
 [Chromeのセットアップ](#use-a-shared-local-chrome-window) · [MCP クライアントを接続する](#connect-an-agent-over-mcp) · [何がテストされたかを確認する](#verification) · [MCP ツールを試す](#first-mcp-call) · [貢献する](#community)
 
+## 既定のバックグラウンド実行
+
+図 A：タスクページは CDP のフォーカス仮想化と active ライフサイクルを使い、Chrome を前面に出さずに操作できます。ログイン、認証、メール、プロフィール編集の明示的な `bring_to_front` 呼び出しを削除しました。新規タブは `Target.createTarget` の `background: true` で作成します。入力と画面取得は選択したページで行い、認証の成否はサイトが判断します。
+
+図 B：移動先に一致する既存タブ、または URL が変わっていない Agent タブを再利用します。それ以外は同じ Chrome コンテキストに背景タブを作成し、ユーザーの空白タブも保持します。`site` による明示的な選択も可能です。プロファイル横の非公開 `agent-tabs.json` は target ID、用途、URL ハッシュを保存し、`tabs` は `agent_owned` と `purpose` を返します。再接続後も同じ対象を再利用できます。手動で別 URL に移動したタブは自動再利用しません。メールや一時的な確認は別の背景タブを使います。`ruin identity` の編集タブも背景で開くため、編集時に手動で選択してください。
+
+図 C：macOS は `open -g -n` で Chrome を起動し、固定プロファイルとセッション復元を保持します。起動引数は `--disable-background-timer-throttling`、`--disable-backgrounding-occluded-windows`、`--disable-renderer-backgrounding`、`--disable-ipc-flooding-protection` を追加します。起動済みの Chrome は再起動せず、引数は次回起動時に有効です。更新されたランタイムはタスクページの準備時に `Emulation.setFocusEmulationEnabled({enabled: true})` と `Page.setWebLifecycleState({state: "active"})` を送信します。起動済み MCP サーバーは再接続してコードを読み込んでください。
+
+<img src="docs/figures/background.svg" alt="背景タブの選択、所有権レジストリ、レンダラー仮想化と macOS の背景起動により、ユーザーの前面アプリを保持する流れ。" width="100%">
+
+検証：背景テスト 5 件、汎用ブラウザテスト 5 件、入れ子 hCaptcha テスト 7 件、stdio MCP 統合を含む全 91 件の回帰テストが成功しました。実際の Chrome で信頼されたクリック、アニメーション、画面取得、再接続後の同一対象の再利用を確認しました。既存タブの URL と入力・再接続・後片付け前後の macOS 前面アプリは変化しませんでした。起動コマンドはテスト済みですが、Chrome の再起動や別の macOS Space は実測していません。
+
 ## ローカル ATS パスワードとアカウント復旧
 
 図 A：`ruin ats-setup` を一度実行すると、権限 `0600` の `~/.ruin/.env` に固定の24文字パスワードを作り、`ATS_AUTO_RECOVER` を有効化します。有効な既存 `ATS_DEFAULT_PASSWORD` は保持します。環境変数が優先され、`RUIN_ATS_ENV_FILE` で別の非公開ファイルを指定できます。秘密はコマンド引数や設定結果に表示しません。メールと自動登録設定は従来のローカルプロフィールを使用し、他のアカウントのパスワードは変更しません。
@@ -39,7 +51,7 @@
 
 ## 汎用ブラウザ自動化
 
-どのサイトでも `ruin_browser` を既定の入口にします。図 A は共有ランタイム、図 B はタブの選択を示します。`navigate` は移動先と一致するタブ、唯一の空白タブの順に再利用し、どちらもなければ新規タブを開きます。`site` で現在のタブを指定できます。URL がなくサイト名だけが分かる場合は、検索エンジンで探して続行します。
+どのサイトでも `ruin_browser` を既定の入口にします。図 A は共有ランタイム、図 B はタブの選択を示します。`navigate` は移動先と一致するタブ、URL が変わっていない Agent タブの順に再利用し、どちらもなければ背景タブを開きます。`site` で現在のタブを指定できます。URL がなくサイト名だけが分かる場合は、検索エンジンで探して続行します。
 
 ```json
 {"operation":"navigate","url":"https://example.org"}
@@ -47,9 +59,9 @@
 
 図 C のように、返された現在の URL を `site` にして `inspect`、`read`、`click`、`fill`、`press`、`select` を続けます。検査は表示テキストとセレクターを返し、入力欄の値を読み取りません。変更操作は一つの表示要素を指定し、`value` にテキスト、キー、選択肢の値を渡します。クリックと Enter は既存の Ruin 実行器を使います。`tabs` は現在の URL 一覧です。ドメインをまたいでもタブを保持します。テキストは 24,000 文字、要素は 300 件までです。詳細は範囲を絞った `read` で取得します。
 
-<img src="docs/figures/universal-browser.svg" alt="Ruin が共有 Chrome の移動先または空白タブを選び、現在の URL、表示テキスト、操作要素を返す流れ。" width="100%">
+<img src="docs/figures/universal-browser.svg" alt="Ruin が共有 Chrome の移動先または Agent タブを選び、現在の URL、表示テキスト、操作要素を返す流れ。" width="100%">
 
-検証：独立したブラウザテスト 5 件と stdio MCP 統合テストが成功しました。空白タブ、Cookie、通常のフォーム、別ドメインへの移動、重複タブ、他のページの保持を確認しています。実際のローカル Chrome でも空白タブから検索ページへの移動を確認しました。今回はリポジトリの更新です。ローカルのコードまたは Git ソースで MCP を再接続すると新ツールを読み込めます。新しい PyPI リリースは未公開です。
+検証：独立したブラウザテスト 5 件と stdio MCP 統合テストが成功しました。ユーザーの空白タブの保持、Cookie、通常のフォーム、別ドメインへの移動、重複タブ、他のページの保持を確認しています。今回はリポジトリの更新です。ローカルのコードまたは Git ソースで MCP を再接続すると新ツールを読み込めます。新しい PyPI リリースは未公開です。
 
 
 | ブラウザで | Ruinでできること |

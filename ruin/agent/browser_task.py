@@ -5,6 +5,7 @@ from playwright.async_api import BrowserContext
 from pydantic import BaseModel
 from typing import Literal
 
+from ruin.browser.background import prepare_page, new_agent_page, remember_page
 from ruin.browser.actions import click
 from ruin.auth.auto_registrar import fill_contact_phone, identity, signup, verify_sms
 from ruin.auth.workday import workday_account
@@ -31,9 +32,11 @@ async def browser_task(context: BrowserContext, url: str, task: str, model: str,
     existing = [tab for tab in context.pages if tab.url == url]
     if len(existing) > 1:
         raise RuntimeError("More than one tab matches the task URL. Select a unique original tab.")
-    page = existing[0] if existing else await context.new_page()
+    page = existing[0] if existing else await new_agent_page(context, purpose="task", reuse=True)
     if not existing:
         await page.goto(url, wait_until="domcontentloaded")
+    await prepare_page(page)
+    await remember_page(page)
     profile = identity()
     registered_at = None
     sms_filled = False

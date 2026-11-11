@@ -13,6 +13,18 @@
 
 [Set up Chrome](#use-a-shared-local-chrome-window) · [Connect an MCP client](#connect-an-agent-over-mcp) · [See what has been tested](#verification) · [Try your first MCP call](#first-mcp-call) · [Contribute](#community)
 
+## Background execution by default
+
+Panel A: task pages use CDP focus emulation and an active lifecycle without bringing Chrome to the foreground. Explicit `bring_to_front` calls are removed from login, challenge, mailbox and identity flows. New tabs use `Target.createTarget` with `background: true`; normal task input and viewport screenshots stay on the selected page. Focus emulation keeps the renderer interactive; the website still decides whether verification succeeds.
+
+Panel B: navigation reuses an exact destination or an unchanged marked agent tab. Otherwise it creates a background tab in the same Chrome context, preserving user tabs, including blank tabs. `site` still selects an existing tab explicitly. A private `agent-tabs.json` beside the Chrome profile stores target IDs, purposes and URL hashes; `tabs` returns `agent_owned` and `purpose`. Reconnects reuse the live target. A different URL after manual navigation prevents implicit reuse. Mail and temporary checks use separate background tabs. `ruin identity` opens a background editor tab; select it manually to edit settings.
+
+Panel C: macOS starts Chrome with `open -g -n` and retains the fixed profile and session restoration. Startup adds `--disable-background-timer-throttling`, `--disable-backgrounding-occluded-windows`, `--disable-renderer-backgrounding` and `--disable-ipc-flooding-protection`. Existing Chrome processes are not restarted; these flags apply on the next launch. Task pages immediately receive `Emulation.setFocusEmulationEnabled({enabled: true})` and `Page.setWebLifecycleState({state: "active"})` when prepared by the updated runtime. Reconnect an already-running MCP server to load this code.
+
+<img src="docs/figures/background.svg" alt="Background target selection, private ownership registry, renderer emulation and macOS background launch keep task work separate from the user's foreground app." width="100%">
+
+Verification: all 91 regression tests pass, including five new background tests, five universal browser tests, seven nested hCaptcha tests and stdio MCP integration. In live local Chrome, trusted clicks, animation and screenshots worked, the same target was reused after reconnect, original tab URLs were unchanged, and the frontmost macOS application stayed unchanged before and after input, reconnect and cleanup. Startup command construction is tested; a live Chrome restart and another macOS Space were not exercised.
+
 ## Local ATS password and account recovery
 
 Panel A shows the opt-in local setup. Run `ruin ats-setup` once to create a fixed 24-character password and enable `ATS_AUTO_RECOVER` in `~/.ruin/.env` with mode `0600`. An existing valid `ATS_DEFAULT_PASSWORD` is preserved. Environment values take precedence; `RUIN_ATS_ENV_FILE` selects another private env file. The password never appears in command arguments or setup output. Keep the email and auto-signup preference in the existing local identity profile. Other account passwords are unchanged.
@@ -39,7 +51,7 @@ Verification: seven new isolated Chromium tests cover nested cross-origin grids,
 
 ## Universal browser automation
 
-Use `ruin_browser` as the default entry point for any website. Panel A shows the shared local runtime; panel B shows tab selection. `navigate` reuses an exact destination tab, otherwise a single blank tab, otherwise opens a new tab. Give `site` to select a current tab explicitly. If the task names a site without a URL, navigate to a search engine and locate it without waiting for the user to open a page.
+Use `ruin_browser` as the default entry point for any website. Panel A shows the shared local runtime; panel B shows tab selection. `navigate` reuses an exact destination tab, otherwise an unchanged marked agent tab, otherwise opens a background tab. Give `site` to select a current tab explicitly. If the task names a site without a URL, navigate to a search engine and locate it without waiting for the user to open a page.
 
 ```json
 {"operation":"navigate","url":"https://example.org"}
@@ -47,9 +59,9 @@ Use `ruin_browser` as the default entry point for any website. Panel A shows the
 
 Panel C shows the continuation loop. Use the returned current URL as `site` for `inspect`, `read`, `click`, `fill`, `press` or `select`. Inspection returns visible text and selectors without reading input values. Mutations require one visible element; `value` supplies text, a key or an option value. Clicks and Enter use the existing Ruin executor. `tabs` lists current URLs. Tabs remain open across calls, including redirects to another domain. Text is capped at 24,000 characters and controls at 300; use `read` with a narrower selector for detail.
 
-<img src="docs/figures/universal-browser.svg" alt="Ruin connects an agent to shared Chrome, selects a destination or blank tab, and returns the current URL, visible text and controls for the next step." width="100%">
+<img src="docs/figures/universal-browser.svg" alt="Ruin connects an agent to shared Chrome, selects a destination or owned agent tab, and returns the current URL, visible text and controls for the next step." width="100%">
 
-Verification: five isolated browser tests and the stdio MCP integration pass, covering blank-tab reuse, session cookies, ordinary forms, cross-domain continuation, ambiguous tabs and preservation of unrelated pages. Live Chrome also navigated from a blank tab to a search page. This is a repository update; reconnect MCP using this checkout or the Git source to load `ruin_browser`. No new PyPI release is claimed.
+Verification: five isolated browser tests and the stdio MCP integration pass, covering preservation of user blank tabs, session cookies, ordinary forms, cross-domain continuation, ambiguous tabs and preservation of unrelated pages. This is a repository update; reconnect MCP using this checkout or the Git source to load `ruin_browser`. No new PyPI release is claimed.
 
 
 | In your browser | What Ruin can do |

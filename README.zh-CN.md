@@ -13,6 +13,18 @@
 
 [设置Chrome](#use-a-shared-local-chrome-window) · [连接 MCP 客户端](#connect-an-agent-over-mcp) · [查看已测试的内容](#verification) · [试用第一个 MCP 工具](#first-mcp-call) · [参与贡献](#community)
 
+## 默认后台静默执行
+
+图 A：任务页通过 CDP 焦点仿真和 active 生命周期保持交互，不将 Chrome 提升到前台。登录、验证码、邮箱和身份编辑流程中的显式 `bring_to_front` 调用已移除。新标签页使用 `Target.createTarget` 的 `background: true`，输入和视口截图在选定页面完成。焦点仿真保证渲染器可交互，验证是否通过仍由网站判断。
+
+图 B：导航复用目标网址的现有页或网址未被改变的 Agent 专属页，否则在同一 Chrome 上下文中新建后台页，保留用户页面，包括空白页。`site` 仍可明确指定现有标签页。Chrome 配置目录旁的私有 `agent-tabs.json` 保存 target ID、用途和 URL 哈希；`tabs` 返回 `agent_owned` 和 `purpose`。重连后可复用原目标；用户手动导航到其他网址后，该页不再被自动复用。邮箱和临时检查使用独立后台页。`ruin identity` 也在后台打开编辑页，需要编辑时手动选择该页。
+
+图 C：macOS 使用 `open -g -n` 启动 Chrome，保留固定配置目录和会话恢复。启动参数新增 `--disable-background-timer-throttling`、`--disable-backgrounding-occluded-windows`、`--disable-renderer-backgrounding` 和 `--disable-ipc-flooding-protection`。不会重启正在运行的 Chrome；这些参数在下次启动时生效。更新后的运行时准备任务页时立即发送 `Emulation.setFocusEmulationEnabled({enabled: true})` 和 `Page.setWebLifecycleState({state: "active"})`。已运行的 MCP 服务需重连以加载代码。
+
+<img src="docs/figures/background.svg" alt="后台目标选择、私有标签页标记、渲染器仿真和 macOS 后台启动，使任务执行不占用用户的前台应用。" width="100%">
+
+验证：全部 91 项回归测试通过，包括五项新增后台测试、五项通用浏览器测试、七项嵌套 hCaptcha 测试和 stdio MCP 集成。本机 Chrome 实测了可信点击、动画和截图，重连后复用同一目标，原有标签页 URL 未变；输入、重连和清理前后的 macOS 前台应用均未变。启动命令构造已测试，未实测重启 Chrome 或切换到其他 macOS Space。
+
 ## 本地 ATS 密码与账号恢复
 
 图 A：运行一次 `ruin ats-setup`，在权限为 `0600` 的 `~/.ruin/.env` 中生成固定的 24 位密码并启用 `ATS_AUTO_RECOVER`。已有有效 `ATS_DEFAULT_PASSWORD` 会保留；环境变量优先，`RUIN_ATS_ENV_FILE` 可指定其他私有配置文件。密码不出现在命令参数或设置结果中。邮箱与自动注册偏好继续使用本地身份档案，其他账号的密码不变。
@@ -39,7 +51,7 @@
 
 ## 通用浏览器自动化
 
-所有网站默认使用 `ruin_browser`。图 A 展示共享本地运行时，图 B 展示标签页选择：`navigate` 优先复用目标网址的现有标签页，其次复用唯一的空白页，否则新建标签页。可用 `site` 明确指定当前标签页。任务给出站点名称但没有网址时，直接导航到搜索引擎查找，不等待用户手动打开页面。
+所有网站默认使用 `ruin_browser`。图 A 展示共享本地运行时，图 B 展示标签页选择：`navigate` 优先复用目标网址的现有标签页，其次复用网址未变的 Agent 专属页，否则新建后台标签页。可用 `site` 明确指定当前标签页。任务给出站点名称但没有网址时，直接导航到搜索引擎查找，不等待用户手动打开页面。
 
 ```json
 {"operation":"navigate","url":"https://example.org"}
@@ -47,9 +59,9 @@
 
 图 C 展示后续操作。把返回的当前 URL 作为 `site`，执行 `inspect`、`read`、`click`、`fill`、`press` 或 `select`。检查返回可见文本和控件选择器，不读取输入框值。修改操作必须匹配唯一可见元素；`value` 提供文本、按键或选项值。点击和 Enter 经过现有 Ruin 执行器。`tabs` 列出当前网址。跨域跳转和后续调用继续使用同一浏览器，标签页保持打开。文本最多返回 24,000 字符、控件最多 300 个；可通过 `read` 和更精确的选择器读取详情。
 
-<img src="docs/figures/universal-browser.svg" alt="Ruin 连接智能体与共享 Chrome，选择目标页或空白页，再返回当前 URL、可见文本和控件供后续操作。" width="100%">
+<img src="docs/figures/universal-browser.svg" alt="Ruin 连接智能体与共享 Chrome，选择目标页或 Agent 专属页，再返回当前 URL、可见文本和控件供后续操作。" width="100%">
 
-验证：五项隔离浏览器测试和 stdio MCP 集成测试通过，覆盖空白页复用、会话 Cookie、普通表单、跨域继续、标签页歧义及其他页面保留。还在本机 Chrome 实测了从空白页导航到搜索页。本次更新已进入仓库；使用本地检出或 Git 源重新连接 MCP 后可加载 `ruin_browser`，尚未发布新的 PyPI 版本。
+验证：五项隔离浏览器测试和 stdio MCP 集成测试通过，覆盖用户空白页保留、会话 Cookie、普通表单、跨域继续、标签页歧义及其他页面保留。本次更新已进入仓库；使用本地检出或 Git 源重新连接 MCP 后可加载 `ruin_browser`，尚未发布新的 PyPI 版本。
 
 
 | 在您的浏览器中 | Ruin 可以做什么 |

@@ -13,6 +13,18 @@
 
 [Configurar Chrome](#use-a-shared-local-chrome-window) · [Conectar un cliente MCP](#connect-an-agent-over-mcp) · [Ver lo que se ha probado](#verification) · [Prueba tu primera llamada MCP](#first-mcp-call) · [Cómo contribuir](#community)
 
+## Ejecución en segundo plano por defecto
+
+Panel A: las páginas de tarea usan emulación de foco CDP y un ciclo de vida activo sin traer Chrome al frente. Se eliminaron las llamadas explícitas a `bring_to_front` en acceso, desafíos, correo e identidad. Las pestañas nuevas usan `Target.createTarget` con `background: true`. La entrada y las capturas se realizan en la página elegida; el sitio sigue decidiendo el resultado de la verificación.
+
+Panel B: la navegación reutiliza el destino exacto o una pestaña Agent cuya URL no haya cambiado. En otro caso crea una pestaña de fondo en el mismo contexto, conservando las del usuario, incluidas las vacías. `site` permite seleccionar una pestaña existente. El archivo privado `agent-tabs.json`, junto al perfil, guarda target ID, propósito y hash de URL; `tabs` devuelve `agent_owned` y `purpose`. La reconexión reutiliza el mismo destino. Una navegación manual a otra URL impide su reutilización automática. El correo y las comprobaciones temporales usan pestañas separadas. `ruin identity` también abre el editor en segundo plano; selecciónelo manualmente para editar.
+
+Panel C: macOS inicia Chrome con `open -g -n`, conservando el perfil fijo y la restauración de sesión. Se añaden `--disable-background-timer-throttling`, `--disable-backgrounding-occluded-windows`, `--disable-renderer-backgrounding` y `--disable-ipc-flooding-protection`. No se reinicia Chrome: los argumentos se aplican en el próximo inicio. El runtime actualizado prepara las páginas con `Emulation.setFocusEmulationEnabled({enabled: true})` y `Page.setWebLifecycleState({state: "active"})`. Reconecte un servidor MCP ya abierto para cargar el código.
+
+<img src="docs/figures/background.svg" alt="Selección de pestañas de fondo, registro privado, emulación del renderizador e inicio de macOS sin cambiar la aplicación en primer plano." width="100%">
+
+Verificación: pasan las 91 pruebas de regresión, incluidas cinco nuevas de segundo plano, cinco de navegador universal, siete de hCaptcha anidado y la integración MCP por stdio. En Chrome local se comprobaron clics de confianza, animación, capturas y reutilización del mismo destino tras reconectar. Las URL originales y la aplicación frontal de macOS no cambiaron durante entrada, reconexión y limpieza. Se probó la construcción del comando de inicio; no se reinició Chrome ni se verificó otro Space de macOS.
+
 ## Contraseña ATS local y recuperación de cuenta
 
 Panel A: ejecute `ruin ats-setup` una vez para crear una contraseña fija de 24 caracteres y activar `ATS_AUTO_RECOVER` en `~/.ruin/.env`, con permisos `0600`. Se conserva un `ATS_DEFAULT_PASSWORD` válido. Las variables de entorno tienen prioridad; `RUIN_ATS_ENV_FILE` permite elegir otro archivo privado. La contraseña no aparece en argumentos ni resultados. El correo y la preferencia de registro automático siguen en el perfil local. Las contraseñas de otras cuentas no cambian.
@@ -39,7 +51,7 @@ Verificación: pasan siete pruebas Chromium nuevas y siete pruebas existentes po
 
 ## Automatización universal del navegador
 
-Usa `ruin_browser` como entrada predeterminada para cualquier sitio. El panel A muestra el entorno compartido y el B la selección de pestaña. `navigate` reutiliza una pestaña con la URL de destino; en su defecto, una única pestaña vacía; si no existe ninguna, abre otra. `site` permite elegir la pestaña actual. Si solo conoces el nombre del sitio, navega a un buscador y continúa sin esperar que el usuario abra la página.
+Usa `ruin_browser` como entrada predeterminada para cualquier sitio. El panel A muestra el entorno compartido y el B la selección de pestaña. `navigate` reutiliza una pestaña con la URL de destino; en su defecto, una pestaña Agent con URL sin cambios; si no existe ninguna, abre otra en segundo plano. `site` permite elegir la pestaña actual. Si solo conoces el nombre del sitio, navega a un buscador y continúa sin esperar que el usuario abra la página.
 
 ```json
 {"operation":"navigate","url":"https://example.org"}
@@ -47,9 +59,9 @@ Usa `ruin_browser` como entrada predeterminada para cualquier sitio. El panel A 
 
 El panel C muestra cómo continuar: usa la URL devuelta como `site` para `inspect`, `read`, `click`, `fill`, `press` o `select`. La inspección devuelve texto visible y selectores sin leer los valores de los campos. Las modificaciones requieren un único elemento visible; `value` contiene texto, una tecla o el valor de una opción. Los clics y Enter pasan por el ejecutor Ruin existente. `tabs` enumera las URL actuales. Las pestañas se conservan, también tras cambiar de dominio. El texto se limita a 24.000 caracteres y los controles a 300; usa `read` con un selector más preciso para obtener detalles.
 
-<img src="docs/figures/universal-browser.svg" alt="Ruin conecta el agente a Chrome compartido, elige una pestaña de destino o vacía y devuelve la URL actual, el texto visible y los controles." width="100%">
+<img src="docs/figures/universal-browser.svg" alt="Ruin conecta el agente a Chrome compartido, elige una pestaña de destino o de Agent y devuelve la URL actual, el texto visible y los controles." width="100%">
 
-Verificación: pasan cinco pruebas aisladas de navegador y la integración MCP por stdio. Cubren pestañas vacías, cookies de sesión, formularios, cambios de dominio, pestañas ambiguas y conservación de otras páginas. También se comprobó en Chrome local la navegación desde una pestaña vacía a un buscador. Es una actualización del repositorio: reconecta MCP desde esta copia o la fuente Git para cargar la herramienta. No se ha publicado una nueva versión en PyPI.
+Verificación: pasan cinco pruebas aisladas de navegador y la integración MCP por stdio. Cubren la conservación de pestañas vacías del usuario, cookies de sesión, formularios, cambios de dominio, pestañas ambiguas y conservación de otras páginas. Es una actualización del repositorio: reconecta MCP desde esta copia o la fuente Git para cargar la herramienta. No se ha publicado una nueva versión en PyPI.
 
 
 | En tu navegador | Qué puede hacer Ruin |

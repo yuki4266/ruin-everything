@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from time import monotonic
 from urllib.parse import urlsplit
 
+from ruin.browser.background import prepare_page
 from ruin.auth.autofill import offer_chrome_login
 from ruin.auth.trusted import trusted_client
 
@@ -118,7 +119,7 @@ async def _use_duke_form(page, field, flow, url, *, saved_only=False):
         if saved_only or (policy is not None and not policy.get("chrome_password_dropdown")):
             return
         if flow.claim(("chrome",)):
-            await page.bring_to_front()
+            await prepare_page(page)
             await offer_chrome_login(page, url, clients=clients,
                                      chrome_only=True)
             return "chrome"

@@ -4,6 +4,7 @@ from time import monotonic
 
 from playwright.async_api import TimeoutError as BrowserTimeout
 
+from ruin.browser.background import new_agent_page
 from ruin.auth.vault import origin_of
 
 
@@ -11,7 +12,7 @@ async def keep_alive(context, site, marker, interval, duration):
     origin_of(site)
     if not marker.strip() or min(interval, duration) <= 0:
         raise ValueError("Supply a signed-in text marker and positive timing values.")
-    page = await context.new_page()
+    page = await new_agent_page(context, purpose="session-check")
     end = monotonic() + duration
     try:
         while True:

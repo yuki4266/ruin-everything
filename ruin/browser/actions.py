@@ -13,6 +13,7 @@ from ruin.auth.vault import origin_of
 from ruin.config import PROFILE
 
 from .puzzles import detect, solve
+from .background import prepare_page
 
 
 @dataclass
@@ -82,6 +83,7 @@ async def execute(page, site, target=None, *, timeout=5000, enter=False, complet
     """With no target, resume the open widget without replaying a prior click."""
     if page.url != site or page.is_closed():
         raise RuntimeError("The selected tab changed before the action.")
+    await prepare_page(page)
     PROFILE.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     try:
         with FileLock(PROFILE.parent / "browser-action.lock", timeout=0):

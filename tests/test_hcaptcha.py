@@ -10,6 +10,7 @@ from unittest.mock import patch
 from playwright.async_api import async_playwright
 
 from ruin.browser.actions import exact_action
+from ruin.browser.background import new_agent_page
 from ruin.browser.puzzles import detect
 
 SITE = 'https://portal.test/jobs/5149'
@@ -23,7 +24,8 @@ class HCaptchaTests(unittest.IsolatedAsyncioTestCase):
         browser = await driver.chromium.launch(channel=os.getenv('RUIN_TEST_CHANNEL', 'chromium'))
         self.addAsyncCleanup(browser.close)
         self.context = await browser.new_context(viewport={'width': 1100, 'height': 950})
-        self.page = await self.context.new_page()
+        self.user_page = await self.context.new_page()
+        self.page = await new_agent_page(self.context, purpose="challenge-test")
 
     async def mount(self, content, mode='challenge'):
         await self.context.route('https://portal.test/**', lambda r: r.fulfill(content_type='text/html', body='''
@@ -41,16 +43,18 @@ class HCaptchaTests(unittest.IsolatedAsyncioTestCase):
         await self.frame.wait_for_selector('body')
 
     async def test_indexed_grid_with_hidden_duplicates_and_nested_offsets(self):
-        cells = ''.join(f'<div class="task-image" onclick="hits.push({i})">{i}</div>' for i in range(9))
+        cells = ''.join(f'<div class="task-image" onclick="hits.push({i});focusStates.push(document.hasFocus())">{i}</div>' for i in range(9))
         await self.mount(f'''<style>.task-image{{width:90px;height:90px;background:#acd}}</style>
             <h2>Select all images with bicycles</h2><div style="display:grid;grid-template-columns:repeat(3,90px)">{cells}</div>
             <div hidden>{cells}</div><div class="button-submit" role="button"
             onclick="if(hits.join()==='0,4,8')document.body.replaceChildren()">Verify</div>
-            <script>window.hits=[]</script>''')
+            <script>window.hits=[];window.focusStates=[]</script>''')
         with patch('ruin.browser.puzzles.visual_answer', return_value={'cells': [1, 5, 9]}):
             result = await exact_action(self.context, SITE, 'Apply')
         self.assertEqual((result.kind, result.state), ('hcaptcha_grid', 'challenge_cleared'))
         self.assertEqual(await self.frame.evaluate('hits'), [0, 4, 8])
+        self.assertEqual(await self.frame.evaluate('focusStates'), [True, True, True])
+        self.assertEqual(self.user_page.url, 'about:blank')
         self.assertFalse(await self.page.evaluate('!!window.replayed'))
 
     async def test_checkbox_click_reaches_nested_control_once(self):
