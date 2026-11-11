@@ -13,6 +13,19 @@
 
 [设置Chrome](#use-a-shared-local-chrome-window) · [连接 MCP 客户端](#connect-an-agent-over-mcp) · [查看已测试的内容](#verification) · [试用第一个 MCP 工具](#first-mcp-call) · [参与贡献](#community)
 
+## 本地 ATS 密码与账号恢复
+
+图 A：运行一次 `ruin ats-setup`，在权限为 `0600` 的 `~/.ruin/.env` 中生成固定的 24 位密码并启用 `ATS_AUTO_RECOVER`。已有有效 `ATS_DEFAULT_PASSWORD` 会保留；环境变量优先，`RUIN_ATS_ENV_FILE` 可指定其他私有配置文件。密码不出现在命令参数或设置结果中。邮箱与自动注册偏好继续使用本地身份档案，其他账号的密码不变。
+
+图 B：在选定的 iCIMS / Workday 租户内，根据实际字段和标题区分登录与首次设密，支持 iCIMS 内嵌表单。明确的凭据错误出现后，优先使用可见注册入口；账号已存在则回到登录；统一 ATS 密码只重试一次，仍失败才点击可见的忘记／重置密码入口。尚未报错时可先尝试 Chrome 已填密码。每个步骤按租户和邮箱限制在十五分钟内执行一次，重连 CDP 后仍有效；不会猜测注册地址。凭据表单须提交到同一 HTTPS 来源，操作经过 Ruin 执行器。
+
+该流程已接入 `ruin_browser`、`ruin_action`、`ruin_auto_register` 和模型浏览器任务；也可直接运行 `ruin ats-account --site 'EXACT_CURRENT_HTTPS_URL'`。图 C：`reset_email_requested` 只表示网站接受了重置请求，不等于邮件送达、登录或申请成功。邮件／验证码未完成时保留 `email_verification_pending`；可见的设密表单自动使用本地密码；申请仍以网站回执为准。原有 Workday 邮箱激活流程继续保留。
+
+<img src="docs/figures/ats-recovery.svg" alt="本地私有 ATS 密码、选定租户内的注册与单次密码重试、邮件恢复边界及申请回执。" width="100%">
+
+验证：新增十一项配置／浏览器测试和原有五项 Workday 测试通过，覆盖配置权限与稳定性、环境变量优先级、错误分支、账号已存在、嵌套表单、身份与同源检查、重复抑制。Planview 5149 实测为登录表单，统一密码被拒绝，网站确认重置请求；Outlook 和垃圾邮件中尚未找到对应邮件，因此不声称已重置密码、上传简历或提交申请。提供方行为参见 [iCIMS 候选人帮助](https://team.icims.com/jobseekerhelp)。本次为仓库更新，未发布新版 PyPI 包。
+
+
 ## 嵌套 hCaptcha 挑战
 
 图 A：优先识别 hCaptcha，再使用通用滑块规则。九宫格使用 `.task-image` 的明确索引；画布支持坐标点选和二维拖拽；未勾选的复选框点击控件中心。隐藏的外层 iframe 会被排除。无法识别或答案不确定时保留待处理状态，不再误报“无法定位唯一目标”。

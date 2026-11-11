@@ -13,6 +13,19 @@
 
 [Configurar Chrome](#use-a-shared-local-chrome-window) · [Conectar un cliente MCP](#connect-an-agent-over-mcp) · [Ver lo que se ha probado](#verification) · [Prueba tu primera llamada MCP](#first-mcp-call) · [Cómo contribuir](#community)
 
+## Contraseña ATS local y recuperación de cuenta
+
+Panel A: ejecute `ruin ats-setup` una vez para crear una contraseña fija de 24 caracteres y activar `ATS_AUTO_RECOVER` en `~/.ruin/.env`, con permisos `0600`. Se conserva un `ATS_DEFAULT_PASSWORD` válido. Las variables de entorno tienen prioridad; `RUIN_ATS_ENV_FILE` permite elegir otro archivo privado. La contraseña no aparece en argumentos ni resultados. El correo y la preferencia de registro automático siguen en el perfil local. Las contraseñas de otras cuentas no cambian.
+
+Panel B: en el tenant seleccionado de iCIMS o Workday, los campos y encabezados distinguen inicio de sesión y nueva contraseña, incluido el formulario iCIMS incrustado. Ante un error explícito, se usa primero el registro visible; una cuenta existente vuelve al inicio de sesión. Se prueba una vez la contraseña ATS y, si sigue rechazada, se usa el control visible de recuperación. Las credenciales ya rellenadas por Chrome pueden probarse primero si todavía no hay rechazo. Cada fase se limita por tenant y correo durante quince minutos, incluso tras reconectar CDP. No se inventan rutas de registro. Los formularios de credenciales deben enviar al mismo origen HTTPS mediante el ejecutor Ruin.
+
+La continuación se integra en `ruin_browser`, `ruin_action`, `ruin_auto_register` y las tareas del agente. También puede ejecutarse con `ruin ats-account --site 'EXACT_CURRENT_HTTPS_URL'`. Panel C: `reset_email_requested` solo confirma que el sitio aceptó la solicitud; no confirma entrega, autenticación ni candidatura. La verificación puede quedar en `email_verification_pending`; un formulario visible de nueva contraseña usa el secreto local. La candidatura requiere su propio recibo. Se conserva la activación de Workday existente.
+
+<img src="docs/figures/ats-recovery.svg" alt="Configuración ATS privada, registro y un reintento por tenant, y distinción entre recuperación por correo y recibo de candidatura." width="100%">
+
+Verificación: pasan once pruebas nuevas de configuración/navegador y cinco pruebas Workday existentes. En Planview 5149 se observó un formulario de inicio de sesión, la contraseña configurada fue rechazada y el sitio aceptó la recuperación. Outlook y Correo no deseado todavía no muestran el mensaje correspondiente; no se afirma haber cambiado la contraseña, cargado el CV ni enviado la candidatura. Consulte la [ayuda de candidatos de iCIMS](https://team.icims.com/jobseekerhelp). Es una actualización del repositorio, no una nueva versión en PyPI.
+
+
 ## Desafíos hCaptcha anidados
 
 El panel A muestra la detección de hCaptcha antes de las reglas genéricas de deslizadores: índices explícitos de `.task-image` para cuadrículas, puntos o arrastres bidimensionales para canvas y el centro del control para casillas sin marcar. Se excluyen los marcos con ancestros ocultos. Las tareas desconocidas o inciertas quedan pendientes con un motivo específico.

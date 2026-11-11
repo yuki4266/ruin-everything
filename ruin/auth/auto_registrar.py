@@ -14,15 +14,17 @@ from .vault import origin_of
 
 
 def identity():
+    from .ats_config import settings
+
     path = Path.home() / ".ruin/identity.json"
     if not path.exists():
-        return {}
+        return settings()
     if path.is_symlink() or path.stat().st_mode & 0o077:
         raise ValueError("Set identity.json permissions to 0600 before using signup.")
     profile = json.loads(path.read_text())
     if not isinstance(profile, dict):
         raise ValueError("identity.json must contain an object.")
-    return profile
+    return {**profile, **settings()}
 
 
 SIGNUP = re.compile(r"^(create (an? |my )?account|sign up|register)$", re.I)

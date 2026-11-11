@@ -34,7 +34,8 @@ async def guard_account_button(button, site):
         if (new URL(f.action).origin !== origin ||
             (b.hasAttribute('formaction') && new URL(b.formAction).origin !== origin)) return false;
         if ((b.getAttribute('formmethod') || f.method).toLowerCase() === 'post') return true;
-        if (!['signInSubmitButton', 'createAccountSubmitButton'].includes(b.dataset.automationId) ||
+        if (!['signInSubmitButton', 'createAccountSubmitButton', 'forgotPasswordSubmitButton',
+              'resetPasswordSubmitButton'].includes(b.dataset.automationId) ||
             !f.closest('[role=dialog]') || f.hasAttribute('method') || f.hasAttribute('action') ||
             b.hasAttribute('formaction') || b.hasAttribute('formmethod')) return false;
         // Workday handles this form in JavaScript. Suppress a native GET of credentials.
@@ -126,6 +127,9 @@ async def submit_workday_registration(page, site, profile):
 
 
 async def workday_account(page, site, profile, timeout=60, allow_create=True):
+    from .ats_accounts import INVALID, account_control, claim, fill_password, request_reset, workday_login_fallback
+
+    profile = {**profile, "default_password": profile.get("ats_default_password") or profile.get("default_password")}
     if (profile.get("auto_signup") is not True or not TENANT.fullmatch(urlsplit(site).hostname or "")
             or origin_of(page.url) != origin_of(site)):
         return False
@@ -137,9 +141,28 @@ async def workday_account(page, site, profile, timeout=60, allow_create=True):
     if not await passwords.count():
         return False
     await page.bring_to_front()
+    headings = ' '.join(await scope.locator('h1,h2,[role=heading]').all_inner_texts())
+    if profile.get("ats_auto_recover") and await passwords.count() == 2 and re.search(r'reset|new password', headings, re.I):
+        submit = await account_control(scope, re.compile(r'^(?:(?:reset|change|save) password|submit)$', re.I))
+        if submit is None or not profile.get('default_password'):
+            return {"state": "account_pending", "reason": "The Workday password setup controls are ambiguous."}
+        await guard_account_button(await submit.element_handle(), site)
+        if not await claim(page, profile, 'set_password'):
+            return {"state": "account_pending", "reason": "Workday password setup was already attempted."}
+        for field in await passwords.all():
+            await fill_password(field, profile['default_password'])
+        await click(page, submit)
+        if await page.locator('input[type=password]:visible').count():
+            return {"state": "account_pending", "reason": "Workday has not confirmed the password change."}
+        return {"state": "account_step_completed"}
     sign_in = scope.get_by_role("button", name=re.compile("^sign in$", re.I))
     email = scope.locator('input[type=email]:visible,input[autocomplete=username]:visible,'
                          'input[data-automation-id=email]:visible')
+    if (profile.get("ats_auto_recover") and profile.get("default_password") and profile.get("email") and
+            await passwords.count() == 1 and await sign_in.count() == 1):
+        result = await workday_login_fallback(page, site, scope, profile, allow_create)
+        if result["state"] != "registration_open":
+            return result
     if await passwords.count() == 1 and await sign_in.count() == 1:
         if await email.count() != 1 or not all(profile.get(k) for k in ("email", "default_password")):
             raise RuntimeError("Workday needs a matching email field and local credentials. Set the email and password with ruin identity.")
@@ -178,6 +201,12 @@ async def workday_account(page, site, profile, timeout=60, allow_create=True):
         raise RuntimeError("Workday returned to registration after the account step.")
     with mailbox_lock(PROFILE.parent):
         started = await submit_workday_registration(page, site, profile)
+        if profile.get("ats_auto_recover") and INVALID.search(await page.locator('body').inner_text()):
+            signin = await account_control(page, re.compile(r'^sign in$', re.I))
+            if signin is not None:
+                await click(page, signin)
+                return await workday_account(page, page.url, profile, timeout=timeout, allow_create=False)
+            return await request_reset(page, profile)
         prompt = page.get_by_text(re.compile(r"check your (?:inbox|email)|activation email|verify your email", re.I)).first
         code_field = page.locator(CODE_FIELD)
         await prompt.or_(code_field).first.wait_for(timeout=15000)

@@ -13,6 +13,19 @@
 
 [Set up Chrome](#use-a-shared-local-chrome-window) · [Connect an MCP client](#connect-an-agent-over-mcp) · [See what has been tested](#verification) · [Try your first MCP call](#first-mcp-call) · [Contribute](#community)
 
+## Local ATS password and account recovery
+
+Panel A shows the opt-in local setup. Run `ruin ats-setup` once to create a fixed 24-character password and enable `ATS_AUTO_RECOVER` in `~/.ruin/.env` with mode `0600`. An existing valid `ATS_DEFAULT_PASSWORD` is preserved. Environment values take precedence; `RUIN_ATS_ENV_FILE` selects another private env file. The password never appears in command arguments or setup output. Keep the email and auto-signup preference in the existing local identity profile. Other account passwords are unchanged.
+
+Panel B shows the bounded fallback on the selected iCIMS or Workday tenant. Current-password and new-password forms are distinguished using the actual fields and headings, including the iCIMS content iframe. On an explicit credential error, use a visible registration entry if available; if registration reports an existing account, return to login. Try the configured ATS password once, then use the visible Forgot/Reset Password control if credentials are still rejected. Filled Chrome credentials can be tried first when no rejection is already visible. Each phase is limited per tenant/email for fifteen minutes across CDP reconnects. No registration endpoint is guessed. Credential submissions require the same HTTPS origin and use the Ruin executor.
+
+This continuation is connected to `ruin_browser`, `ruin_action`, `ruin_auto_register` and model browser tasks. `ruin ats-account --site 'EXACT_CURRENT_HTTPS_URL'` runs it directly without a model. Panel C separates `reset_email_requested` from delivery, authentication and application submission. Email/code verification can still leave `email_verification_pending`; a visible password-setup form uses the local secret, while an application needs its own receipt. Workday's existing activation flow remains available.
+
+<img src="docs/figures/ats-recovery.svg" alt="A private local ATS password feeds the selected tenant, credential failure branches through registration and one password retry, and email recovery remains distinct from an application receipt." width="100%">
+
+Verification: eleven new configuration/browser tests and five existing Workday tests pass. Tests cover private stable configuration, environment precedence, explicit errors, existing-account fallback, nested forms, identity checks, same-origin submission and repeat suppression. Live Planview 5149 showed an existing-login form, rejected the configured password, and acknowledged password recovery. Searches of Outlook and Junk did not find a corresponding message; password reset, resume upload and application submission are not claimed. See the [iCIMS candidate help](https://team.icims.com/jobseekerhelp) for the provider's login and reset behavior. This is a repository update, not a new PyPI release.
+
+
 ## Nested hCaptcha challenges
 
 Panel A shows provider-specific detection before generic slider heuristics: visible hCaptcha grids use indexed `.task-image` handles, canvas tasks use image-relative points or two-dimensional drags, and an unchecked checkbox uses its control center. Hidden ancestor frames are excluded. Unsupported or uncertain tasks stay pending with a specific reason; they no longer report a misleading uniqueness failure.

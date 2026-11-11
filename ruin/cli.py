@@ -12,6 +12,23 @@ from ruin.updater import start_update_check
 
 
 async def run(args):
+    if args.task == "ats-setup":
+        from ruin.auth.ats_config import setup
+        print(json.dumps(setup()))
+        return
+    if args.task == "ats-account":
+        from ruin.auth.auto_registrar import identity
+        from ruin.auth.ats_accounts import icims_account
+        from ruin.auth.workday import workday_account
+        from ruin.browser.universal import exact_page
+        async with browser_context(PROFILE, args.cdp, launch_if_missing=False) as context:
+            page = exact_page(context, args.site)
+            profile = identity()
+            result = await icims_account(page, args.site, profile)
+            if result is None:
+                result = await workday_account(page, args.site, profile)
+            print(json.dumps(result if isinstance(result, dict) else {"state": "account_step_completed" if result else "no_match"}))
+        return
     if args.task == "action":
         from dataclasses import asdict
         from ruin.browser.actions import exact_action
@@ -84,7 +101,7 @@ async def run(args):
 
 def main():
     parser = argparse.ArgumentParser(description="Run browser tasks and resume verification in a shared local Chrome session.")
-    parser.add_argument("task", help="Use identity, browser, watch, verify-email, verify-sms, keep-alive, resume-ashby, courses, or a click task with --site.")
+    parser.add_argument("task", help="Use ats-setup, ats-account, identity, browser, watch, verify-email, verify-sms, keep-alive, resume-ashby, courses, or a click task with --site.")
     parser.add_argument("--site", help="HTTPS starting URL for a click task")
     parser.add_argument("--button", help="Exact visible button label for an action. Omit to resume a challenge.")
     parser.add_argument("--autofill", action="store_true", help="Use keyring and configured trusted login actions for this task")
@@ -116,7 +133,7 @@ def main():
         parser.error(f"{args.task} requires --site")
     if args.task == "verify-email" and not (args.site and args.company):
         parser.error("verify-email requires --site and --company")
-    if not args.site and args.task not in {"identity", "browser", "courses", "list my courses", "watch"}:
+    if not args.site and args.task not in {"ats-setup", "identity", "browser", "courses", "list my courses", "watch"}:
         parser.error("Browser tasks require --site.")
     if args.timeout <= 0:
         parser.error("--timeout must be greater than zero.")

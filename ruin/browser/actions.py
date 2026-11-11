@@ -129,7 +129,10 @@ async def exact_action(context, site, button=None):
     target = page.get_by_role("button", name=button, exact=True).filter(visible=True) if button else None
     result = await execute(page, site, target)
     from ruin.auth.saved_login import resume_saved_login
+    from ruin.auth.ats_accounts import resume_ats_account
     result.authentication = await resume_saved_login(page)
+    if result.authentication is None:
+        result.authentication = await resume_ats_account(page)
     if result.authentication is not None:
         result.authentication["url"] = page.url
     return result

@@ -11,6 +11,11 @@ Operation = Literal["tabs", "navigate", "inspect", "read", "click", "fill", "pre
 BLANK = {"about:blank", "chrome://newtab/", "chrome://newtab", "chrome://new-tab-page/"}
 
 
+async def resume_login(page):
+    from ruin.auth.ats_accounts import resume_ats_account
+    return await resume_saved_login(page) or await resume_ats_account(page)
+
+
 async def page_state(page):
     """Describe visible controls without reading input values or serialized form HTML."""
     text = await page.locator("body").inner_text(timeout=5000)
@@ -74,7 +79,7 @@ async def browser_operation(context, operation: Operation, *, site=None, url=Non
                 raise RuntimeError("The selector must match exactly one visible element.")
         if operation == "click" or (operation == "press" and value == "Enter"):
             result = await click(page, target, enter=operation == "press")
-            auth = await resume_saved_login(page)
+            auth = await resume_login(page)
             return {"url": page.url, "title": await page.title(), "action": asdict(result),
                     **({"authentication": auth} if auth else {})}
         if operation == "fill":
@@ -84,11 +89,11 @@ async def browser_operation(context, operation: Operation, *, site=None, url=Non
         elif operation == "select":
             await target.select_option(value, timeout=5000)
         elif operation == "read":
-            auth = await resume_saved_login(page)
-            if auth and auth["state"] == "redirected":
+            auth = await resume_login(page)
+            if auth and (auth["state"] == "redirected" or page.url != site):
                 return {**await page_state(page), "authentication": auth}
             text = await target.inner_text(timeout=5000)
             return {"url": page.url, "title": await page.title(), "text": text[:24000], "truncated": len(text) > 24000,
                     **({"authentication": auth} if auth else {})}
-    auth = await resume_saved_login(page)
+    auth = await resume_login(page)
     return {**await page_state(page), **({"authentication": auth} if auth else {})}

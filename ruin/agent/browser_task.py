@@ -8,6 +8,7 @@ from typing import Literal
 from ruin.browser.actions import click
 from ruin.auth.auto_registrar import fill_contact_phone, identity, signup, verify_sms
 from ruin.auth.workday import workday_account
+from ruin.auth.ats_accounts import icims_account
 from ruin.auth.vault import origin_of
 from ruin.auth.autofill import fill_login, offer_chrome_login, click_trusted_login
 from ruin.agent.prompts import SYSTEM
@@ -54,11 +55,24 @@ async def browser_task(context: BrowserContext, url: str, task: str, model: str,
                 await page.wait_for_load_state("domcontentloaded")
                 continue
             current = urlsplit(page.url)
+            account = await icims_account(page, page.url, profile)
+            if account:
+                if account["state"] == "account_step_completed":
+                    if page.url != current.geturl():
+                        location = urlsplit(page.url)
+                        url = page.url
+                        continue
+                else:
+                    raise RuntimeError(account.get("reason", account["state"]))
             if (current.scheme, current.netloc) != (location.scheme, location.netloc):
                 raise RuntimeError("The page left the selected site. Complete sign-in before running the task.")
-            if workday_actions < 2 and await workday_account(page, url, profile, allow_create=workday_actions == 0):
-                workday_actions += 1
-                continue
+            if workday_actions < 2:
+                workday = await workday_account(page, url, profile, allow_create=workday_actions == 0)
+                if isinstance(workday, dict) and workday["state"] != "account_step_completed":
+                    raise RuntimeError(workday.get("reason", workday["state"]))
+                if workday:
+                    workday_actions += 1
+                    continue
             if registered_at is None:
                 registered_at = await signup(page, url, profile)
                 if registered_at is not None:

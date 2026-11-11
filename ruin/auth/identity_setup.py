@@ -70,6 +70,7 @@ async def setup():
                 continue
             profile.update(email=data["email"], default_password=data["password"], phone_numbers=entries,
                            phone=default, auto_signup=data["enabled"])
-            save_profile(profile, Path.home() / ".ruin/identity.json")
+            save_profile({k: v for k, v in profile.items() if k not in {"ats_default_password", "ats_auto_recover"}},
+                         Path.home() / ".ruin/identity.json")
             print("Local identity saved.")
             return

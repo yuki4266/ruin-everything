@@ -42,7 +42,9 @@ def main():
     class Registration(LocalSettings):
         sms_filled: bool = False
         state: Literal["submitted", "workday_account_step_completed", "phone_filled", "no_match",
+                       "account_step_completed", "account_pending", "reset_email_requested", "email_verification_pending",
                        "slider_pending", "sms_requested", "challenge_cleared", "challenge_pending", "navigated"]
+        reason: str | None = None
 
     class Challenge(LocalSettings):
         provider: Provider
@@ -96,6 +98,8 @@ The fixed Chrome profile restores the previous session; sites control expiry.
         On Duke SSO and Duo, automatically advance already-filled login fields and
         device-trust controls, then wait 15 seconds before handing off remaining
         verification. inspect/read may advance these authorized login screens.
+        When ATS_AUTO_RECOVER is enabled locally, also continue iCIMS/Workday account
+        setup, bounded password retries and password recovery in the selected tenant.
         """
         async with browser_context(PROFILE, args.cdp) as context:
             return await browser_operation(context, operation, site=site, url=url, selector=selector, value=value)
@@ -111,9 +115,13 @@ The fixed Chrome profile restores the previous session; sites control expiry.
         async with browser_context(PROFILE, args.cdp, launch_if_missing=False) as context:
             return await exact_action(context, site, button)
 
-    @server.tool(annotations=ToolAnnotations(destructiveHint=False, idempotentHint=False))
+    @server.tool(annotations=ToolAnnotations(destructiveHint=True, idempotentHint=False))
     async def ruin_auto_register(site: str) -> Registration:
-        """Handle an open Workday Sign In or Create Account dialog at the exact job URL,
+        """Handle iCIMS login/password setup or Workday Sign In/Create Account at the exact URL.
+        With local ATS_AUTO_RECOVER enabled, try registration, retry the local ATS password
+        once and request password recovery after an explicit credential error.
+        Passwords stay in the local private env file; never pass them as tool arguments.
+        Also handle
         a Feishu Jobs rotation slider, a ZhongAn Moka job with a visible Yidun jigsaw,
         or a supported signup form. Use the exact open URL, including the job fragment.
         Credentials come from the local profile."""
@@ -122,6 +130,7 @@ The fixed Chrome profile restores the previous session; sites control expiry.
         from ruin.auth.feishu import feishu_slider
         from ruin.auth.yidun import moka_slider
         from ruin.auth.workday import workday_account
+        from ruin.auth.ats_accounts import icims_account
         from ruin.auth.vault import origin_of
 
         origin_of(site)
@@ -137,9 +146,19 @@ The fixed Chrome profile restores the previous session; sites control expiry.
                 return Registration(state=slider)
             if profile.get("auto_signup") is True:
                 visual = await exact_action(context, site)
+                if visual.authentication and visual.authentication.get("state") in {
+                    "account_step_completed", "account_pending", "reset_email_requested", "email_verification_pending"
+                }:
+                    return Registration(state=visual.authentication["state"], reason=visual.authentication.get("reason"))
                 if visual.state != "no_challenge":
                     return Registration(state=visual.state)
-            if await workday_account(tabs[0], site, profile):
+            icims = await icims_account(tabs[0], site, profile)
+            if icims:
+                return Registration(**icims)
+            workday = await workday_account(tabs[0], site, profile)
+            if isinstance(workday, dict):
+                return Registration(**workday)
+            if workday:
                 return Registration(state="workday_account_step_completed")
             requested = await signup(tabs[0], site, profile)
             if requested is not None:
