@@ -1,7 +1,7 @@
 import sys
 from urllib.parse import urlsplit
 
-from playwright.async_api import Page, TimeoutError as PlaywrightTimeoutError
+from ruin.browser.driver import Page, TimeoutError as PlaywrightTimeoutError
 
 
 async def authenticate(page: Page, origin: str, timeout: int):

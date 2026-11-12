@@ -8,7 +8,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from filelock import FileLock
-from playwright.async_api import Error
+from ruin.browser.driver import Error
 
 BACKGROUND_FLAGS = (
     "--disable-background-timer-throttling",

@@ -9,7 +9,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 import regex
-from playwright.async_api import Page
+from ruin.browser.driver import Page
 
 from ruin.browser.background import prepare_page, new_agent_page
 from ruin.browser.actions import click

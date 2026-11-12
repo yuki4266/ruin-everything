@@ -7,7 +7,7 @@ import hashlib
 from dataclasses import dataclass
 from urllib.parse import urlsplit
 
-from playwright.async_api import Error
+from ruin.browser.driver import Error
 
 from .clearance import matches, save_clearance
 

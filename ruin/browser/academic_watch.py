@@ -3,7 +3,7 @@ import asyncio
 import sys
 
 from filelock import FileLock, Timeout
-from playwright.async_api import Error
+from ruin.browser.driver import Error
 
 from ruin.browser.academic import AcademicFlow, academic_step, host, WATCHED
 from ruin.browser.context import browser_context

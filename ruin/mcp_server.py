@@ -129,7 +129,7 @@ The fixed Chrome profile restores the previous session; sites control expiry.
         a Feishu Jobs rotation slider, a ZhongAn Moka job with a visible Yidun jigsaw,
         or a supported signup form. Use the exact open URL, including the job fragment.
         Credentials come from the local profile."""
-        from playwright.async_api import TimeoutError as BrowserTimeout
+        from ruin.browser.driver import TimeoutError as BrowserTimeout
         from ruin.auth.auto_registrar import signup, fill_contact_phone, verify_sms
         from ruin.auth.otp_fields import OTP_INPUTS, OTP_PROMPT
         from ruin.auth.feishu import feishu_slider

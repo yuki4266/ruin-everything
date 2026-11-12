@@ -2,7 +2,7 @@
 
 import re
 
-from playwright.async_api import Error
+from ruin.browser.driver import Error
 
 # react-otp-input labels each cell, including when maxlength is absent.
 OTP_INPUTS = ('input[autocomplete=one-time-code]:visible, input[maxlength="1"]:visible, input[size="1"]:visible, '

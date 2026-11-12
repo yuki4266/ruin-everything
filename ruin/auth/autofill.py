@@ -1,4 +1,4 @@
-from playwright.async_api import Page
+from ruin.browser.driver import Page
 
 from ruin.browser.actions import click
 from ruin.auth.vault import credential, origin_of

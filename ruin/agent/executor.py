@@ -1,5 +1,5 @@
 from urllib.parse import urlsplit
-from playwright.async_api import BrowserContext
+from ruin.browser.driver import BrowserContext
 
 from ruin.browser.background import new_agent_page
 from ruin.auth.interceptor import authenticate

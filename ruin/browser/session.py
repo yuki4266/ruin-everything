@@ -2,7 +2,7 @@
 import asyncio
 from time import monotonic
 
-from playwright.async_api import TimeoutError as BrowserTimeout
+from ruin.browser.driver import TimeoutError as BrowserTimeout
 
 from ruin.browser.background import new_agent_page
 from ruin.auth.vault import origin_of

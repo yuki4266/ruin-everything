@@ -9,7 +9,7 @@ from pathlib import Path
 from urllib.request import urlopen
 
 from filelock import FileLock, Timeout
-from playwright.async_api import Error, async_playwright
+from ruin.browser.driver import ENGINE, Error, async_playwright
 
 from .local_vault import ROOT, LocalVault, PrivateJSON, hostname
 
@@ -197,12 +197,13 @@ async def serve(endpoint, root=ROOT):
                 try:
                     generation = await asyncio.to_thread(browser_id, endpoint)
                     async with async_playwright() as driver:
-                        browser = await driver.chromium.connect_over_cdp(endpoint, no_defaults=True)
+                        async with asyncio.timeout(20):
+                            browser = await driver.chromium.connect_over_cdp(endpoint, no_defaults=True, timeout=15000)
                         runtime = VaultRuntime(browser.contexts[0], root)
                         await runtime.install(restore=status.read().get('browser') != generation)
-                        status.update(lambda data: data.update(browser=generation, pid=os.getpid(), ready=True))
+                        status.update(lambda data: data.update(browser=generation, pid=os.getpid(), ready=True, engine=ENGINE))
                         await runtime.run()
-                except (Error, OSError, RuntimeError, KeyError, ValueError):
+                except (Error, OSError, RuntimeError, KeyError, ValueError, TimeoutError):
                     status.update(lambda data: data.update(ready=False))
                 await asyncio.sleep(1)
     except Timeout:
@@ -223,6 +224,8 @@ async def ensure_service(endpoint):
             return False
         return state.get('ready') and state.get('browser') == generation
     if ready():
+        if status.read().get('engine', 'playwright') != ENGINE:
+            raise RuntimeError('Local Auth Vault uses a different browser engine; restart that service first.')
         return
     subprocess.Popen([sys.executable, '-m', 'ruin.auth.vault_runtime', endpoint],
                      stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,

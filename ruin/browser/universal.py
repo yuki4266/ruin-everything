@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Literal
 from urllib.parse import urlsplit
 
-from playwright.async_api import Error
+from ruin.browser.driver import Error
 
 from ruin.browser.actions import click
 from ruin.auth.saved_login import resume_saved_login

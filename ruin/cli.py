@@ -3,7 +3,7 @@ import asyncio
 import json
 import sys
 
-from playwright.async_api import Error, TimeoutError
+from ruin.browser.driver import Error, TimeoutError
 
 from ruin.agent.executor import courses
 from ruin.browser.context import browser_context

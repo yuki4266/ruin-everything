@@ -4,7 +4,7 @@ import re
 from contextlib import AsyncExitStack
 from urllib.parse import urlsplit
 
-from playwright.async_api import TimeoutError as BrowserTimeout
+from ruin.browser.driver import TimeoutError as BrowserTimeout
 
 from ruin.browser.actions import execute
 from ruin.browser.puzzles import detect, drag

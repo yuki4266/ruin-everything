@@ -2,7 +2,7 @@
 import asyncio
 import re
 
-from playwright.async_api import Error
+from ruin.browser.driver import Error
 
 from ruin.browser.background import prepare_page
 from ruin.browser.academic import AcademicFlow, DUKE, duke_login, host

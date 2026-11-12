@@ -5,7 +5,7 @@ import re
 import time
 from urllib.parse import urlsplit
 
-from playwright.async_api import TimeoutError as BrowserTimeout
+from ruin.browser.driver import TimeoutError as BrowserTimeout
 
 from ruin.browser.background import prepare_page, new_agent_page
 from ruin.browser.actions import click

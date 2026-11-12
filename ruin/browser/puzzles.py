@@ -10,7 +10,7 @@ from importlib.resources import files
 from io import BytesIO
 
 from PIL import Image, ImageDraw
-from playwright.async_api import Error
+from ruin.browser.driver import Error
 
 from .puzzle_vision import visual_answer
 from .background import prepare_page

@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from playwright.async_api import BrowserContext, Error, Page
+from ruin.browser.driver import BrowserContext, Error, Page
 
 from ruin.rules_loader import load_rules
 

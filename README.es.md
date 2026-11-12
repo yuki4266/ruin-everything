@@ -106,9 +106,11 @@ Ruin localiza el iframe exterior a través de raíces shadow cerradas, comprueba
 
 Solo guarda cookies `cf_clearance` auténticas y vigentes en un espacio privado de `~/.ruin/cookies_snapshot.json`, limitado al mismo perfil y agente de usuario. Turnstile normalmente puede emitir solo un token de un uso: no se guarda ni se registra su valor. Superar la verificación no equivale a un comprobante de solicitud. Consulte [implementación, fuentes y verificación en vivo](docs/runtime-reference.md#turnstile-continuation).
 
-Verificación actual: 128 pruebas de regresión y 10 pruebas finales de Turnstile, compilaciones y comprobaciones estrictas de Twine aprobadas. Se verificaron en vivo la geometría, la entrada nativa y el guardado de una cookie vigente; todavía no hay comprobante de solicitud.
+Verificación actual: pruebas de selección de motor y de envío aislado con Patchright/Chrome aprobadas, sin repetir Submit al reanudar. El reinicio autorizado confirmó el argumento de arranque y restauró 11 pestañas. Patchright y vault conectaron. Los correos de Workable y de la empresa confirmaron la recepción; las respuestas coinciden con la copia enviada. No se ha aislado la causa de aceptación ni se garantiza la próxima verificación. Resultados completos en la referencia.
 
-<img src="docs/figures/turnstile.svg" alt="A: resume the original action. B: measured widget geometry and bounded input. C: clearance and employer receipt are separate evidence." width="100%">
+El motor opcional Patchright usa la misma API y los mismos tipos de error en las tareas y el servicio vault. Desde este código fuente, instale `pip install -e ".[patchright]"`; configure `RUIN_BROWSER_ENGINE=patchright` o guarde `{"engine":"patchright"}` en `~/.ruin-everything/browser-engine.json`. Reinicie los clientes y vault existentes al cambiar de motor. Con Patchright se omiten los parches adicionales de prototipos y se limita el tiempo de conexión. Chrome solo se reinicia por petición explícita, conservando el perfil original. Véase el panel A.
+
+<img src="docs/figures/turnstile.svg" alt="A: consistent task and vault engine. B: original action. C: measured input. D: independent employer receipt." width="100%">
 
 <img src="docs/figures/post-action.svg" alt="Tras una acción en la pestaña original se inspeccionan retos visuales y se intentan los pasos compatibles; el comprobante del sitio acredita el envío." width="100%">
 

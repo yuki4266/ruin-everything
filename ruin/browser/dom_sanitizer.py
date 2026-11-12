@@ -1,4 +1,4 @@
-from playwright.async_api import Page
+from ruin.browser.driver import Page
 
 
 async def snapshot(page: Page):

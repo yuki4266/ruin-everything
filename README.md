@@ -106,7 +106,9 @@ Ruin locates the outer iframe through closed shadow roots, checks its visible st
 
 Only genuine, unexpired `cf_clearance` cookies are backed up in the private `~/.ruin/cookies_snapshot.json` namespace and restored for the same profile and browser user agent. Ordinary Turnstile often issues only a single-use token; token values are neither logged nor saved. A cleared widget is not an application receipt. See [implementation, sources and live verification](docs/runtime-reference.md#turnstile-continuation).
 
-<img src="docs/figures/turnstile.svg" alt="A: resume the original action. B: measured widget geometry and bounded input. C: clearance and employer receipt are separate evidence." width="100%">
+Optional Patchright support selects the same API and exception types for tasks and the persistent vault service. Install from this checkout with `pip install -e ".[patchright]"`; set `RUIN_BROWSER_ENGINE=patchright`, or save `{"engine":"patchright"}` to `~/.ruin-everything/browser-engine.json`. Restart existing runtime clients and the vault when changing engines. Patchright owns initialization; Ruin skips its extra prototype patches. Connections have a bounded initialization timeout. Browser restarts remain explicit, preserving the original profile. See panel A below.
+
+<img src="docs/figures/turnstile.svg" alt="A: consistent task and vault engine. B: original action. C: measured input. D: independent employer receipt." width="100%">
 
 <img src="docs/figures/post-action.svg" alt="An action in the original tab leads to visual challenge inspection and supported retries; the site's receipt establishes submission." width="100%">
 
@@ -163,7 +165,7 @@ Your connected agent may send page text to its model provider. Site sessions sti
 
 <img src="docs/figures/checks.svg" alt="Local browser tests verify runtime behavior; separate live checks cover specific website workflows." width="100%">
 
-**Current check:** 128 regression cases and the final 10-case Turnstile suite passed. Source/wheel builds and strict Twine checks passed. Turnstile geometry and trusted input were verified live, and an unexpired site cookie was saved; the application still has no success receipt. Earlier GeeTest and Bilibili SMS checks remain documented below.
+**Current check:** engine-selection tests and an isolated Patchright/Chrome submission fixture passed, including no repeated Submit on resume. A live authorized profile restart verified the launch flag and restored 11 tabs. Patchright and its vault service connected successfully. Workable and employer email receipts confirmed the application, and all saved narrative answers matched the submitted copy. This does not isolate which change caused acceptance or guarantee future verification. Full regression and distribution results are recorded in the runtime reference.
 
 <img src="docs/figures/build-retry.svg" alt="Chromium setup retries at most three times; persistent failure stops the build, while successful tests and distribution checks allow publishing." width="100%">
 

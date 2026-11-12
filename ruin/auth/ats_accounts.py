@@ -4,7 +4,7 @@ import hashlib
 import re
 import time
 from urllib.parse import urlsplit
-from playwright.async_api import Error, Locator
+from ruin.browser.driver import Error, Locator
 
 from ruin.browser.background import prepare_page
 from ruin.browser.actions import click

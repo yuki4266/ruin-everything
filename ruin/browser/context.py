@@ -9,7 +9,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from urllib.parse import urlsplit
 
-from playwright.async_api import async_playwright
+from ruin.browser.driver import async_playwright
 from .background import AgentTabs, BACKGROUND_FLAGS
 
 LOCAL_CDP = "http://127.0.0.1:9222"
@@ -90,7 +90,10 @@ async def browser_context(profile: Path, cdp: str | None = None, channel=None, *
         else:
             raise RuntimeError("Chrome did not open port 9222. Check whether the dedicated profile is in use.")
     async with async_playwright() as playwright:
-        browser = await playwright.chromium.connect_over_cdp(url, no_defaults=True)
+        # Bound driver initialization as well as the websocket handshake. Some
+        # restored targets can stall initialization after the socket is open.
+        async with asyncio.timeout(20):
+            browser = await playwright.chromium.connect_over_cdp(url, no_defaults=True, timeout=15000)
         if not browser.contexts:
             raise RuntimeError("Chrome has no accessible browser context.")
         context = browser.contexts[0]

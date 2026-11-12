@@ -3,7 +3,7 @@
 import asyncio
 from typing import Literal, TypedDict
 
-from playwright.async_api import Error, Page
+from ruin.browser.driver import Error, Page
 
 from ruin.agent.ashby import application_url, observe
 from ruin.auth.email_otp_snatcher import job_key, verification_prompt_visible

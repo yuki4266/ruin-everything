@@ -7,7 +7,7 @@ from typing import Literal
 
 from filelock import FileLock
 from filelock import Timeout as LockBusy
-from playwright.async_api import Error
+from ruin.browser.driver import Error
 
 from ruin.auth.vault import origin_of
 from ruin.config import PROFILE

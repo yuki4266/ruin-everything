@@ -106,9 +106,11 @@ Ruin 通过封闭 Shadow DOM 定位外层 iframe，检查可见状态，最多�
 
 仅把网站真实签发且未过期的 `cf_clearance` 保存到私有 `~/.ruin/cookies_snapshot.json` 命名空间，并限同一配置和浏览器用户代理恢复。普通 Turnstile 通常只返回一次性令牌，不记录或保存令牌值；验证通过不代表申请提交成功。参见[实现、来源与现场验证](docs/runtime-reference.md#turnstile-continuation)。
 
-本次验证：128 项回归及最终 10 项 Turnstile 专项测试通过，源码包、wheel 和严格 Twine 检查通过。现场已确认几何定位和可信输入，并保存未过期的站点 Cookie；申请仍无成功回执。
+最新验证：引擎选择测试及独立 Patchright/Chrome 提交测试通过，恢复操作不会重复提交。现场按授权重启后已核验启动参数并恢复 11 个标签页，Patchright 和 vault 连接成功。Workable 与雇主邮件均确认收件，提交副本的文字回答与保存版本一致；无法据此断言哪项修改导致验证通过，也不保证后续验证必定成功。完整回归与构建结果见运行时文档。
 
-<img src="docs/figures/turnstile.svg" alt="A: resume the original action. B: measured widget geometry and bounded input. C: clearance and employer receipt are separate evidence." width="100%">
+现支持可选 Patchright 引擎，任务与常驻 vault 服务使用同一 API 和异常类型。在本源码目录安装 `pip install -e ".[patchright]"`，设置 `RUIN_BROWSER_ENGINE=patchright`，或在 `~/.ruin-everything/browser-engine.json` 保存 `{"engine":"patchright"}`。切换引擎后重启已有客户端和 vault。Patchright 模式不叠加 Ruin 的原型补丁，连接初始化有超时上限。浏览器仅在明确要求时重启，并保留原 Profile；见下图 A。
+
+<img src="docs/figures/turnstile.svg" alt="A: consistent task and vault engine. B: original action. C: measured input. D: independent employer receipt." width="100%">
 
 <img src="docs/figures/post-action.svg" alt="原页面提交后检查图片验证并尝试支持的处理流程，最终以网站回执确认是否提交。" width="100%">
 

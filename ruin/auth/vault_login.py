@@ -4,7 +4,7 @@ import hashlib
 import re
 import time
 
-from playwright.async_api import Error
+from ruin.browser.driver import Error
 
 from .local_vault import ROOT, LocalVault, PrivateJSON, hostname
 

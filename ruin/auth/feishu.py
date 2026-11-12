@@ -6,7 +6,7 @@ from statistics import fmean, pstdev
 from urllib.parse import urlsplit
 
 from filelock import FileLock, Timeout as LockBusy
-from playwright.async_api import Error, TimeoutError as BrowserTimeout
+from ruin.browser.driver import Error, TimeoutError as BrowserTimeout
 
 from ruin.browser.background import prepare_page
 from ruin.config import PROFILE

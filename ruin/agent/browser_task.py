@@ -1,7 +1,7 @@
 import sys
 from urllib.parse import urlsplit
 
-from playwright.async_api import BrowserContext
+from ruin.browser.driver import BrowserContext
 from pydantic import BaseModel
 from typing import Literal
 

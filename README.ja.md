@@ -106,9 +106,11 @@ MCP クライアントの設定に追加し、接続を再起動します。ク�
 
 有効な `cf_clearance` のみを非公開の `~/.ruin/cookies_snapshot.json` 名前空間に保存し、同じプロファイルとブラウザーのユーザーエージェントに復元します。通常の Turnstile は一回限りのトークンのみを返す場合があり、その値は保存・出力しません。認証完了と応募受付は別に確認します。[実装・出典・実機検証](docs/runtime-reference.md#turnstile-continuation)を参照してください。
 
-今回の検証：回帰 128 件と最終 Turnstile 10 件、ソース／wheel ビルドと厳密な Twine 検査に合格。実機で位置特定と信頼された入力、期限内 Cookie の保存を確認しましたが、応募受付の証拠はありません。
+最新検証：エンジン選択と独立した Patchright/Chrome 送信テストに合格し、再開時の二重送信がないことを確認しました。許可された再起動で起動引数と 11 タブの復元を確認し、Patchright と vault が接続しました。Workable と企業のメールで受付を確認し、回答も保存内容と一致しました。認証成功の原因や将来の通過を保証するものではありません。回帰・ビルド結果は実行時リファレンスを参照。
 
-<img src="docs/figures/turnstile.svg" alt="A: resume the original action. B: measured widget geometry and bounded input. C: clearance and employer receipt are separate evidence." width="100%">
+任意の Patchright エンジンを追加しました。タスクと常駐 vault は同じ API・例外型を使います。このソースで `pip install -e ".[patchright]"` を実行し、`RUIN_BROWSER_ENGINE=patchright`、または `~/.ruin-everything/browser-engine.json` に `{"engine":"patchright"}` を設定します。変更後は既存クライアントと vault を再起動してください。Patchright では追加のプロトタイプ変更を省略し、接続初期化に時間上限を設けます。Chrome の再起動は明示的な依頼時のみで、元のプロファイルを保持します。図 A を参照。
+
+<img src="docs/figures/turnstile.svg" alt="A: consistent task and vault engine. B: original action. C: measured input. D: independent employer receipt." width="100%">
 
 <img src="docs/figures/post-action.svg" alt="元のタブで送信後の画像認証を確認し、対応する処理を試行。送信完了はサイトの受付表示で確認。" width="100%">
 

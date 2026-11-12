@@ -46,7 +46,10 @@ SCRIPT = r"""(() => {
 
 
 async def prepare_compatibility(page, session):
-    if os.getenv('RUIN_BROWSER_COMPATIBILITY', '1') == '0':
+    from .driver import ENGINE
+    # Patchright owns its execution contexts and initialization. Avoid layering
+    # Playwright-style init-script routing and prototype overrides on top.
+    if ENGINE == 'patchright' or os.getenv('RUIN_BROWSER_COMPATIBILITY', '1') == '0':
         return
     if not getattr(page, '_ruin_compatibility_installed', False):
         await session.send('Page.addScriptToEvaluateOnNewDocument', {'source': SCRIPT})
