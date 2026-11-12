@@ -58,6 +58,7 @@ def launch_command(profile):
     arguments = [f"--user-data-dir={profile.resolve()}",
                  "--remote-debugging-address=127.0.0.1", "--remote-debugging-port=9222",
                  "--no-first-run", "--no-default-browser-check", "--restore-last-session",
+                 "--disable-blink-features=AutomationControlled",
                  *BACKGROUND_FLAGS]
     if sys.platform == "darwin":
         app = next((p for p in Path(executable).parents if p.suffix == ".app"), None)
@@ -93,6 +94,9 @@ async def browser_context(profile: Path, cdp: str | None = None, channel=None, *
         if not browser.contexts:
             raise RuntimeError("Chrome has no accessible browser context.")
         context = browser.contexts[0]
+        context.ruin_profile = profile
+        from .clearance import restore_clearance
+        await restore_clearance(context)
         context.ruin_trusted_oauth_clients = clients
         context.ruin_agent_tabs = AgentTabs(profile.parent / "agent-tabs.json")
         if url.rstrip('/') in {LOCAL_CDP, 'http://localhost:9222'} and os.getenv('RUIN_LOCAL_AUTH_VAULT', '1') != '0':

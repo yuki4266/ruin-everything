@@ -100,6 +100,16 @@ Para los asistentes de registro y cuenta, usa una instalación persistente del r
 
 ## Dónde te ahorra trabajo
 
+### Continuación de Cloudflare Turnstile
+
+Ruin localiza el iframe exterior a través de raíces shadow cerradas, comprueba el estado visible y envía un único gesto de ratón CDP acotado. Ante diseños ambiguos, elementos cubiertos o una verificación fallida, mantiene el formulario pendiente sin repetir Enviar. La alternativa por imagen usa el modelo local. Conserva el perfil de Chrome; los nuevos arranques suprimen `AutomationControlled` y la inicialización es idempotente, sin un desplazamiento fijo de pantalla.
+
+Solo guarda cookies `cf_clearance` auténticas y vigentes en un espacio privado de `~/.ruin/cookies_snapshot.json`, limitado al mismo perfil y agente de usuario. Turnstile normalmente puede emitir solo un token de un uso: no se guarda ni se registra su valor. Superar la verificación no equivale a un comprobante de solicitud. Consulte [implementación, fuentes y verificación en vivo](docs/runtime-reference.md#turnstile-continuation).
+
+Verificación actual: 128 pruebas de regresión y 10 pruebas finales de Turnstile, compilaciones y comprobaciones estrictas de Twine aprobadas. Se verificaron en vivo la geometría, la entrada nativa y el guardado de una cookie vigente; todavía no hay comprobante de solicitud.
+
+<img src="docs/figures/turnstile.svg" alt="A: resume the original action. B: measured widget geometry and bounded input. C: clearance and employer receipt are separate evidence." width="100%">
+
 <img src="docs/figures/post-action.svg" alt="Tras una acción en la pestaña original se inspeccionan retos visuales y se intentan los pasos compatibles; el comprobante del sitio acredita el envío." width="100%">
 
 | Quieres… | Ayuda adicional de Ruin | Verificación hasta ahora |

@@ -27,6 +27,11 @@ class ActionResult:
 
 async def settle(page, site):
     """Resume a pending action. Only the widget itself may be retried."""
+    from .turnstile import settle_turnstile
+    if not page.is_closed() and page.url == site:
+        turnstile = await settle_turnstile(page, site)
+        if turnstile is not None:
+            return ActionResult(**turnstile)
     kind = None
     attempts = 0
     reason = None

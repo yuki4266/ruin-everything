@@ -100,6 +100,14 @@ For account and signup helpers, install a persistent checkout and run `ruin iden
 
 ## Where it earns its keep
 
+### Cloudflare Turnstile continuation
+
+Ruin locates the outer iframe through closed shadow roots, checks its visible state, and sends one bounded CDP mouse gesture. Ambiguous layouts, covering overlays and failed verification stay pending without replaying Submit. Screenshot fallback uses the local vision model. The existing Chrome profile is preserved; new launches include `AutomationControlled` suppression, with idempotent compatibility initialization on selected tabs and no fixed screen-coordinate offset.
+
+Only genuine, unexpired `cf_clearance` cookies are backed up in the private `~/.ruin/cookies_snapshot.json` namespace and restored for the same profile and browser user agent. Ordinary Turnstile often issues only a single-use token; token values are neither logged nor saved. A cleared widget is not an application receipt. See [implementation, sources and live verification](docs/runtime-reference.md#turnstile-continuation).
+
+<img src="docs/figures/turnstile.svg" alt="A: resume the original action. B: measured widget geometry and bounded input. C: clearance and employer receipt are separate evidence." width="100%">
+
 <img src="docs/figures/post-action.svg" alt="An action in the original tab leads to visual challenge inspection and supported retries; the site's receipt establishes submission." width="100%">
 
 | You're trying to… | Ruin's extra help | Verification so far |
@@ -155,7 +163,7 @@ Your connected agent may send page text to its model provider. Site sessions sti
 
 <img src="docs/figures/checks.svg" alt="Local browser tests verify runtime behavior; separate live checks cover specific website workflows." width="100%">
 
-**Current check:** 121 regression cases passed, including eight rerun with an isolated action lock after concurrent live Chrome work caused lock contention. Source/wheel builds and strict Twine metadata checks passed. GeeTest icon verification, a successful Bilibili SMS request, and the return to the signed-in recruiting page were verified live; no job submission is claimed.
+**Current check:** 128 regression cases and the final 10-case Turnstile suite passed. Source/wheel builds and strict Twine checks passed. Turnstile geometry and trusted input were verified live, and an unexpired site cookie was saved; the application still has no success receipt. Earlier GeeTest and Bilibili SMS checks remain documented below.
 
 <img src="docs/figures/build-retry.svg" alt="Chromium setup retries at most three times; persistent failure stops the build, while successful tests and distribution checks allow publishing." width="100%">
 

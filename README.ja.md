@@ -100,6 +100,16 @@ MCP クライアントの設定に追加し、接続を再起動します。ク�
 
 ## 役立つ場面と、確認できたこと
 
+### Cloudflare Turnstile の継続
+
+閉じた Shadow DOM 内の外側 iframe と表示状態を確認し、CDP のマウス操作を最大一回実行します。配置が不明、要素が覆われている、認証に失敗した場合は保留にし、送信を繰り返しません。画像の代替判定はローカルモデルを使います。既存の Chrome プロファイルを維持し、次回起動から `AutomationControlled` 抑制引数を追加します。初期化は冪等で、画面座標の固定オフセットは使いません。
+
+有効な `cf_clearance` のみを非公開の `~/.ruin/cookies_snapshot.json` 名前空間に保存し、同じプロファイルとブラウザーのユーザーエージェントに復元します。通常の Turnstile は一回限りのトークンのみを返す場合があり、その値は保存・出力しません。認証完了と応募受付は別に確認します。[実装・出典・実機検証](docs/runtime-reference.md#turnstile-continuation)を参照してください。
+
+今回の検証：回帰 128 件と最終 Turnstile 10 件、ソース／wheel ビルドと厳密な Twine 検査に合格。実機で位置特定と信頼された入力、期限内 Cookie の保存を確認しましたが、応募受付の証拠はありません。
+
+<img src="docs/figures/turnstile.svg" alt="A: resume the original action. B: measured widget geometry and bounded input. C: clearance and employer receipt are separate evidence." width="100%">
+
 <img src="docs/figures/post-action.svg" alt="元のタブで送信後の画像認証を確認し、対応する処理を試行。送信完了はサイトの受付表示で確認。" width="100%">
 
 | やりたいこと | Ruin の追加機能 | 検証状況 |

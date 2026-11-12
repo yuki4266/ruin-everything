@@ -100,6 +100,16 @@ Ruin 会启动或连接 `127.0.0.1:9222` 上的 Chrome，固定使用 `~/.ruin-e
 
 ## 这些地方，它真能帮上忙
 
+### Cloudflare Turnstile 验证续接
+
+Ruin 通过封闭 Shadow DOM 定位外层 iframe，检查可见状态，最多执行一次有界 CDP 鼠标操作。布局不明、遮挡或验证失败时保留待处理状态，不重复点击提交；截图后备识别使用本地视觉模型。保留既有 Chrome 配置，后续启动包含 `AutomationControlled` 抑制参数，选定标签页的初始化补丁幂等执行，不硬编码屏幕坐标偏移。
+
+仅把网站真实签发且未过期的 `cf_clearance` 保存到私有 `~/.ruin/cookies_snapshot.json` 命名空间，并限同一配置和浏览器用户代理恢复。普通 Turnstile 通常只返回一次性令牌，不记录或保存令牌值；验证通过不代表申请提交成功。参见[实现、来源与现场验证](docs/runtime-reference.md#turnstile-continuation)。
+
+本次验证：128 项回归及最终 10 项 Turnstile 专项测试通过，源码包、wheel 和严格 Twine 检查通过。现场已确认几何定位和可信输入，并保存未过期的站点 Cookie；申请仍无成功回执。
+
+<img src="docs/figures/turnstile.svg" alt="A: resume the original action. B: measured widget geometry and bounded input. C: clearance and employer receipt are separate evidence." width="100%">
+
 <img src="docs/figures/post-action.svg" alt="原页面提交后检查图片验证并尝试支持的处理流程，最终以网站回执确认是否提交。" width="100%">
 
 | 你要办的事 | Ruin 能接哪一段 | 目前验证到了哪 |

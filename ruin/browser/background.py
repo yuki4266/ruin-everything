@@ -33,6 +33,8 @@ async def prepare_page(page):
         try:
             await session.send("Emulation.setFocusEmulationEnabled", {"enabled": True})
             await session.send("Page.setWebLifecycleState", {"state": "active"})
+            from .compatibility import prepare_compatibility
+            await prepare_compatibility(page, session)
         except Error:
             if page.is_closed():
                 return

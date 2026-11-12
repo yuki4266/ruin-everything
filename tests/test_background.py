@@ -25,7 +25,8 @@ class BackgroundLaunchTests(unittest.TestCase):
                                      '/Applications/Google Chrome.app', '--args'])
         for flag in ['--disable-background-timer-throttling', '--disable-backgrounding-occluded-windows',
                      '--disable-renderer-backgrounding', '--disable-ipc-flooding-protection',
-                     '--restore-last-session', f'--user-data-dir={Path("/tmp/fixture-profile").resolve()}']:
+                     '--restore-last-session', '--disable-blink-features=AutomationControlled',
+                     f'--user-data-dir={Path("/tmp/fixture-profile").resolve()}']:
             self.assertIn(flag, command)
 
     def test_registry_is_private_and_does_not_store_auth_urls(self):
