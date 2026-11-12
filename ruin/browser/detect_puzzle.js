@@ -56,6 +56,21 @@
     const roots = [document];
     for (const root of roots) {
         for (const e of root.querySelectorAll('*')) if (e.shadowRoot) roots.push(e.shadowRoot);
+        // GeeTest uses anchors rather than buttons and a background-image
+        // sprite. The transparent item_img can extend over the footer.
+        for (const scope of root.querySelectorAll('.geetest_panel, .geetest_panel_box')) {
+            if (!visible(scope)) continue;
+            const find = selector => [...scope.querySelectorAll(selector)].find(visible);
+            const wrap = find('.geetest_item_wrap');
+            const tip = find('.geetest_tip_img');
+            if (!wrap && !tip && !/select in this order|按顺序|依次点击/i.test(scope.innerText || '')) continue;
+            const board = wrap || find('.geetest_item_img');
+            const verify = find('.geetest_commit') || [...scope.querySelectorAll('button,[role=button],a')]
+                .find(e => visible(e) && /^(OK|确认|确定)$/i.test((e.innerText || '').trim()));
+            const refresh = find('.geetest_refresh');
+            if (board && tip && verify) return {kind:'geetest_icon', scope, board, tip, verify, refresh};
+            return {kind:'geetest_pending', scope, refresh};
+        }
         const anchors = root.querySelectorAll('img,canvas,[role=slider],[draggable=true],input[type=range],[class*=slider i],[role=grid], [style*="background-image"]');
         const seen = new Set();
         for (const anchor of anchors) {

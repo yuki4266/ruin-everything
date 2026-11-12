@@ -11,18 +11,26 @@ OTP_PROMPT = re.compile(r'验证码|verification code|security code|one[- ]time 
 
 
 async def sms_fields(page):
+    async def identified(scope):
+        marked = scope.locator(OTP_INPUTS)
+        if await marked.count():
+            return marked
+        named = scope.get_by_placeholder(OTP_PROMPT).or_(scope.get_by_role('textbox', name=OTP_PROMPT))
+        named = named.and_(scope.locator('input:not([type=password]):not([readonly]):not([disabled]):visible'))
+        return named if await named.count() == 1 else marked
+
     dialog = page.locator('dialog:visible, [role=dialog]:visible').filter(has_text=OTP_PROMPT)
     group = page.get_by_role('group', name=OTP_PROMPT)
     for scope in (group, dialog):
         if await scope.count() != 1:
             continue
-        marked = scope.locator(OTP_INPUTS)
+        marked = await identified(scope)
         plain = scope.locator('input:is(:not([type]), [type=text], [type=tel], [type=number])'
                               ':not([readonly]):not([disabled]):visible')
         if await marked.count() <= 1 and 4 <= await plain.count() <= 8:
             return plain, True
         return marked, False
-    return page.locator(OTP_INPUTS), False
+    return await identified(page), False
 
 
 async def fill_otp(fields, code, url, *, labeled_group=False):

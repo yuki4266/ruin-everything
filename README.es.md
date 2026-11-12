@@ -114,9 +114,15 @@ La compatibilidad corresponde a flujos concretos. Algunos retos visuales necesit
 
 Para enviar un formulario autorizado, usa `ruin_action` con la URL actual exacta y el texto visible del botón. Comprueba si aparece una verificación tras el clic. **Superar un reto es un paso; el comprobante del sitio demuestra el envío.**
 
+### Seguir el orden de iconos de GeeTest
+
+Ruin detecta el panel visible, localiza los iconos con ddddocr y compara los recortes numerados con la indicación de izquierda a derecha mediante el modelo visual local de Ollama. Convierte los centros a coordenadas CSS, pulsa en orden y confirma con OK. Si falla, actualiza solo el reto, con un máximo de tres intentos. El reto de Bilibili se superó en un intento real; el inicio de sesión y el envío se verifican por separado. Las pruebas cubren DPR, escalado de iframe, imágenes cambiadas y reintentos limitados. Las plantillas rotadas de alta confianza verifican el orden; en los demás casos se compara cada símbolo por separado.
+
+<img src="docs/figures/geetest-icons.svg" alt="A: detectar los iconos y comparar el orden localmente. B: convertir a coordenadas CSS, pulsar y confirmar; comprobar el resultado con reintentos limitados al reto." width="100%">
+
 ### Introducir un código en varias casillas
 
-El panel A muestra cómo Ruin identifica el SMS o el correo de Outlook compatible con la solicitud. El panel B muestra cómo pega el código y completa las casillas que faltan. La verificación telefónica de Ctrip se comprobó en el sitio real. Ambas vías de entrada se probaron con react-otp-input 3.1.1.
+El panel A muestra cómo Ruin identifica el SMS o el correo de Outlook compatible con la solicitud. El panel B muestra cómo pega el código y completa las casillas que faltan. La verificación telefónica de Ctrip se comprobó en el sitio real. Ambas vías de entrada se probaron con react-otp-input 3.1.1. Los campos únicos también se identifican por su marcador visible o nombre accesible; los ambiguos no se modifican. Los SMS de Bilibili se vinculan al host de inicio de sesión y la hora de la solicitud.
 
 <img src="docs/figures/split-otp.svg" alt="Ruin pega el código o completa las casillas individualmente y comprueba su valor conjunto en la pestaña original." width="100%">
 
@@ -149,7 +155,7 @@ El agente conectado puede enviar texto de las páginas a su proveedor de modelos
 
 <img src="docs/figures/checks.svg" alt="Las pruebas locales comprueban el comportamiento del entorno; las observaciones reales cubren flujos específicos de sitios." width="100%">
 
-**Comprobación actual:** pasaron las 103 pruebas de regresión locales, la compilación de fuente y wheel y la validación estricta de Twine. También se comprobaron el éxito inicial, la recuperación en el segundo y tercer intento y el fallo persistente. No se repitieron los flujos de sitios reales.
+**Comprobación actual:** pasaron 121 casos de regresión; ocho se repitieron con un bloqueo de acciones aislado tras conflictos con el trabajo simultáneo en Chrome. Pasaron las compilaciones de fuente y wheel y la validación estricta de Twine. Se verificaron GeeTest, el envío del SMS de Bilibili y el regreso a la página de empleo con sesión iniciada; no se afirma haber enviado una candidatura.
 
 <img src="docs/figures/build-retry.svg" alt="La instalación de Chromium permite tres intentos; un fallo persistente detiene la compilación y solo las comprobaciones exitosas permiten publicar." width="100%">
 

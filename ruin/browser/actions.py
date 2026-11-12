@@ -41,7 +41,9 @@ async def settle(page, site):
                     return ActionResult("challenge_cleared" if kind else "no_challenge", kind, attempts)
                 board = widget.parts.get("board")
                 source = await board.evaluate("e => e.currentSrc || null") if board else None
-                if attempt > 1 and source and source == previous_source and widget.parts.get("refresh"):
+                if attempt > 1 and widget.parts.get("refresh") and (
+                    widget.kind == "geetest_icon" or (source and source == previous_source)
+                ):
                     await widget.parts["refresh"].click(timeout=2000)
                     await asyncio.sleep(0.75)
                     widget = await detect(page, handles)

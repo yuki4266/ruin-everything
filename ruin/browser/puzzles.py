@@ -464,6 +464,10 @@ async def solve_hcaptcha_points(page, widget, site):
 
 
 async def solve(page, widget, site):
+    if widget.kind == "geetest_icon":
+        from .geetest import solve_icons
+
+        return await solve_icons(page, widget, site)
     if widget.kind == "hcaptcha_checkbox":
         return await viewport_click(page, widget.parts["checkbox"], site)
     if widget.kind == "hcaptcha_drag":

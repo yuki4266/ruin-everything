@@ -154,6 +154,11 @@ def sms_code(database, host, requested, sender=None):
                 match = re.match(r"^【携程】携程招聘\s*验证码[：:]\s*([0-9]{6})(?!\d)", body)
                 if match:
                     return match[1]
+            if host == "passport.bilibili.com" and (not sender or sender == handle_id):
+                match = re.match(r"^【哔哩哔哩】\s*(?:Verification Code is\s*|验证码[：:]?\s*)"
+                                 r"([0-9]{6})(?!\d)", body, re.I)
+                if match:
+                    return match[1]
     return None
 
 

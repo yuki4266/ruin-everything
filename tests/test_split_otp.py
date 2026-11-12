@@ -25,6 +25,19 @@ def attributed(body):
 
 
 class MessagesTests(unittest.TestCase):
+    def test_bilibili_sms_requires_brand_host_and_fresh_request(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'chat.db'
+            with sqlite3.connect(path) as db:
+                db.execute('CREATE TABLE message (text, attributedBody, date, is_from_me)')
+                db.executemany('INSERT INTO message VALUES (?, NULL, ?, 0)', [
+                    ('【哔哩哔哩】Verification Code is 012345. Valid within 5 mins.', 1),
+                    ('【Other】Verification Code is 999999.', 2),
+                    ('【哔哩哔哩】Verification Code is 123456.\n@other.example #123456', 3)])
+            self.assertEqual(sms_code(path, 'passport.bilibili.com', 978307200), '012345')
+            self.assertIsNone(sms_code(path, 'jobs.bilibili.com', 978307200))
+            self.assertIsNone(sms_code(path, 'passport.bilibili.com', 978307201))
+
     def test_archived_recruiting_sms_is_bound_to_host_and_request(self):
         body = "【携程】携程招聘 验证码：012345，请在5分钟内完成验证操作。"
         archive = attributed(body)
@@ -97,3 +110,13 @@ class SplitOtpTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(await fill_otp(fields, "123456", self.url))
         self.assertFalse(await fill_otp(fields, "1234", self.url))
         self.assertEqual(await fields.evaluate_all("es=>es.map(e=>e.value).join('')"), "")
+
+    async def test_single_named_code_preserves_phone_and_rejects_ambiguity(self):
+        await self.page.set_content('<input placeholder="Please enter phone number" value="5551234">'
+            '<input placeholder="Please enter the verification code">'
+            '<input placeholder="Verification code" hidden>')
+        fields, _ = await sms_fields(self.page)
+        self.assertTrue(await fill_otp(fields, '012345', self.url))
+        self.assertEqual(await self.page.locator('input').first.input_value(), '5551234')
+        await self.page.evaluate("document.body.insertAdjacentHTML('beforeend', '<input aria-label=\"Security code\">')")
+        self.assertEqual(await (await sms_fields(self.page))[0].count(), 0)

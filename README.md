@@ -114,9 +114,15 @@ These are specific supported flows. Puzzle handling can require a local Ollama v
 
 For authorized form submissions, use `ruin_action` with the exact current URL and visible button label. It checks for verification after the click. **A cleared challenge is a step forward; the site's receipt is the evidence of submission.**
 
+### Follow an ordered GeeTest icon prompt
+
+Ruin detects the visible icon panel, uses ddddocr to locate candidate boxes, and asks the local Ollama vision model to match numbered crops to the prompt from left to right. It maps bitmap centers to CSS viewport coordinates, clicks in order, and presses OK automatically. Failed attempts refresh only the widget, with at most three attempts total. The Bilibili icon challenge was cleared live in one attempt; login and application submission are separate checks. Strong rotated-template matches cross-check the order; otherwise each target symbol is matched separately. Browser tests cover DPR, iframe scaling, stale images and bounded retries.
+
+<img src="docs/figures/geetest-icons.svg" alt="A: detect icon boxes and match the visible order locally. B: convert centers to CSS coordinates, click and confirm, then inspect the site result with bounded widget retries." width="100%">
+
 ### Enter a code across several boxes
 
-Panel A shows how Ruin matches an incoming SMS or supported Outlook message. Panel B shows how it pastes the code into a split form and fills any remaining cells. The Ctrip phone check was verified live. Both input paths were tested with react-otp-input 3.1.1.
+Panel A shows how Ruin matches an incoming SMS or supported Outlook message. Panel B shows how it pastes the code into a split form and fills any remaining cells. The Ctrip phone check was verified live. Both input paths were tested with react-otp-input 3.1.1. Single code fields can also be identified by their visible placeholder or accessible name; ambiguous fields are left untouched. Bilibili SMS messages are matched to the exact login host and request time.
 
 <img src="docs/figures/split-otp.svg" alt="A matched code is pasted or entered cell by cell and checked in the original tab." width="100%">
 
@@ -149,7 +155,7 @@ Your connected agent may send page text to its model provider. Site sessions sti
 
 <img src="docs/figures/checks.svg" alt="Local browser tests verify runtime behavior; separate live checks cover specific website workflows." width="100%">
 
-**Current check:** all 103 local regression tests passed; source/wheel builds and strict Twine metadata checks passed. The retry script is also checked for first-attempt success, recovery on attempts two and three, and persistent failure. No new live website run is claimed.
+**Current check:** 121 regression cases passed, including eight rerun with an isolated action lock after concurrent live Chrome work caused lock contention. Source/wheel builds and strict Twine metadata checks passed. GeeTest icon verification, a successful Bilibili SMS request, and the return to the signed-in recruiting page were verified live; no job submission is claimed.
 
 <img src="docs/figures/build-retry.svg" alt="Chromium setup retries at most three times; persistent failure stops the build, while successful tests and distribution checks allow publishing." width="100%">
 
