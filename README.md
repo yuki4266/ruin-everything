@@ -165,7 +165,7 @@ Your connected agent may send page text to its model provider. Site sessions sti
 
 <img src="docs/figures/checks.svg" alt="Local browser tests verify runtime behavior; separate live checks cover specific website workflows." width="100%">
 
-**Current check:** engine-selection tests and an isolated Patchright/Chrome submission fixture passed, including no repeated Submit on resume. A live authorized profile restart verified the launch flag and restored 11 tabs. Patchright and its vault service connected successfully. Workable and employer email receipts confirmed the application, and all saved narrative answers matched the submitted copy. This does not isolate which change caused acceptance or guarantee future verification. Full regression and distribution results are recorded in the runtime reference.
+**Current check:** Turnstile continuation and optional Patchright support are now consolidated on `main` (Turnstile figure, panels A–D). All 133 regression tests passed in one run with the Playwright engine; source/wheel builds and strict Twine metadata checks also passed. The checks figure above distinguishes local fixtures from live site evidence. Prior live observations and their limits remain in the [runtime reference](docs/runtime-reference.md#turnstile-continuation).
 
 <img src="docs/figures/build-retry.svg" alt="Chromium setup retries at most three times; persistent failure stops the build, while successful tests and distribution checks allow publishing." width="100%">
 

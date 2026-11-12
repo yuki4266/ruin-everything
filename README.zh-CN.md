@@ -167,7 +167,7 @@ Ruin 识别可见的极验弹窗，用 ddddocr 定位候选图标框，再由本
 
 <img src="docs/figures/checks.svg" alt="本地浏览器测试检查运行时行为，网站实测单独记录具体流程。" width="100%">
 
-**本次验证：121 项回归检查通过；其中 8 项因并行操作真实 Chrome 遇到动作锁冲突，隔离动作锁重跑后通过。源码包、wheel 和 Twine 严格元数据检查通过。已实测极验点选、B站短信发送成功和登录后回到招聘页；不将其记作岗位投递成功。**
+**本次验证：** Turnstile 续接与可选 Patchright 支持已合入 `main`（参见 Turnstile 图 A–D）。使用 Playwright 引擎一次运行，133 项回归测试全部通过；源码包、wheel 构建及 Twine 严格元数据检查也通过。上图区分本地模拟测试与实站证据；此前实站观察及其限制保留在[运行时文档](docs/runtime-reference.md#turnstile-continuation)中。
 
 <img src="docs/figures/build-retry.svg" alt="Chromium 安装最多尝试三次；持续失败停止构建，测试和分发包检查成功后才允许发布。" width="100%">
 

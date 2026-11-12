@@ -167,7 +167,7 @@ El agente conectado puede enviar texto de las páginas a su proveedor de modelos
 
 <img src="docs/figures/checks.svg" alt="Las pruebas locales comprueban el comportamiento del entorno; las observaciones reales cubren flujos específicos de sitios." width="100%">
 
-**Comprobación actual:** pasaron 121 casos de regresión; ocho se repitieron con un bloqueo de acciones aislado tras conflictos con el trabajo simultáneo en Chrome. Pasaron las compilaciones de fuente y wheel y la validación estricta de Twine. Se verificaron GeeTest, el envío del SMS de Bilibili y el regreso a la página de empleo con sesión iniciada; no se afirma haber enviado una candidatura.
+**Comprobación actual:** la continuación de Turnstile y el soporte opcional de Patchright están integrados en `main` (figura de Turnstile, paneles A–D). Los 133 casos de regresión pasaron en una sola ejecución con Playwright; también pasaron las compilaciones de fuente y wheel y la validación estricta de Twine. La figura anterior distingue las pruebas locales de la evidencia de sitios reales. Las observaciones previas y sus límites se conservan en la [referencia técnica](docs/runtime-reference.md#turnstile-continuation).
 
 <img src="docs/figures/build-retry.svg" alt="La instalación de Chromium permite tres intentos; un fallo persistente detiene la compilación y solo las comprobaciones exitosas permiten publicar." width="100%">
 

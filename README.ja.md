@@ -167,7 +167,7 @@ MCP クライアントの設定に追加し、接続を再起動します。ク�
 
 <img src="docs/figures/checks.svg" alt="ローカルブラウザーテストでランタイムを検証し、実サイトの観察は別に記録。" width="100%">
 
-**今回の検証：回帰テスト 121 件が成功しました。実 Chrome の並行操作でロック競合が生じた 8 件は、独立したアクションロックで再実行して成功しました。ソース・wheel のビルドと Twine 検査も成功。GeeTest、Bilibili の SMS 送信、ログイン後の採用ページへの復帰を実サイトで確認しました。応募完了は主張しません。**
+**今回の検証：** Turnstile の継続処理と任意の Patchright 対応を `main` に統合しました（Turnstile 図 A–D）。Playwright エンジンで回帰テスト 133 件が一度の実行ですべて成功し、ソース・wheel のビルドと Twine の厳密な検査も成功しました。上図はローカルテストと実サイトの証拠を区別しています。過去の実サイトの観察と制限は[実行時リファレンス](docs/runtime-reference.md#turnstile-continuation)を参照してください。
 
 <img src="docs/figures/build-retry.svg" alt="Chromium の導入は最大 3 回。失敗が続くとビルドを停止し、テストと配布物の検査に成功した場合のみ公開します。" width="100%">
 
