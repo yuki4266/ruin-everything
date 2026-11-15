@@ -44,6 +44,14 @@ Ruin Everything は、**ブラウザーエージェントのためのローカ�
 
 <img src="docs/figures/upload.svg" alt="ローカルファイルを入力欄またはドロップ領域に渡し、送信前にサイト上の添付名を確認します。" width="100%">
 
+### ローカルのスライダー・回転照合
+
+図 A は決定的なローカル照合です。ddddocr/OpenCV が横方向の欠けを検出し、NumPy が円形境界の RGB と角度方向の勾配を比較します。画像座標を CSS ピクセルへ換算し、回転は実際のレール応答で校正します。Feishu の回転構造を汎用ピースより先に検出し、`/campus/login` にも対応します。図 B は 15–25 ステップの減速移動、小さな Y 揺れ、解放前の 150–250 ms 待機です。合成画像には分離可能な輪郭が必要です。曖昧な画像と参照のない単一画像は保留し、視覚モデルによる距離推測は使いません。図 C は NIO Feishu の実画面で SMS 再送カウントダウンを確認した結果です。ログインや応募完了は別途確認します。
+
+検証状況：このパッチの隔離コピーで、アルゴリズムと Chrome の画面テスト 18 件を確認します。既存の作業ツリーにある再試行回数の変更（旧テストの 3 回に対して 8 回）は、このパッチに含めません。
+
+<img src="docs/figures/local-puzzles.svg" alt="Local gap and circular seam matching, measured pointer movement, and site SMS confirmation." width="100%">
+
 <a id="quickstart"></a>
 <a id="use-a-shared-local-chrome-window"></a>
 

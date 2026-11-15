@@ -45,6 +45,7 @@ def popup(canvas=False):
             moves.push([e.clientX-x,e.clientY,performance.now()]); b.style.left=(12+(e.clientX-x)*228/210)+'px';
         }}}};
         knob.onpointerup=()=>{{
+            window.releasedAt=performance.now();
             if (Math.abs(parseFloat(b.style.left)-182*300/480)<2) {{
                 document.querySelector('section').remove(); document.title='Received';
             }}
@@ -84,9 +85,10 @@ class PostActionTests(unittest.IsolatedAsyncioTestCase):
         frame = self.page.frames[1]
         self.assertEqual(await frame.title(), "Received")
         moves = await frame.evaluate("moves")
-        self.assertGreater(max(x for x, y, t in moves) - moves[-1][0], 2)
+        self.assertLessEqual(max(x for x, y, t in moves) - moves[-1][0], 1.5)
+        self.assertTrue(15 <= len(moves) <= 25)
         self.assertGreater(len({y for x, y, t in moves}), 1)
-        self.assertGreater(max(b[2] - a[2] for a, b in zip(moves, moves[1:])), 110)
+        self.assertGreater(await frame.evaluate("releasedAt") - moves[-1][2], 145)
 
     async def test_resume_canvas_without_replaying_form(self):
         await self.page.set_content('<button onclick="window.duplicated=true">Apply</button>' + popup(True))

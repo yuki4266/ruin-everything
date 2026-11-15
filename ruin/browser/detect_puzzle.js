@@ -71,6 +71,12 @@
             if (board && tip && verify) return {kind:'geetest_icon', scope, board, tip, verify, refresh};
             return {kind:'geetest_pending', scope, refresh};
         }
+        // Circular images can look like a generic piece before traversal reaches
+        // the outer widget. Recognize the provider before walking any anchors.
+        for (const scope of root.querySelectorAll('.vc-captcha-verify.whirl')) {
+            if (visible(scope) && elevated(scope) && scope.querySelector('img.whirl-img-inner-base'))
+                return {kind:'rotation', scope};
+        }
         const anchors = root.querySelectorAll('img,canvas,[role=slider],[draggable=true],input[type=range],[class*=slider i],[role=grid], [style*="background-image"]');
         const seen = new Set();
         for (const anchor of anchors) {

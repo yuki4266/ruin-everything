@@ -44,6 +44,14 @@ Pass the exact tab URL as `site` and an absolute `file_path` to `ruin_browser(op
 
 <img src="docs/figures/upload.svg" alt="A local file reaches one selected input or drop area. The site displays the attachment before submission." width="100%">
 
+### Local slider and rotation matching
+
+Figure A shows deterministic local matching: ddddocr/OpenCV locate a horizontal gap, while NumPy compares RGB and angular gradients across a circular seam. Native coordinates are scaled to CSS pixels; rotation is calibrated against the actual rail. Feishu rotation markup takes priority over generic piece detection, including `/campus/login`. Figure B shows 15–25 ease-out moves with small Y jitter and a 150–250 ms hold before release. Flattened images require distinct matching outlines; ambiguous images and single images without a reference remain pending, without visual-model distance guesses. Figure C reflects a live NIO Feishu check: the SMS resend countdown appeared. This confirms the SMS request, not login or application submission.
+
+Validation: 18 focused algorithm and Chrome fixture tests pass in the isolated patch snapshot. The existing working-tree retry change (8 attempts versus the older test expectation of 3) is outside this patch.
+
+<img src="docs/figures/local-puzzles.svg" alt="Local gap and circular seam matching, measured pointer movement, and site SMS confirmation." width="100%">
+
 <a id="quickstart"></a>
 <a id="use-a-shared-local-chrome-window"></a>
 

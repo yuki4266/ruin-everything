@@ -1,4 +1,7 @@
 import os
+from contextlib import AsyncExitStack
+
+import numpy as np
 import tempfile
 import unittest
 from pathlib import Path
@@ -88,3 +91,32 @@ class FeishuSliderTests(unittest.IsolatedAsyncioTestCase):
         await self.page.frame_locator("iframe").locator(".vc-captcha-verify").evaluate(
             "el => el.classList.remove('whirl')")
         self.assertEqual(await self.run_slider(), "slider_pending")
+
+
+    async def test_nested_rotation_precedes_generic_piece(self):
+        from ruin.browser.puzzles import detect
+        frame = self.page.frames[1]
+        await frame.locator(".vc-captcha-verify").evaluate("""scope => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'vc-captcha-verify-visibility';
+            while(scope.firstChild) wrapper.append(scope.firstChild);
+            scope.append(wrapper);
+        }""")
+        async with AsyncExitStack() as stack:
+            widget = await detect(self.page, stack)
+            self.assertEqual(widget.kind, 'rotation')
+
+    async def test_campus_login_route(self):
+        campus = SITE.replace('/123/', '/campus/')
+        await self.page.route(campus, lambda r: r.fulfill(body=LOGIN, content_type='text/html; charset=utf-8'))
+        await self.page.goto(campus)
+        self.assertEqual(await feishu_slider(self.page, campus, {'auto_signup': True}), 'sms_requested')
+
+    def test_polar_alignment_wrap_and_invalid_pixels(self):
+        ring = np.random.default_rng(7).uniform(0, 255, (360, 3))
+        for angle in (1, 90, 179, 270, 359):
+            result = alignment(ring, np.roll(ring, angle, axis=0))
+            self.assertAlmostEqual(result, angle, delta=.1)
+        self.assertIsNone(alignment(ring[:20], ring))
+        ring[0, 0] = np.nan
+        self.assertIsNone(alignment(ring, ring))

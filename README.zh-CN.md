@@ -44,6 +44,14 @@ Ruin Everything 是 **浏览器 Agent 的本地 Chrome 运行时**。用人话�
 
 <img src="docs/figures/upload.svg" alt="本地文件交给指定的文件输入框或拖放区，提交前核对网站显示的附件。" width="100%">
 
+### 本地滑块与旋转匹配
+
+图 A 展示确定性的本地匹配：ddddocr/OpenCV 定位横向缺口，NumPy 比较圆形接缝的 RGB 与角向梯度。原图坐标按比例换算为 CSS 像素，旋转按滑轨实测响应校准。飞书旋转结构优先于普通拼图识别，并支持 `/campus/login`。图 B 展示 15–25 步缓出轨迹、小幅 Y 轴抖动和释放前 150–250 ms 停顿。合成图片需有可分离的匹配轮廓；歧义图片和无参考的单图保持待处理，不再让视觉模型猜距离。图 C 对应蔚来飞书页面实测：出现短信重发倒计时，确认短信请求成功；登录与申请提交需另行确认。
+
+验证状态：本次补丁的隔离副本通过 18 项算法及 Chrome 页面测试。工作区原有的重试次数改动（8 次，与旧测试预期的 3 次不同）不包含在本次补丁中。
+
+<img src="docs/figures/local-puzzles.svg" alt="Local gap and circular seam matching, measured pointer movement, and site SMS confirmation." width="100%">
+
 <a id="quickstart"></a>
 <a id="use-a-shared-local-chrome-window"></a>
 

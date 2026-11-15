@@ -44,6 +44,14 @@ Llama a `ruin_browser(operation="upload")` o a su alias `set_files` con la URL e
 
 <img src="docs/figures/upload.svg" alt="El archivo local llega al campo o a la zona de arrastre seleccionados. El sitio muestra el adjunto antes del envío." width="100%">
 
+### Coincidencia local de piezas y rotación
+
+La figura A muestra la coincidencia local determinista: ddddocr/OpenCV localiza el hueco horizontal y NumPy compara RGB y gradientes angulares en la unión circular. Las coordenadas se escalan a píxeles CSS y la rotación se calibra con la respuesta real del control. La detección de rotación de Feishu precede a la de piezas genéricas e incluye `/campus/login`. La figura B muestra 15–25 movimientos con desaceleración, pequeñas variaciones de Y y una pausa de 150–250 ms antes de soltar. Las imágenes compuestas requieren contornos distinguibles; las ambiguas o sin referencia quedan pendientes, sin estimaciones de distancia de modelos visuales. La figura C refleja la prueba real en NIO Feishu: apareció el contador de reenvío de SMS. El inicio de sesión y el envío de solicitudes se verifican por separado.
+
+Validación: 18 pruebas de algoritmos y páginas de prueba en Chrome verifican la copia aislada del parche. El cambio previo del árbol de trabajo de 3 a 8 intentos queda fuera de este parche.
+
+<img src="docs/figures/local-puzzles.svg" alt="Local gap and circular seam matching, measured pointer movement, and site SMS confirmation." width="100%">
+
 <a id="quickstart"></a>
 <a id="use-a-shared-local-chrome-window"></a>
 

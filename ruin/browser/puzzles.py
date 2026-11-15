@@ -151,24 +151,14 @@ async def match_distance(widget):
     return board_box["x"] + intrinsic * scale - piece_box["x"]
 
 
-async def visual_points(board):
-    instruction = (
-        "Find the movable piece and its matching gap. Return their center X positions "
-        "and the piece center Y position as fractions of the image dimensions. "
-        "Set all to zero if uncertain."
-    )
-    keys = ("piece", "hole", "y")
-    schema = {"type": "object", "properties": {k: {"type": "number"} for k in keys}, "required": list(keys)}
+async def local_points(board):
+    from .puzzle_images import composite_points
+
     original = await board.screenshot(timeout=2500)
-    answer = await asyncio.to_thread(visual_answer, original, instruction, schema)
+    points = await asyncio.to_thread(composite_points, original)
     if original != await board.screenshot(timeout=2500):
         return None
-    if (
-        all(isinstance(answer.get(k), (float, int)) and 0 < answer[k] < 1 for k in keys)
-        and answer["hole"] > answer["piece"]
-    ):
-        return answer
-    return None
+    return points
 
 
 async def drag(page, widget, site):
@@ -181,7 +171,7 @@ async def drag(page, widget, site):
     if not button or not rail:
         return False
     if widget.kind == "canvas_drag":
-        points = await visual_points(knob)
+        points = await local_points(knob)
         if not points:
             return False
         x = button["x"] + points["piece"] * button["width"]
@@ -210,7 +200,7 @@ async def drag(page, widget, site):
             return False
         distance = delta * travel / remaining
     elif widget.kind == "visual_slider":
-        points = await visual_points(parts["board"])
+        points = await local_points(parts["board"])
         if not points:
             return False
         box = await parts["board"].bounding_box()
@@ -225,7 +215,7 @@ async def drag(page, widget, site):
         # Sample the rendered piece after animation frames. Some rails have non-linear end padding.
         if piece:
             distance = position
-            for _ in range(3):
+            for _ in range(8):
                 await widget.frame.evaluate(
                     "() => new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))"
                 )
@@ -244,26 +234,34 @@ async def drag(page, widget, site):
     return await drag_path(page, site, x, y, distance, travel, correct)
 
 
+async def move_drag(page, site, x, y, start, end, *, steps=20):
+    """Move a held pointer with an ease-out path in CSS viewport coordinates."""
+    for step in range(1, steps + 1):
+        if page.url != site:
+            return False
+        t = step / steps
+        progress = 1 - (1 - t) ** 3
+        jitter = random.uniform(-1.5, 1.5) * math.sin(math.pi * t)
+        await page.mouse.move(x + start + (end - start) * progress, y + jitter)
+        await asyncio.sleep(random.uniform(0.009, 0.017))
+    return True
+
+
 async def drag_path(page, site, x, y, distance, travel, correct=None):
-    if page.url != site:
+    if page.url != site or not all(math.isfinite(v) for v in (distance, travel)):
+        return False
+    if not 0 <= distance <= travel + 2:
         return False
     distance = min(distance, travel)
-    peak = min(travel, distance + random.uniform(3, 5))
     await page.mouse.move(x, y)
     await page.mouse.down()
     try:
-        for step in range(1, 30):
-            if page.url != site:
-                return False
-            t = step / 29
-            progress = t * t / 0.7 if t < 0.7 else 1 - (1 - t) ** 2 / 0.3
-            await page.mouse.move(x + peak * progress, y + math.sin(math.pi * t) * random.uniform(-1.2, 1.2))
-            await asyncio.sleep(random.uniform(0.009, 0.017))
-        await asyncio.sleep(0.12)
-        if page.url != site:
+        if not await move_drag(page, site, x, y, 0, distance, steps=random.randint(15, 25)):
             return False
-        await page.mouse.move(x + distance, y, steps=4)
-        return await correct(distance) if correct else True
+        if correct and not await correct(distance):
+            return False
+        await asyncio.sleep(random.uniform(0.15, 0.25))
+        return page.url == site
     finally:
         await page.mouse.up()
 

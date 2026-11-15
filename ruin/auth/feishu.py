@@ -1,10 +1,12 @@
 """Complete a visible rotation puzzle on the selected Feishu Jobs login tab."""
 
+import asyncio
 import math
+import random
 import re
-from statistics import fmean, pstdev
 from urllib.parse import urlsplit
 
+import numpy as np
 from filelock import FileLock, Timeout as LockBusy
 from ruin.browser.driver import Error, TimeoutError as BrowserTimeout
 
@@ -58,29 +60,35 @@ ANGLES = """images => images.map(img => {
 
 def alignment(inner, outer):
     """Clockwise degrees to bring the inner edge into register with the outer."""
-    def normalized(ring):
-        channels = list(zip(*ring))
-        means = [fmean(channel) for channel in channels]
-        scales = [max(8, pstdev(channel)) for channel in channels]
-        return [tuple((value - mean) / scale for value, mean, scale in zip(pixel, means, scales))
-                for pixel in ring]
-
-    inside, outside = normalized(inner), normalized(outer)
-    scores = []
-    for angle in range(360):
-        rotated = inside[-angle:] + inside[:-angle]
-        error = sum(abs(r - s) + abs(g - t) + abs(b - u)
-                    for (r, g, b), (s, t, u) in zip(rotated, outside))
-        scores.append(error)
-    best = min(range(360), key=scores.__getitem__)
-    # Require a distinct match beyond the immediate neighborhood of the minimum.
+    inside, outside = (np.asarray(ring, dtype=np.float64) for ring in (inner, outer))
+    if (inside.shape != (360, 3) or outside.shape != inside.shape
+            or not np.isfinite(inside).all() or not np.isfinite(outside).all()):
+        return None
+    if min(inside.std(axis=0).max(), outside.std(axis=0).max()) < 2:
+        return None
+    inside, outside = [(a - a.mean(axis=0)) / np.maximum(8, a.std(axis=0))
+                       for a in (inside, outside)]
+    # Polar RGB continuity plus angular gradients; no image model is involved.
+    gradients = [np.roll(a, -2, axis=0) - np.roll(a, 2, axis=0) for a in (inside, outside)]
+    scores = np.array([
+        np.abs(np.roll(inside, angle, axis=0) - outside).mean()
+        + 0.25 * np.abs(np.roll(gradients[0], angle, axis=0) - gradients[1]).mean()
+        for angle in range(360)
+    ])
+    best = int(scores.argmin())
     alternative = min(scores[(best + delta) % 360] for delta in range(12, 349))
     if alternative <= scores[best] * 1.08:
         return None
-    return best
+    # Refine the circular minimum to sub-degree precision.
+    left, center, right = scores[(best - 1) % 360], scores[best], scores[(best + 1) % 360]
+    curvature = left - 2 * center + right
+    offset = np.clip(0.5 * (left - right) / curvature, -0.5, 0.5) if curvature > 0 else 0
+    return float((best + offset) % 360)
 
 
 async def rotate(page, widget, site):
+    from ruin.browser.puzzles import move_drag
+
     images = widget.locator("img.whirl-img-inner-base, img.whirl-img-outer-base")
     rings = await images.evaluate_all(RINGS)
     if not rings or not all(rings):
@@ -105,7 +113,9 @@ async def rotate(page, widget, site):
     await page.mouse.move(x, y)
     await page.mouse.down()
     try:
-        await page.mouse.move(x + probe, y, steps=6)
+        if not await move_drag(page, site, x, y, 0, probe, steps=5):
+            return False
+        await widget.evaluate("() => new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))")
         after = await images.evaluate_all(ANGLES)
         rate = ((after - before + 180) % 360 - 180) / probe
         if abs(rate) < 0.1 or page.url != site:
@@ -113,8 +123,11 @@ async def rotate(page, widget, site):
         distance = ((target - before) * math.copysign(1, rate)) % 360 / abs(rate)
         if distance > travel + 1:
             return False
-        await page.mouse.move(x + min(distance, travel), y, steps=20)
-        return True
+        ratio = min(1.0, max(0.0, distance / travel))
+        if not await move_drag(page, site, x, y, probe, ratio * travel, steps=18):
+            return False
+        await asyncio.sleep(random.uniform(0.15, 0.25))
+        return page.url == site
     finally:
         await page.mouse.up()
 
@@ -122,7 +135,7 @@ async def rotate(page, widget, site):
 async def feishu_slider(page, site, profile):
     url = urlsplit(site)
     if (url.scheme != "https" or not re.fullmatch(r"[a-z0-9-]+\.jobs\.feishu\.cn", url.netloc)
-            or not re.fullmatch(r"/\d+/login/?", url.path) or page.url != site):
+            or not re.fullmatch(r"/(?:\d+|campus|social)/login/?", url.path) or page.url != site):
         return None
     countdown = page.get_by_role("button", name=SMS_COUNTDOWN)
     if await countdown.is_visible():
