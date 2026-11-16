@@ -60,7 +60,8 @@
         // sprite. The transparent item_img can extend over the footer.
         for (const scope of root.querySelectorAll('.geetest_panel, .geetest_panel_box')) {
             if (!visible(scope)) continue;
-            const find = selector => [...scope.querySelectorAll(selector)].find(visible);
+            const partVisible = e => visible(e) || (rect(e).width >= 2 && rect(e).height >= 2 && e.checkVisibility({opacityProperty:true, visibilityProperty:true}));
+            const find = selector => [...scope.querySelectorAll(selector)].find(partVisible);
             const wrap = find('.geetest_item_wrap');
             const tip = find('.geetest_tip_img');
             if (!wrap && !tip && !/select in this order|按顺序|依次点击/i.test(scope.innerText || '')) continue;

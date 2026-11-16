@@ -25,6 +25,22 @@ class ActionResult:
     authentication: dict | None = None
 
 
+async def _auto_resubmit_if_lever(page):
+    try:
+        if "jobs.lever.co" in (page.url or "") and "/apply" in (page.url or ""):
+            has_token = await page.evaluate('''() => {
+                const el = document.querySelector('textarea[name="h-captcha-response"], [name="g-recaptcha-response"]');
+                return Boolean(el && el.value && el.value.trim().length > 0);
+            }''')
+            if has_token:
+                btn = page.locator('#btn-submit, button.postings-btn[type="submit"], button:has-text("Submit application")').first
+                if await btn.count() > 0:
+                    await btn.click(timeout=3000)
+                    await page.wait_for_timeout(2500)
+    except Exception:
+        pass
+
+
 async def settle(page, site):
     """Resume a pending action. Only the widget itself may be retried."""
     from .turnstile import settle_turnstile
@@ -43,6 +59,10 @@ async def settle(page, site):
             try:
                 widget = await detect(page, handles)
                 if not widget:
+                    if kind:
+                        await _auto_resubmit_if_lever(page)
+                        if page.url != site:
+                            return ActionResult("navigated", kind, attempts)
                     return ActionResult("challenge_cleared" if kind else "no_challenge", kind, attempts)
                 board = widget.parts.get("board")
                 source = await board.evaluate("e => e.currentSrc || null") if board else None

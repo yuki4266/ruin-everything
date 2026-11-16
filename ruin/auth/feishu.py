@@ -77,7 +77,7 @@ def alignment(inner, outer):
     ])
     best = int(scores.argmin())
     alternative = min(scores[(best + delta) % 360] for delta in range(12, 349))
-    if alternative <= scores[best] * 1.08:
+    if alternative <= scores[best] * 1.03:
         return None
     # Refine the circular minimum to sub-degree precision.
     left, center, right = scores[(best - 1) % 360], scores[best], scores[(best + 1) % 360]
