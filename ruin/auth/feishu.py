@@ -86,11 +86,53 @@ def alignment(inner, outer):
     return float((best + offset) % 360)
 
 
+async def _extract_rings_fallback(widget, images):
+    from io import BytesIO
+    from PIL import Image
+    from ruin.browser.puzzles import image_bytes
+    try:
+        handles = await images.element_handles()
+        if len(handles) != 2:
+            return None
+        meta = await images.evaluate_all('''imgs => imgs.map(i => ({
+            isInner: i.matches('.whirl-img-inner-base'),
+            src: i.currentSrc || i.src || '',
+            cw: i.clientWidth || 150
+        }))''')
+        inner_idx = 0 if meta[0]['isInner'] else 1
+        outer_idx = 1 - inner_idx
+        inner_cw = meta[inner_idx]['cw']
+        frame = await handles[0].owner_frame()
+        rings = []
+        for idx, is_inner in [(inner_idx, True), (outer_idx, False)]:
+            raw = await image_bytes(frame, handles[idx], meta[idx]['src'])
+            if not raw:
+                raw = await handles[idx].screenshot(type="png", timeout=2000)
+            with Image.open(BytesIO(raw)).convert("RGB") as im:
+                size = int(inner_cw if is_inner else meta[idx]['cw']) or im.width
+                im = im.resize((size, size), Image.Resampling.BILINEAR)
+                arr = np.asarray(im, dtype=np.float64)
+                radius = (inner_cw / 2.0) * (0.92 if is_inner else 1.03)
+                ring = []
+                for degree in range(360):
+                    a = degree * math.pi / 180.0
+                    x = min(size - 1, max(0, int(math.floor(size / 2.0 + radius * math.cos(a)))))
+                    y = min(size - 1, max(0, int(math.floor(size / 2.0 + radius * math.sin(a)))))
+                    ring.append(arr[y, x].tolist())
+                rings.append(ring)
+        return rings
+    except Exception as e:
+        print("[feishu fallback error]:", e)
+        return None
+
+
 async def rotate(page, widget, site):
     from ruin.browser.puzzles import move_drag
 
     images = widget.locator("img.whirl-img-inner-base, img.whirl-img-outer-base")
     rings = await images.evaluate_all(RINGS)
+    if not rings or not all(rings):
+        rings = await _extract_rings_fallback(widget, images)
     if not rings or not all(rings):
         return False
     target = alignment(*rings)
@@ -135,7 +177,7 @@ async def rotate(page, widget, site):
 async def feishu_slider(page, site, profile):
     url = urlsplit(site)
     if (url.scheme != "https" or not re.fullmatch(r"[a-z0-9-]+\.jobs\.feishu\.cn", url.netloc)
-            or not re.fullmatch(r"/(?:\d+|campus|social)/login/?", url.path) or page.url != site):
+            or not re.fullmatch(r"/(?:referral/)?(?:\d+|campus|social)/login/?", url.path) or page.url != site):
         return None
     countdown = page.get_by_role("button", name=SMS_COUNTDOWN)
     if await countdown.is_visible():
